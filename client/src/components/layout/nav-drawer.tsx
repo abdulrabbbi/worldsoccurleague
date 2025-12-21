@@ -11,10 +11,12 @@ const continents = [
 ];
 
 const moreSports = [
-  // Baseball
-  { id: "mlb", name: "MLB", icon: "⚾" },
-  // Basketball
+  // Top 4 Major Leagues
+  { id: "nfl", name: "NFL", icon: "🏈" },
   { id: "nba", name: "NBA", icon: "🏀" },
+  { id: "mlb", name: "MLB", icon: "⚾" },
+  { id: "nhl", name: "NHL", icon: "🏒" },
+  // Basketball
   { id: "ncaa-mens-basketball", name: "NCAA Men's Basketball", icon: "🏀" },
   { id: "ncaa-womens-basketball", name: "NCAA Women's Basketball", icon: "🏀" },
   { id: "wnba", name: "WNBA", icon: "🏀" },
@@ -23,7 +25,6 @@ const moreSports = [
   { id: "pfl", name: "Professional Fighters League", icon: "🥊" },
   { id: "wwe", name: "WWE", icon: "🤼" },
   // Football
-  { id: "nfl", name: "NFL", icon: "🏈" },
   { id: "ncaa-football", name: "NCAA Football", icon: "🏈" },
   { id: "ufl", name: "UFL", icon: "🏈" },
   // Golf
@@ -32,8 +33,6 @@ const moreSports = [
   { id: "lpga-tour", name: "LPGA Tour", icon: "⛳" },
   { id: "pga-tour", name: "PGA Tour", icon: "⛳" },
   { id: "tgl", name: "TGL", icon: "⛳" },
-  // Hockey
-  { id: "nhl", name: "NHL", icon: "🏒" },
   // Lacrosse
   { id: "nll", name: "National Lacrosse League", icon: "🥍" },
   { id: "pll", name: "Premier Lacrosse League", icon: "🥍" },
