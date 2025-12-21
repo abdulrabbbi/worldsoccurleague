@@ -14,12 +14,25 @@ const continents = [
   { id: "aussie", name: "Aussie Soccer Leagues", flag: "🇦🇺" },
 ];
 
+const categories = [
+  { id: "national-teams", name: "National Teams", icon: "🏆" },
+  { id: "professional", name: "Professional Soccer", icon: "⚽" },
+  { id: "college", name: "College Soccer", icon: "🎓" },
+  { id: "high-school", name: "High School Soccer", icon: "🏫" },
+  { id: "youth", name: "Youth Soccer", icon: "👦" },
+  { id: "sanctioned", name: "Sanctioned Leagues", icon: "✅" },
+  { id: "pickup", name: "Pickup Soccer", icon: "🤝" },
+  { id: "fan-clubs", name: "Fan Clubs", icon: "📣" },
+];
+
 export default function Home() {
   const matches = api.getMatches();
   const liveMatches = matches.filter(m => m.status === "LIVE");
   const upcomingMatches = matches.filter(m => m.status !== "LIVE");
   const [selectedContinent, setSelectedContinent] = useState(continents[0]);
+  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
   return (
     <AppShell>
@@ -54,6 +67,42 @@ export default function Home() {
                 >
                   <span className="text-2xl">{continent.flag}</span>
                   <span className="font-medium text-gray-700">{continent.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Category Dropdown - shows for selected continent */}
+        <div className="relative mt-3">
+          <button
+            onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors"
+            data-testid="button-category-dropdown"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">{selectedCategory.icon}</span>
+              <span className="font-semibold text-[#1a2d5c]">{selectedCategory.name}</span>
+            </div>
+            <ChevronDown size={20} className={`text-gray-400 transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+          
+          {isCategoryDropdownOpen && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden max-h-80 overflow-y-auto">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    setIsCategoryDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
+                    selectedCategory.id === category.id ? 'bg-gray-50' : ''
+                  }`}
+                  data-testid={`button-category-${category.id}`}
+                >
+                  <span className="text-xl">{category.icon}</span>
+                  <span className="font-medium text-gray-700">{category.name}</span>
                 </button>
               ))}
             </div>
