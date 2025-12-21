@@ -31,7 +31,7 @@ export default function Landing() {
               World Soccer Leagues
             </h1>
             <p className="text-white/80 text-sm leading-relaxed">
-              Your gateway to global soccer - from professional leagues to grassroots pickup games. Follow your favorite teams, discover local matches, and connect with fans worldwide.
+              Welcome to World Soccer Leagues — the first platform of its kind built to unite the entire soccer world in one community. From global leagues and professional clubs to local teams and pickup games, we bring players, fans, and communities together in one place. Discover matches, follow your teams, connect with supporters, and be part of a worldwide soccer network designed for everyone who lives the game, on and off the pitch.
             </p>
           </div>
 
