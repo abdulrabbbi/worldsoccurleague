@@ -1,0 +1,155 @@
+1) What I’m building
+
+I’m building World Soccer Leagues, a web app (mobile-first) that acts like a “soccer version of ESPN + Kicker.de,” but organized globally and designed to scale into a full platform.
+
+The app must let users browse soccer in a single continuous hierarchy:
+
+World → Continent/Region → Country → League/Competition → Club/Team → Player → Match/Stats
+
+The UI should be clean, fast, and highly familiar to soccer fans. It must support real-time match info, standings, squads, player profiles, and match stats from a professional soccer API, plus lower-level soccer data (college, high school, youth, sanctioned leagues, pickup) from my own Grassroots API.
+
+⸻
+
+2) Core rule (very important)
+
+No teams, players, schools, leagues, or stats should ever be hardcoded or manually typed into the UI.
+All lists, profiles, standings, schedules, etc. must be empty placeholders/components that populate dynamically from APIs.
+	•	Pro / worldwide data: SportMonks API (or equivalent provider)
+	•	Lower tiers (US grassroots + future global grassroots): My Grassroots API (custom database + admin/data contributor tools)
+
+⸻
+
+3) Primary navigation & UX (mobile-first)
+
+Top bar should include:
+	•	Search
+	•	Profile
+	•	Notifications
+	•	Settings
+
+Bottom navigation should include:
+	•	Home
+	•	Standings
+	•	Community
+	•	Chatbot
+	•	Menu (All Leagues / Browse)
+
+The browsing experience should feel like:
+	•	Kicker.de for browsing leagues/teams/players
+	•	ESPN style for user profile setup and favorites
+
+⸻
+
+4) Key features (MVP)
+
+A) Browse & Discovery
+	•	Browse by World/Continent/Country/League
+	•	League pages: standings, fixtures, results, top scorers, discipline (if API supports)
+	•	Team pages: squad, fixtures/results, table position, basic stats
+	•	Player pages: bio, club, appearances/goals/assists (as supported by API)
+	•	Match pages: live score, events timeline, lineups, stats (as available)
+
+B) Search
+Global search that can search across:
+	•	Countries
+	•	Leagues
+	•	Teams
+	•	Players
+Search results should be grouped and clickable.
+
+C) Favorites & Personalization
+Users can favorite:
+	•	Countries
+	•	Leagues
+	•	Teams
+	•	Players
+
+Home feed should prioritize:
+	•	Favorited teams’ matches
+	•	Current competitions the user follows
+	•	“Today’s matches” view
+
+⸻
+
+5) USA Soccer Leagues “layer” inside World Soccer Leagues
+
+Under World → select USA Soccer Leagues, the user should be able to browse:
+
+National Teams → Professional → Semi-Pro → Amateur → College → High School → Youth → Sanctioned Leagues → Pickup Soccer
+
+From College downward, location becomes critical:
+State → City → League/School/Club → Team
+
+This lower tier is mostly powered by Grassroots API, not SportMonks.
+
+⸻
+
+6) Data architecture (high-level)
+
+The system must support multiple data sources cleanly:
+	•	Provider API (SportMonks): pro leagues, clubs, players, matches, standings
+	•	Grassroots API (custom): US lower-tier + local leagues + pickup soccer + fan clubs/bars later
+
+The app should normalize into common objects:
+	•	Country
+	•	Competition/League
+	•	Team
+	•	Player
+	•	Match
+	•	Venue (optional)
+	•	Standings row
+	•	Stats payload (per match/team/player)
+
+Use IDs and mapping so the UI can display content consistently even if different sources power different tiers.
+
+⸻
+
+7) Admin + Data Contributor system (required)
+
+I need a system that allows verified contributors (leagues/schools/clubs) to input and maintain data for grassroots tiers.
+
+Roles:
+	•	Super Admin
+	•	Verified Data Contributor (paid in future)
+	•	Read-only / user
+
+Contributor capabilities (Grassroots):
+	•	Create leagues/competitions
+	•	Add teams/clubs/schools
+	•	Add rosters/players (basic)
+	•	Add fixtures/results
+	•	Add locations (state/city)
+	•	Moderate/verify updates
+
+This should not be “everything through one admin panel only.” It must be structured so contributors can maintain their own data safely.
+
+⸻
+
+8) Community, Marketplace, Ads (Phase 2 hooks)
+
+I want the architecture to be ready for plug-ins / integrations:
+	•	Community (BetterMode or similar)
+	•	Marketplace (Facebook Marketplace style)
+	•	Banner ads with regional targeting (Ad platform integration)
+
+Even if these aren’t built in MVP, the app should be designed so these modules can be added cleanly.
+
+⸻
+
+9) Tech expectations for Replit build
+	•	Build as a modern web app (responsive / mobile-first)
+	•	Clean routing for pages: /world, /continent, /country, /league, /team, /player, /match
+	•	API-first data fetching with caching where helpful
+	•	Auth for user accounts (favorites, profile)
+	•	Basic analytics hooks (events like favorite added, match viewed)
+
+⸻
+
+10) Success criteria
+
+The MVP is successful if:
+	1.	The hierarchy navigation is correct and intuitive
+	2.	The UI loads real data entirely from APIs (no manual hardcoding)
+	3.	Users can search and favorite teams/leagues/players
+	4.	USA lower tiers can be powered by Grassroots API with state/city browsing
+	5.	The foundation is clean enough to scale into community + marketplace + ads
