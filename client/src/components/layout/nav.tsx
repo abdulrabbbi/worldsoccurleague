@@ -6,8 +6,8 @@ export function BottomNav() {
   const [location] = useLocation();
 
   const navItems = [
-    { icon: Home, label: "Home", path: "/" },
-    { icon: Trophy, label: "Leagues", path: "/leagues" },
+    { icon: Home, label: "Home", path: "/home" },
+    { icon: Trophy, label: "Leagues", path: "/explore" },
     { icon: Globe, label: "Explore", path: "/explore" },
     { icon: Users, label: "Community", path: "/community" },
     { icon: Menu, label: "Menu", path: "/menu" },
