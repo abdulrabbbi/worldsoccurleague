@@ -1,0 +1,188 @@
+You are my senior backend architect + product engineer. I need you to design (NOT fully implement) a “Grassroots API” that functions like SportMonks, but for ALL lower-level U.S. soccer + fan club data, and it must populate the UI automatically. Output must be implementation-ready and extremely detailed.
+
+GOAL:
+Create a Grassroots API architecture that mirrors how SportMonks populates pro leagues, but for:
+- College soccer (all divisions) with location search State -> City
+- High school soccer by State -> City -> School
+- Youth soccer clubs/leagues/teams by State -> City
+- Adult sanctioned leagues/teams by State -> City
+- Pickup soccer (events/groups) by State -> City
+- Fan clubs/supporter groups by State -> City (including pubs/bars/meeting spots, match watch events)
+Include ability to connect to/ingest from external systems like TeamPass (and similar platforms) to retrieve rosters, schedules, standings, payments/registration links, and more where available.
+
+IMPORTANT UI HIERARCHY (already built in front end; your design must populate it):
+USA Soccer Leagues
+- National
+  - Men
+  - Women
+- Professional Soccer (all leagues) [handled by SportMonks]
+- College Soccer (all divisions; location lookup)
+- High School (location)
+- Youth Soccer (location)
+- Adult Soccer (location)
+- Pick-Up Soccer (location)
+- Fan Clubs (location)
+
+CRITICAL REQUIREMENT:
+Grassroots must not only support standings/teams/schedules. It must support “content” and “operations” too — like a full league portal.
+
+CONTENT & OPERATIONS FEATURES TO SUPPORT (MUST BE IN SCHEMA + TEMPLATES + ENDPOINTS):
+For College/High School/Youth/Adult Sanctioned Leagues:
+- News posts / announcements (title/body/date/tags/attachments)
+- Match reports / recaps
+- Club/league communications (email/social links; push notification feed references)
+- Events calendar (tryouts, tournaments, trainings, camps, meetings, fundraisers)
+- Tournaments (brackets, groups, rules, entry fees, registration link)
+- Registrations (registration link, deadlines, pricing ranges; do NOT store card data)
+- Team info (roster, coaches, contacts, uniforms/colors, logos, sponsor info)
+- League rules & documents (PDF links: rules, waivers, handbooks)
+- Venues/fields (address, geo coords, parking notes, lighting, surface, field count)
+- Discipline (optional): cards/suspensions/notes (for sanctioned leagues)
+- Stats (optional/light): goals, assists, clean sheets at league/team/player levels
+- Media: photos/videos links; streaming links (if available)
+- Recruiting/Tryouts (college + youth): dates, eligibility, contact, forms
+- Affiliations: sanctioned body (USSF/USYS/UPS, state associations, school district, conference)
+- Sponsors/partners (name/logo/url)
+
+For Pickup Soccer:
+- Keep lightweight but include:
+  - Organizer, location, recurring schedule, skill level, cost (free/$), rules, RSVP/capacity, chat link, last-updated, safety guidelines.
+
+For Fan Clubs:
+- Supporters group profile + supported teams/countries
+- Meeting spots (pub/bar) with address + geo coords + schedule
+- Match watch events (date/time/opponent/competition/location)
+- Membership info (optional), socials, contact, photos, recurring meetups
+
+WHAT I NEED FROM YOU (deliverables):
+1) DATA MODEL / SCHEMA (tables or collections)
+   - Provide entities and relationships for:
+     - Country, State, City
+     - Organizations (schools, clubs, leagues, associations)
+     - Competitions (leagues, conferences, divisions)
+     - Seasons
+     - Teams
+     - Players (optional but include)
+     - Staff/coaches
+     - Venues/fields
+     - Matches
+     - Schedules
+     - Standings
+     - Rosters
+     - Stats (lightweight)
+     - News/Posts/Announcements
+     - Match Reports/Recaps
+     - Documents/Files (store URLs + metadata)
+     - Events (tryouts, tournaments, trainings, meetings)
+     - Tournaments (structure + links)
+     - Registration links + fees metadata
+     - Sponsors/Partners
+     - External links (web, socials, streaming)
+     - Data sources + provenance (manual, verified partner, TeamPass ingestion, etc.)
+     - Verification flags + audit trails
+   - Include required vs optional fields
+   - Include unique IDs + slugs
+   - Include indexing strategy for fast State/City and Team/League search
+
+2) “TEMPLATE-STYLE” DATA INPUT SYSTEM + PERMISSIONS
+   We must allow contributors to input ONLY their scope (e.g., one college, one league, one high school, one youth club) via templates without giving access to everything.
+   - Define roles:
+     - Super Admin
+     - Regional Admin (state-level)
+     - Verified Partner Org (league/school/club)
+     - Team Manager/Captain
+     - Fan Club Organizer
+     - Pickup Organizer
+     - Public user submission (unverified)
+   - Define permission matrix + workflows.
+   - Create Templates for each category with REQUIRED fields (and optional blocks):
+     A) College Template (division/conference; school; teams; staff; venue; schedule; roster; news; events; docs; tryouts; recruiting; streaming links)
+     B) High School Template (school/district; teams; season; schedule; roster; venue; news; events; docs; tryouts)
+     C) Youth Club/League Template (club; teams; age groups; coaches; schedule; tournaments; registration; sponsors; news; events; docs)
+     D) Adult Sanctioned League Template (league; divisions; teams; schedule; standings; discipline; registration; rules/docs; news; events; sponsors)
+     E) Pickup Template (location; recurring sessions; organizer; RSVP/capacity; cost; chat link; last updated)
+     F) Fan Club Template (supported team/country; meeting spots; watch parties; contact; socials; photos; membership info)
+   - Each template must include:
+     - Required fields
+     - Validation rules
+     - Form section layout suggestion
+     - Example JSON payload
+
+3) API ENDPOINT SPEC (REST)
+   Provide endpoint list with example requests/responses and pagination.
+   Must include:
+   - Location: /states, /cities?state=SC
+   - Browse by hierarchy:
+     /college/teams?state=SC&city=Charleston
+     /highschool/schools?state=SC&city=...
+     /youth/clubs?state=SC&city=...
+     /adult/leagues?state=SC&city=...
+     /pickup/events?state=SC&city=...&date=...
+     /fanclubs?state=SC&city=...&supportedTeamId=... OR supportedCountry=...
+   - Entity detail:
+     /teams/{id}, /leagues/{id}, /schools/{id}, /venues/{id}
+   - Schedule/standings:
+     /teams/{id}/matches, /leagues/{id}/standings, /leagues/{id}/schedule
+   - Content:
+     /leagues/{id}/news, /teams/{id}/news, /schools/{id}/news
+     /events?orgId=... , /documents?orgId=...
+   - Submissions + moderation:
+     /submissions (create), /submissions/{id}, /submissions/{id}/approve, /submissions/{id}/reject
+     /verification/requests, /verification/{id}/approve
+   - Media URL management endpoints (store URLs + metadata; no binary hosting)
+   - Rate limiting + caching guidance
+
+4) VERIFICATION + QUALITY CONTROL
+   - Tiers: Unverified, Community Verified, Partner Verified, Admin Verified
+   - Review workflow, change tracking, conflict resolution, data freshness fields.
+
+5) INTEGRATION / INGESTION FROM EXTERNAL SYSTEMS (TeamPass etc.)
+   MUST include 3 methods:
+   A) Official API integration (preferred)
+   B) Export ingestion (CSV/JSON upload)
+   C) Semi-automated scrape/parse ONLY if legal/allowed; mark as optional
+   For TeamPass specifically:
+   - Define “ExternalSourceConnector” pattern
+   - Map TeamPass -> our schema:
+     players/registrations -> roster
+     events -> matches/schedules
+     standings -> standings
+     teams -> teams
+     venues -> venues
+     posts/announcements -> news (if exists)
+     registration links/fees -> registration metadata
+   - Sync strategy: webhook if available, else scheduled pulls
+   - De-duplication strategy
+   - Error handling + logs + retry strategy
+
+6) ADMIN PANEL BACKEND REQUIREMENTS
+   - Contributor management + scoped access
+   - Template assignment per org
+   - Approval queue (submissions/news/events/docs)
+   - Edit history + rollback
+   - Data export per org/state
+   - Moderation tools
+   - Partner onboarding checklist
+
+7) OUTPUT FORMAT REQUIREMENTS
+   Produce answer in this exact structure:
+   A) Architecture Overview (1 page)
+   B) Data Model (tables/collections + relationships)
+   C) Templates (A-F) with required fields + example JSON
+   D) API Endpoints with example responses
+   E) Verification workflow
+   F) Integration plan (TeamPass connector pattern)
+   G) Admin panel backend requirements
+   H) Implementation notes (stack-agnostic; include Postgres option + NoSQL option)
+
+DO NOT:
+- Do not generate huge production code.
+- Do not build UI.
+- Do not assume professional leagues come from Grassroots API.
+
+DO:
+- Make it scalable to all 50 states.
+- Make State/City search fast.
+- Make it simple to onboard one college/high school/youth club/league with minimal friction.
+- Ensure fan clubs can attach to supported teams/countries for World Cup discovery.
+Start now.
