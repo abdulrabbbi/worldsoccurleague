@@ -2,24 +2,51 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { Eye, EyeOff, Mail, Phone, User } from "lucide-react";
 import logoUrl from "@assets/WSL_Tall_1766285125334.png";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SignUp() {
   const [, setLocation] = useLocation();
+  const { setUser } = useAuth();
+  const { toast } = useToast();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName || !email || !password) {
-      setError("Please fill in all fields");
+      toast({ 
+        title: "Error", 
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
       return;
     }
-    // Mock signup - go to OTP verification
-    setLocation("/auth/verify-code");
+
+    setLoading(true);
+    try {
+      const { user } = await api.auth.signup({ 
+        email, 
+        password, 
+        name: fullName 
+      });
+      setUser(user);
+      toast({ title: "Success", description: "Account created successfully!" });
+      setLocation("/auth/profile-setup/location");
+    } catch (error) {
+      toast({ 
+        title: "Signup failed", 
+        description: error instanceof Error ? error.message : "Could not create account",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -114,18 +141,14 @@ export default function SignUp() {
             </div>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="text-[#C1153D] text-sm font-medium text-center">{error}</div>
-          )}
-
           {/* Create Account Button */}
           <button
             type="submit"
-            className="w-full py-4 bg-[#1a2d5c] hover:bg-[#152347] text-white font-bold rounded-full transition-all duration-200 text-sm shadow-sm mt-4"
+            disabled={loading}
+            className="w-full py-4 bg-[#1a2d5c] hover:bg-[#152347] text-white font-bold rounded-full transition-all duration-200 text-sm shadow-sm mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="button-create-account"
           >
-            Create account
+            {loading ? "Creating account..." : "Create account"}
           </button>
         </form>
 

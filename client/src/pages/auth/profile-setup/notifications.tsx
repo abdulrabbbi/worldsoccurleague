@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Switch } from "@/components/ui/switch";
+import { useProfileSetup } from "@/lib/profile-setup-context";
+import { useAuth } from "@/lib/auth-context";
+import { api } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 export default function NotificationsSetup() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { preferences: setupPrefs } = useProfileSetup();
+  const [loading, setLoading] = useState(false);
   const [prefs, setPrefs] = useState({
     matchesNearMe: true,
     scoreUpdates: true,
@@ -11,8 +19,36 @@ export default function NotificationsSetup() {
     weeklyDigest: true,
   });
 
-  const handleComplete = () => {
-    setLocation("/home");
+  const handleComplete = async () => {
+    if (!user) {
+      toast({ title: "Error", description: "Please log in first", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.preferences.save({
+        userId: user.id,
+        locationEnabled: setupPrefs.locationEnabled,
+        selectedContinent: setupPrefs.selectedContinent,
+        favoriteLeagues: setupPrefs.selectedLeagues,
+        favoriteTeams: setupPrefs.selectedNationalTeam ? [setupPrefs.selectedNationalTeam] : [],
+        notificationsEnabled: prefs.matchesNearMe,
+        scoreUpdatesEnabled: prefs.scoreUpdates,
+        communityPollsEnabled: prefs.communityPolls,
+        weeklyDigestEnabled: prefs.weeklyDigest,
+      });
+      toast({ title: "Success", description: "Profile setup complete!" });
+      setLocation("/home");
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "Failed to save preferences", 
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,10 +114,11 @@ export default function NotificationsSetup() {
         {/* Confirm Button */}
         <button
           onClick={handleComplete}
-          className="w-full py-4 bg-[#1a2d5c] hover:bg-[#152347] text-white font-bold rounded-full transition-all duration-200 text-sm shadow-sm"
+          disabled={loading}
+          className="w-full py-4 bg-[#1a2d5c] hover:bg-[#152347] text-white font-bold rounded-full transition-all duration-200 text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           data-testid="button-complete"
         >
-          Confirm
+          {loading ? "Saving..." : "Confirm"}
         </button>
       </div>
     </div>

@@ -2,22 +2,45 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { Eye, EyeOff, Mail } from "lucide-react";
 import logoUrl from "@assets/WSL_Tall_1766285125334.png";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const { setUser } = useAuth();
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      setError("Please fill in all fields");
+      toast({ 
+        title: "Error", 
+        description: "Please fill in all fields",
+        variant: "destructive"
+      });
       return;
     }
-    // Mock login - go to profile setup
-    setLocation("/auth/profile-setup/location");
+
+    setLoading(true);
+    try {
+      const { user } = await api.auth.login(email, password);
+      setUser(user);
+      toast({ title: "Success", description: "Logged in successfully!" });
+      setLocation("/home");
+    } catch (error) {
+      toast({ 
+        title: "Login failed", 
+        description: error instanceof Error ? error.message : "Invalid credentials",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -86,18 +109,14 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="text-[#C1153D] text-sm font-medium text-center">{error}</div>
-          )}
-
           {/* Login Button */}
           <button
             type="submit"
-            className="w-full py-4 bg-[#1a2d5c] hover:bg-[#152347] text-white font-bold rounded-full transition-all duration-200 text-sm shadow-sm mt-4"
+            disabled={loading}
+            className="w-full py-4 bg-[#1a2d5c] hover:bg-[#152347] text-white font-bold rounded-full transition-all duration-200 text-sm shadow-sm mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="button-login"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
