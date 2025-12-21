@@ -11,33 +11,43 @@ const continents = [
 ];
 
 const moreSports = [
-  { id: "nfl", name: "NFL", icon: "🏈" },
-  { id: "ncaa-football", name: "NCAA Football", icon: "🏈" },
+  // Baseball
+  { id: "mlb", name: "MLB", icon: "⚾" },
+  // Basketball
   { id: "nba", name: "NBA", icon: "🏀" },
-  { id: "nhl", name: "NHL", icon: "🏒" },
   { id: "ncaa-mens-basketball", name: "NCAA Men's Basketball", icon: "🏀" },
   { id: "ncaa-womens-basketball", name: "NCAA Women's Basketball", icon: "🏀" },
-  { id: "mlb", name: "MLB", icon: "⚾" },
   { id: "wnba", name: "WNBA", icon: "🏀" },
+  // Fighting / Combat Sports
+  { id: "mma", name: "MMA", icon: "🥊" },
+  { id: "pfl", name: "Professional Fighters League", icon: "🥊" },
   { id: "wwe", name: "WWE", icon: "🤼" },
+  // Football
+  { id: "nfl", name: "NFL", icon: "🏈" },
+  { id: "ncaa-football", name: "NCAA Football", icon: "🏈" },
+  { id: "ufl", name: "UFL", icon: "🏈" },
+  // Golf
   { id: "golf", name: "Golf", icon: "⛳" },
-  { id: "pga-tour", name: "PGA Tour", icon: "⛳" },
-  { id: "lpga-tour", name: "LPGA Tour", icon: "⛳" },
   { id: "liv-golf", name: "LIV Golf", icon: "⛳" },
+  { id: "lpga-tour", name: "LPGA Tour", icon: "⛳" },
+  { id: "pga-tour", name: "PGA Tour", icon: "⛳" },
   { id: "tgl", name: "TGL", icon: "⛳" },
+  // Hockey
+  { id: "nhl", name: "NHL", icon: "🏒" },
+  // Lacrosse
+  { id: "nll", name: "National Lacrosse League", icon: "🥍" },
+  { id: "pll", name: "Premier Lacrosse League", icon: "🥍" },
+  // Racing
+  { id: "racing", name: "Racing", icon: "🏁" },
+  { id: "f1", name: "Formula One", icon: "🏎️" },
+  { id: "indycar", name: "IndyCar Series", icon: "🏎️" },
+  { id: "nascar", name: "NASCAR Cup Series", icon: "🏎️" },
+  // Tennis
   { id: "tennis", name: "Tennis", icon: "🎾" },
   { id: "mens-tennis", name: "Men's Tennis", icon: "🎾" },
   { id: "womens-tennis", name: "Women's Tennis", icon: "🎾" },
-  { id: "mma", name: "MMA", icon: "🥊" },
-  { id: "pfl", name: "Professional Fighters League", icon: "🥊" },
-  { id: "ufl", name: "UFL", icon: "🏈" },
+  // Volleyball
   { id: "ncaa-womens-volleyball", name: "NCAA Women's Volleyball", icon: "🏐" },
-  { id: "nll", name: "National Lacrosse League", icon: "🥍" },
-  { id: "pll", name: "Premier Lacrosse League", icon: "🥍" },
-  { id: "racing", name: "Racing", icon: "🏁" },
-  { id: "f1", name: "Formula One", icon: "🏎️" },
-  { id: "nascar", name: "NASCAR Cup Series", icon: "🏎️" },
-  { id: "indycar", name: "IndyCar Series", icon: "🏎️" },
 ];
 
 const categories = [
