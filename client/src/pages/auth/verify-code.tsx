@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { CheckCircle2 } from "lucide-react";
-import logoUrl from "@assets/generated_images/world_soccer_leagues_logo_with_globe.png";
+import logoUrl from "@assets/generated_images/wsl_soccer_player_silhouette_split_red-navy_logo.png";
 
 export default function VerifyCode() {
   const [, setLocation] = useLocation();
@@ -33,11 +33,11 @@ export default function VerifyCode() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-24 h-24 mb-4">
+          <div className="inline-flex items-center justify-center w-32 h-24 mb-6">
             <img src={logoUrl} alt="World Soccer Leagues" className="w-full h-full object-contain" data-testid="img-logo" />
           </div>
           <h1 className="text-2xl font-bold text-foreground mb-1">Verify with Code</h1>
