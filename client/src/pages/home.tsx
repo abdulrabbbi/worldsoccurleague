@@ -29,17 +29,17 @@ const categories = [
     name: "Professional Soccer", 
     icon: "⚽",
     subItems: [
-      { id: "mls", name: "MLS" },
-      { id: "usl-championship", name: "USL Championship" },
-      { id: "usl-league-one", name: "USL League One" },
-      { id: "usl-league-two", name: "USL League Two" },
-      { id: "nisa", name: "NISA" },
-      { id: "npsl", name: "NPSL" },
-      { id: "upsl", name: "UPSL" },
-      { id: "mls-next-pro", name: "MLS Next Pro" },
-      { id: "wpsl", name: "WPSL" },
-      { id: "uws", name: "UWS" },
-      { id: "other-pro", name: "(all other pro and semi-pro leagues)" },
+      { id: "mls", name: "MLS", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/MLS_crest_logo_RGB_gradient.svg/64px-MLS_crest_logo_RGB_gradient.svg.png" },
+      { id: "usl-championship", name: "USL Championship", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/f/f5/USL_Championship_shield_logo.svg/64px-USL_Championship_shield_logo.svg.png" },
+      { id: "usl-league-one", name: "USL League One", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/c/c3/USL_League_One_logo.svg/64px-USL_League_One_logo.svg.png" },
+      { id: "usl-league-two", name: "USL League Two", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/d/da/USL_League_Two_logo.svg/64px-USL_League_Two_logo.svg.png" },
+      { id: "nisa", name: "NISA", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/f/f8/National_Independent_Soccer_Association_logo.svg/64px-National_Independent_Soccer_Association_logo.svg.png" },
+      { id: "npsl", name: "NPSL", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/8/86/National_Premier_Soccer_League_logo.svg/64px-National_Premier_Soccer_League_logo.svg.png" },
+      { id: "upsl", name: "UPSL", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/1/13/United_Premier_Soccer_League_logo.png/64px-United_Premier_Soccer_League_logo.png" },
+      { id: "mls-next-pro", name: "MLS Next Pro", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/b/bf/MLS_Next_Pro_logo.svg/64px-MLS_Next_Pro_logo.svg.png" },
+      { id: "wpsl", name: "WPSL", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/1/15/Women%27s_Premier_Soccer_League_logo.png/64px-Women%27s_Premier_Soccer_League_logo.png" },
+      { id: "uws", name: "UWS", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d9/United_Women%27s_Soccer_logo.svg/64px-United_Women%27s_Soccer_logo.svg.png" },
+      { id: "other-pro", name: "(all other pro and semi-pro leagues)", logo: null },
     ]
   },
   { id: "college", name: "College Soccer", icon: "🎓", subItems: [] },
@@ -157,7 +157,7 @@ export default function Home() {
             
             {isSubItemDropdownOpen && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden max-h-80 overflow-y-auto">
-                {selectedCategory.subItems.map((subItem) => (
+                {selectedCategory.subItems.map((subItem: any) => (
                   <button
                     key={subItem.id}
                     onClick={() => {
@@ -165,10 +165,17 @@ export default function Home() {
                       setIsSubItemDropdownOpen(false);
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
-                      selectedSubItem?.id === subItem.id ? 'bg-gray-50' : ''
+                      selectedSubItem?.id === subItem.id ? 'bg-[#1a2d5c]/10 border-l-4 border-[#1a2d5c]' : ''
                     }`}
                     data-testid={`button-subitem-${subItem.id}`}
                   >
+                    {subItem.logo ? (
+                      <img src={subItem.logo} alt={subItem.name} className="w-10 h-10 object-contain rounded-lg bg-white p-1" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <span className="text-blue-600 font-bold text-xs">1</span>
+                      </div>
+                    )}
                     <span className="font-medium text-gray-700">{subItem.name}</span>
                   </button>
                 ))}
