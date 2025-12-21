@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, Globe } from "lucide-react";
+import { ArrowLeft, Globe, Check } from "lucide-react";
 
 const CONTINENTS = [
   { id: "usa", name: "USA Soccer Leagues", slug: "usa" },
@@ -13,7 +13,17 @@ const CONTINENTS = [
 
 export default function ContinentSetup() {
   const [, setLocation] = useLocation();
-  const [selected, setSelected] = useState<string>("usa");
+  const [selected, setSelected] = useState<string[]>(["usa"]);
+
+  const toggleContinent = (id: string) => {
+    setSelected(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(c => c !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col p-6">
@@ -25,7 +35,7 @@ export default function ContinentSetup() {
           data-testid="button-back"
         >
           <ArrowLeft size={20} />
-          Choose Continent
+          Choose Continents
         </button>
         <button
           onClick={() => setLocation("/auth/profile-setup/leagues")}
@@ -35,6 +45,9 @@ export default function ContinentSetup() {
           Next
         </button>
       </div>
+
+      {/* Selection hint */}
+      <p className="text-xs text-slate-500 mb-4">Select one or more regions to follow</p>
 
       {/* Search */}
       <div className="relative mb-6">
@@ -53,14 +66,19 @@ export default function ContinentSetup() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <h3 className="text-sm font-bold text-slate-900 mb-3 tracking-wide">World Soccer Leagues</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-bold text-slate-900 tracking-wide">World Soccer Leagues</h3>
+          {selected.length > 0 && (
+            <span className="text-xs text-[#1a2d5c] font-medium">{selected.length} selected</span>
+          )}
+        </div>
         <div className="space-y-3">
           {CONTINENTS.map((continent) => {
-            const isSelected = selected === continent.id;
+            const isSelected = selected.includes(continent.id);
             return (
               <button
                 key={continent.id}
-                onClick={() => setSelected(continent.id)}
+                onClick={() => toggleContinent(continent.id)}
                 className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left shadow-sm ${
                   isSelected 
                     ? "bg-slate-200/60 border-[#1a2d5c]/20" 
@@ -74,10 +92,10 @@ export default function ContinentSetup() {
                 <span className={`flex-1 font-medium ${isSelected ? "text-[#1a2d5c]" : "text-slate-800"}`}>
                   {continent.name}
                 </span>
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                  isSelected ? "border-[#1a2d5c]" : "border-slate-300"
+                <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
+                  isSelected ? "border-[#1a2d5c] bg-[#1a2d5c]" : "border-slate-300"
                 }`}>
-                  {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#1a2d5c]" />}
+                  {isSelected && <Check className="w-4 h-4 text-white" strokeWidth={3} />}
                 </div>
               </button>
             );
