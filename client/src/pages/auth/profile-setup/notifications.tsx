@@ -12,88 +12,76 @@ export default function NotificationsSetup() {
   });
 
   const handleComplete = () => {
-    setLocation("/");
+    setLocation("/home");
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-sm bg-card rounded-3xl shadow-lg p-6 space-y-6">
+    <div className="min-h-screen bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm fixed inset-0 z-50">
+      <div className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 space-y-6 animate-in slide-in-from-bottom duration-300">
         {/* Header */}
         <div>
-          <h1 className="text-xl font-bold text-foreground mb-1">Notifications</h1>
-          <p className="text-sm text-muted-foreground">Choose which notifications you'd like to receive.</p>
+          <h1 className="text-2xl font-bold text-[#1a2d5c] mb-2 font-display">Notifications</h1>
+          <p className="text-sm text-slate-500">Choose which notifications you'd like to receive.</p>
         </div>
 
         {/* Preferences */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
             <div>
-              <p className="font-medium text-foreground">New Matches near me</p>
+              <p className="font-semibold text-slate-900 text-sm">New Matches near me</p>
             </div>
-            <input
-              type="checkbox"
-              checked={prefs.matchesNearMe}
-              onChange={(e) =>
-                setPrefs((p) => ({ ...p, matchesNearMe: e.target.checked }))
-              }
-              className="w-5 h-5 accent-primary cursor-pointer"
-              data-testid="toggle-matches-near-me"
-            />
+            <div 
+              onClick={() => setPrefs((p) => ({ ...p, matchesNearMe: !p.matchesNearMe }))}
+              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${prefs.matchesNearMe ? 'bg-[#1a2d5c]' : 'bg-slate-300'}`}
+            >
+              <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all shadow-sm ${prefs.matchesNearMe ? 'left-[26px]' : 'left-0.5'}`} />
+            </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
             <div>
-              <p className="font-medium text-foreground">Score updates for my teams</p>
+              <p className="font-semibold text-slate-900 text-sm">Score updates for my teams</p>
             </div>
-            <input
-              type="checkbox"
-              checked={prefs.scoreUpdates}
-              onChange={(e) =>
-                setPrefs((p) => ({ ...p, scoreUpdates: e.target.checked }))
-              }
-              className="w-5 h-5 accent-primary cursor-pointer"
-              data-testid="toggle-score-updates"
-            />
+            <div 
+              onClick={() => setPrefs((p) => ({ ...p, scoreUpdates: !p.scoreUpdates }))}
+              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${prefs.scoreUpdates ? 'bg-[#1a2d5c]' : 'bg-slate-300'}`}
+            >
+              <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all shadow-sm ${prefs.scoreUpdates ? 'left-[26px]' : 'left-0.5'}`} />
+            </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
             <div>
-              <p className="font-medium text-foreground">Community polls & fan events</p>
+              <p className="font-semibold text-slate-900 text-sm">Community polls & fan events</p>
             </div>
-            <input
-              type="checkbox"
-              checked={prefs.communityPolls}
-              onChange={(e) =>
-                setPrefs((p) => ({ ...p, communityPolls: e.target.checked }))
-              }
-              className="w-5 h-5 accent-primary cursor-pointer"
-              data-testid="toggle-community-polls"
-            />
+            <div 
+              onClick={() => setPrefs((p) => ({ ...p, communityPolls: !p.communityPolls }))}
+              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${prefs.communityPolls ? 'bg-[#1a2d5c]' : 'bg-slate-300'}`}
+            >
+              <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all shadow-sm ${prefs.communityPolls ? 'left-[26px]' : 'left-0.5'}`} />
+            </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
             <div>
-              <p className="font-medium text-foreground">Weekly Digest</p>
+              <p className="font-semibold text-slate-900 text-sm">Weekly Digest</p>
             </div>
-            <input
-              type="checkbox"
-              checked={prefs.weeklyDigest}
-              onChange={(e) =>
-                setPrefs((p) => ({ ...p, weeklyDigest: e.target.checked }))
-              }
-              className="w-5 h-5 accent-primary cursor-pointer"
-              data-testid="toggle-weekly-digest"
-            />
+            <div 
+              onClick={() => setPrefs((p) => ({ ...p, weeklyDigest: !p.weeklyDigest }))}
+              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${prefs.weeklyDigest ? 'bg-[#1a2d5c]' : 'bg-slate-300'}`}
+            >
+              <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all shadow-sm ${prefs.weeklyDigest ? 'left-[26px]' : 'left-0.5'}`} />
+            </div>
           </div>
         </div>
 
-        {/* Complete Button */}
+        {/* Confirm Button */}
         <button
           onClick={handleComplete}
-          className="w-full h-12 bg-sidebar hover:bg-sidebar/90 text-white font-bold rounded-full transition-colors uppercase tracking-wide text-sm"
+          className="w-full py-4 bg-[#1a2d5c] hover:bg-[#152347] text-white font-bold rounded-full transition-all duration-200 text-sm shadow-sm"
           data-testid="button-complete"
         >
-          Complete
+          Confirm
         </button>
       </div>
     </div>

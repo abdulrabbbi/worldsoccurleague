@@ -58,53 +58,49 @@
 
 @layer base {
   :root {
-    /* Professional Sports App Palette */
-    /* Dark Mode First Approach for that "Broadcast" feel */
+    /* WSL Brand Colors from Figma */
     
-    --background: 220 15% 96%; /* Light gray background for readability */
-    --foreground: 222 47% 11%; /* Deep Navy text */
-
+    /* Primary / Navy - Used for Buttons, Headers, Navigation */
+    --primary: 223 56% 23%; /* #1a2d5c converted to HSL approx 223 56% 23% */
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary / Red - Used for Accents, Links, Highlights */
+    --accent: 346 79% 42%; /* #C1153D converted to HSL approx 346 79% 42% */
+    --accent-foreground: 0 0% 100%;
+    
+    /* Backgrounds */
+    --background: 0 0% 100%; /* White background as per clean design */
+    --foreground: 222 47% 11%; /* Dark Navy Text */
+    
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
-
+    
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-
-    --primary: 222 47% 11%; /* Deep Navy Blue - The Brand Color */
-    --primary-foreground: 210 40% 98%;
-
+    
     --secondary: 210 40% 96%;
     --secondary-foreground: 222 47% 11%;
-
+    
     --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-
-    --accent: 142 76% 36%; /* Pitch Green */
-    --accent-foreground: 0 0% 100%;
-
+    --muted-foreground: 215 16% 47%; /* Muted text for placeholders */
+    
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-
+    --destructive-foreground: 0 0% 98%;
+    
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 222 47% 11%;
-
-    --radius: 0.5rem;
+    --ring: 223 56% 23%; /* Ring matches Primary */
     
-    --chart-1: 142 76% 36%; /* Green */
-    --chart-2: 222 47% 11%; /* Navy */
-    --chart-3: 199 89% 48%; /* Blue */
-    --chart-4: 43 96% 64%;  /* Yellow */
-    --chart-5: 27 96% 61%;  /* Orange */
-
-    --sidebar: 222 47% 11%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 142 76% 36%;
+    --radius: 1rem; /* Rounded-2xl look from screenshots */
+    
+    --sidebar: 223 56% 23%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 346 79% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 212 27% 14%;
+    --sidebar-accent: 223 56% 30%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 223 56% 30%;
+    --sidebar-ring: 223 56% 30%;
   }
 
   /* Optional Dark Mode if system prefers or toggled */

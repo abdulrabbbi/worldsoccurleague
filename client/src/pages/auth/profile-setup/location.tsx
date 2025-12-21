@@ -13,30 +13,37 @@ export default function LocationSetup() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-sm bg-card rounded-3xl shadow-lg p-8 text-center space-y-6">
-        <div className="inline-flex items-center justify-center w-24 h-24 bg-accent/10 rounded-full">
-          <MapPin className="w-12 h-12 text-accent" />
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
+      <div className="w-full max-w-sm space-y-8">
+        <div className="flex justify-center">
+          <div className="w-32 h-32 relative">
+             {/* Map Icon Graphic Placeholder */}
+             <div className="absolute inset-0 bg-slate-100 rounded-full animate-pulse opacity-20"></div>
+             <div className="absolute inset-4 bg-slate-100 rounded-full animate-pulse opacity-40"></div>
+             <div className="absolute inset-0 flex items-center justify-center">
+                <MapPin className="w-16 h-16 text-[#C1153D]" fill="#C1153D" />
+             </div>
+          </div>
         </div>
 
-        <div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Enable Location</h2>
-          <p className="text-sm text-muted-foreground">
+        <div className="space-y-3">
+          <h2 className="text-2xl font-bold text-[#1a2d5c] font-display">Enable Location</h2>
+          <p className="text-sm text-slate-500 leading-relaxed px-4">
             Enable location to find nearby matches, leagues, events and local soccer communities.
           </p>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4 pt-8">
           <button
             onClick={handleAllow}
-            className="w-full h-12 bg-sidebar hover:bg-sidebar/90 text-white font-bold rounded-full transition-colors"
+            className="w-full py-4 bg-[#1a2d5c] hover:bg-[#152347] text-white font-bold rounded-full transition-all duration-200 text-sm shadow-md"
             data-testid="button-allow-location"
           >
             Allow
           </button>
           <button
             onClick={handleMayBeLater}
-            className="w-full h-12 border-2 border-sidebar text-sidebar font-bold rounded-full hover:bg-sidebar/5 transition-colors"
+            className="w-full py-4 bg-white text-[#1a2d5c] font-bold rounded-full hover:bg-slate-50 transition-colors text-sm"
             data-testid="button-maybe-later"
           >
             May be later

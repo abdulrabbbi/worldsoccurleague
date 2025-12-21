@@ -26,42 +26,44 @@ export default function World() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#1a2d5c] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-white pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-card border-b border-border">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Globe className="w-6 h-6 text-primary" />
+      <div className="sticky top-0 z-40 bg-white border-b border-slate-100 shadow-sm">
+        <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
+          <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center">
+            <Globe className="w-6 h-6 text-[#1a2d5c]" />
+          </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">World Soccer Leagues</h1>
-            <p className="text-xs text-muted-foreground">Select a continent</p>
+            <h1 className="text-lg font-bold text-[#1a2d5c] font-display uppercase tracking-wide">World Soccer Leagues</h1>
+            <p className="text-xs text-slate-500">Select a region to browse</p>
           </div>
         </div>
       </div>
 
       {/* Continents */}
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-3">
+      <div className="max-w-md mx-auto px-4 py-6 space-y-3">
         {continents.map((continent) => (
           <button
             key={continent.id}
             onClick={() => setLocation(`/continent/${continent.slug}`)}
-            className="w-full flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:border-primary hover:bg-muted/50 transition-all text-left group"
+            className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-100 hover:border-[#1a2d5c] hover:bg-slate-50 transition-all text-left group shadow-sm"
             data-testid={`continent-button-${continent.slug}`}
           >
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-xl">
+            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-2xl group-hover:bg-white group-hover:shadow-sm transition-all">
               🌍
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-foreground">{continent.name}</p>
-              <p className="text-xs text-muted-foreground">Browse leagues & teams</p>
+              <p className="font-bold text-[#1a2d5c]">{continent.name}</p>
+              <p className="text-xs text-slate-500">Browse leagues & teams</p>
             </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-[#1a2d5c] transition-colors" />
           </button>
         ))}
       </div>

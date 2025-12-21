@@ -1,73 +1,79 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import logoUrl from "@assets/generated_images/wsl_soccer_player_silhouette_split_red-navy_logo.png";
+import { Mail, ArrowLeft } from "lucide-react";
+import logoUrl from "@assets/WSL_Tall_1766285125334.png";
 
 export default function ForgotPassword() {
   const [, setLocation] = useLocation();
   const [email, setEmail] = useState("");
-  const [step, setStep] = useState<"email" | "otp" | "reset">("email");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [step, setStep] = useState<"email" | "otp" | "reset">("email");
 
   const handleSendOTP = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      setStep("otp");
-    }
+    if (email) setStep("otp");
   };
 
   const handleVerifyOTP = (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp) {
-      setStep("reset");
-    }
+    if (otp) setStep("reset");
   };
 
   const handleResetPassword = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword === confirmPassword) {
+    if (newPassword && newPassword === confirmPassword) {
+      // Mock reset
       setLocation("/auth/login");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-sm">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-32 h-24 mb-6">
+        <div className="flex justify-center mb-8">
+          <div className="w-24 h-24">
             <img src={logoUrl} alt="World Soccer Leagues" className="w-full h-full object-contain" data-testid="img-logo" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">
+        </div>
+        
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-[#1a2d5c] mb-1 font-display">
             {step === "email" && "Forgot Password"}
             {step === "otp" && "Verify with Code"}
             {step === "reset" && "Reset your password"}
           </h1>
-          <p className="text-muted-foreground text-sm">
-            {step === "email" && "Enter the email address you used while registration."}
+          <p className="text-slate-500 text-sm">
+            {step === "email" && "Please enter the email address you used while registration."}
             {step === "otp" && "We have sent you a verification code on your email address. Check your mail"}
             {step === "reset" && "Please create your new password."}
           </p>
         </div>
 
         {step === "email" && (
-          <form onSubmit={handleSendOTP} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-foreground mb-2 uppercase tracking-wide">Email address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your email"
-                className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                data-testid="input-email"
-              />
+          <form onSubmit={handleSendOTP} className="space-y-5">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-slate-700">Email address</label>
+              <div className="relative">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1a2d5c] focus:border-transparent text-sm"
+                  data-testid="input-email"
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                  <Mail size={18} />
+                </div>
+              </div>
             </div>
 
             <button
               type="submit"
-              className="w-full h-12 bg-sidebar hover:bg-sidebar/90 text-white font-bold rounded-full transition-colors"
+              className="w-full py-4 bg-[#1a2d5c] hover:bg-[#152347] text-white font-bold rounded-full transition-all duration-200 text-sm shadow-sm mt-4"
               data-testid="button-send-otp"
             >
               Send OTP
@@ -76,23 +82,63 @@ export default function ForgotPassword() {
         )}
 
         {step === "otp" && (
-          <form onSubmit={handleVerifyOTP} className="space-y-4">
-            <div>
-              <input
-                type="text"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                placeholder="Enter 6-digit code"
-                maxLength={6}
-                className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground text-center font-mono text-2xl tracking-widest placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                data-testid="input-otp"
-              />
+          <form onSubmit={handleVerifyOTP} className="space-y-6">
+            <div className="flex justify-center gap-2">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div
+                  key={i}
+                  className="w-12 h-12 flex items-center justify-center border border-slate-200 rounded-full text-xl font-bold text-[#1a2d5c] bg-slate-50"
+                >
+                  {otp[i] || ""}
+                </div>
+              ))}
+            </div>
+            
+            <input
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.slice(0, 6))}
+              className="sr-only"
+              autoFocus
+              data-testid="input-otp"
+            />
+
+            {/* Simulated Numpad for visual match, or just use input */}
+            <div className="grid grid-cols-3 gap-2">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => setOtp(prev => (prev + num).slice(0, 6))}
+                  className="h-12 rounded-lg font-medium text-slate-900 hover:bg-slate-100 transition-colors text-lg"
+                >
+                  {num}
+                </button>
+              ))}
+               <div className="col-start-2">
+                <button
+                  type="button"
+                  onClick={() => setOtp(prev => (prev + "0").slice(0, 6))}
+                  className="w-full h-12 rounded-lg font-medium text-slate-900 hover:bg-slate-100 transition-colors text-lg"
+                >
+                  0
+                </button>
+               </div>
+               <div className="col-start-3">
+                <button
+                  type="button"
+                  onClick={() => setOtp(prev => prev.slice(0, -1))}
+                  className="w-full h-12 rounded-lg font-medium text-slate-900 hover:bg-slate-100 transition-colors flex items-center justify-center"
+                >
+                  ⌫
+                </button>
+               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full h-12 bg-sidebar hover:bg-sidebar/90 text-white font-bold rounded-full transition-colors"
-              data-testid="button-verify-otp"
+              className="w-full py-4 bg-[#1a2d5c] hover:bg-[#152347] text-white font-bold rounded-full transition-all duration-200 text-sm shadow-sm"
+              data-testid="button-verify"
             >
               Verify
             </button>
@@ -100,51 +146,40 @@ export default function ForgotPassword() {
         )}
 
         {step === "reset" && (
-          <form onSubmit={handleResetPassword} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-foreground mb-2 uppercase tracking-wide">Create new password</label>
+          <form onSubmit={handleResetPassword} className="space-y-5">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-slate-700">Create new password</label>
               <input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Test.19970"
-                className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1a2d5c] focus:border-transparent text-sm"
                 data-testid="input-new-password"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-foreground mb-2 uppercase tracking-wide">Confirm new password</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-slate-700">Confirm new password</label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Test.19970"
-                className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1a2d5c] focus:border-transparent text-sm"
                 data-testid="input-confirm-password"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full h-12 bg-sidebar hover:bg-sidebar/90 text-white font-bold rounded-full transition-colors"
+              className="w-full py-4 bg-[#1a2d5c] hover:bg-[#152347] text-white font-bold rounded-full transition-all duration-200 text-sm shadow-sm mt-4"
               data-testid="button-confirm"
             >
               Confirm
             </button>
           </form>
         )}
-
-        {/* Back Link */}
-        <div className="text-center mt-6">
-          <button
-            onClick={() => setLocation("/auth/login")}
-            className="text-muted-foreground text-sm hover:text-foreground"
-            data-testid="link-back"
-          >
-            ← Back to Login
-          </button>
-        </div>
       </div>
     </div>
   );

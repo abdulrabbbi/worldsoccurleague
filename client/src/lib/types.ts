@@ -15,26 +15,56 @@ export interface Country {
   flagUrl?: string;
 }
 
+// Hierarchy Levels
+export interface Region { // State/Province
+  id: string;
+  name: string;
+  slug: string;
+  countryId: string;
+}
+
+export interface City {
+  id: string;
+  name: string;
+  slug: string;
+  regionId: string;
+}
+
+export type LeagueCategory = 
+  | "National Teams"
+  | "Professional Leagues"
+  | "College Soccer"
+  | "High School Soccer"
+  | "Youth Soccer Leagues"
+  | "Sanctioned Leagues"
+  | "Pickup Soccer";
+
 export interface League {
   id: string;
   name: string;
   slug: string;
   countryId: string;
+  regionId?: string; // Optional: for State leagues
+  cityId?: string;   // Optional: for City leagues
+  category: LeagueCategory;
   tier: number;
-  type: "League" | "Cup";
   logoUrl?: string;
   season?: string;
 }
 
+// Extended Team interface to support Schools/Clubs/Pickup Groups
 export interface Team {
   id: string;
   name: string;
   slug: string;
   leagueId: string;
   countryId: string;
+  city?: string; // Legacy string
+  cityId?: string; // Relation to City entity
+  schoolId?: string; // Relation to School entity if applicable
+  type?: "Club" | "School" | "Pickup Group" | "National Team";
   crestUrl?: string;
   founded?: number;
-  city?: string;
 }
 
 export interface Player {

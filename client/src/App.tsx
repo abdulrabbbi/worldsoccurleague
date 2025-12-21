@@ -23,6 +23,7 @@ import NotificationsSetup from "@/pages/auth/profile-setup/notifications";
 import World from "@/pages/world";
 import Continent from "@/pages/continent";
 import Country from "@/pages/country";
+import CategoryPage from "@/pages/category";
 import League from "@/pages/league";
 import Team from "@/pages/team";
 import Player from "@/pages/player";
@@ -57,10 +58,11 @@ function Router() {
       <Route path="/profile" component={Profile} />
       <Route path="/favorites" component={Favorites} />
 
-      {/* Hierarchy Routes - World → Continent → Country → League → Team → Player → Match */}
+      {/* Hierarchy Routes - World → Continent → Country → Category → League → Team → Player → Match */}
       <Route path="/world" component={World} />
       <Route path="/continent/:slug" component={Continent} />
       <Route path="/country/:slug" component={Country} />
+      <Route path="/country/:slug/category/:category" component={CategoryPage} />
       <Route path="/league/:id-:slug" component={League} />
       <Route path="/team/:id-:slug" component={Team} />
       <Route path="/player/:id-:slug" component={Player} />
