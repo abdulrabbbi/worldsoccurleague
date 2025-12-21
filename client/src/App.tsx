@@ -14,6 +14,7 @@ import SignUp from "@/pages/auth/signup";
 import ForgotPassword from "@/pages/auth/forgot-password";
 import VerifyCode from "@/pages/auth/verify-code";
 import LocationSetup from "@/pages/auth/profile-setup/location";
+import IntroSetup from "@/pages/auth/profile-setup/intro";
 import ContinentSetup from "@/pages/auth/profile-setup/continent";
 import LeaguesSetup from "@/pages/auth/profile-setup/leagues";
 import NationalTeamSetup from "@/pages/auth/profile-setup/national-team";
@@ -46,6 +47,7 @@ function Router() {
       
       {/* Profile Setup Routes */}
       <Route path="/auth/profile-setup/location" component={LocationSetup} />
+      <Route path="/auth/profile-setup/intro" component={IntroSetup} />
       <Route path="/auth/profile-setup/continent" component={ContinentSetup} />
       <Route path="/auth/profile-setup/leagues" component={LeaguesSetup} />
       <Route path="/auth/profile-setup/national-team" component={NationalTeamSetup} />

@@ -5,11 +5,11 @@ export default function LocationSetup() {
   const [, setLocation] = useLocation();
 
   const handleAllow = () => {
-    setLocation("/auth/profile-setup/continent");
+    setLocation("/auth/profile-setup/intro");
   };
 
   const handleMayBeLater = () => {
-    setLocation("/auth/profile-setup/continent");
+    setLocation("/auth/profile-setup/intro");
   };
 
   return (
