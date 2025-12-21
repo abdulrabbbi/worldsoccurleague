@@ -10,7 +10,7 @@ export default function NotificationsSetup() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { preferences: setupPrefs } = useProfileSetup();
+  const { state: setupPrefs } = useProfileSetup();
   const [loading, setLoading] = useState(false);
   const [prefs, setPrefs] = useState({
     matchesNearMe: true,
@@ -30,9 +30,9 @@ export default function NotificationsSetup() {
       await api.preferences.save({
         userId: user.id,
         locationEnabled: setupPrefs.locationEnabled,
-        selectedContinent: setupPrefs.selectedContinent,
+        selectedContinent: setupPrefs.selectedContinents[0] || null,
         favoriteLeagues: setupPrefs.selectedLeagues,
-        favoriteTeams: setupPrefs.selectedNationalTeam ? [setupPrefs.selectedNationalTeam] : [],
+        favoriteTeams: setupPrefs.selectedTeams,
         notificationsEnabled: prefs.matchesNearMe,
         scoreUpdatesEnabled: prefs.scoreUpdates,
         communityPollsEnabled: prefs.communityPolls,
