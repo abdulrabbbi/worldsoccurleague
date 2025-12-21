@@ -77,21 +77,31 @@ const USA_SOCCER_HIERARCHY: Category[] = [
       { id: "usys", name: "US Youth Soccer", icon: "👦" },
       { id: "ayso", name: "AYSO", icon: "🟡" },
       { id: "club-soccer", name: "Club Soccer", icon: "⚽" },
-      { id: "recreational", name: "Recreational Leagues", icon: "🌱" },
+    ]
+  },
+  {
+    id: "adult-soccer",
+    name: "Adult Soccer",
+    items: [
+      { id: "adult-recreational", name: "Recreational Leagues", icon: "🌱" },
+      { id: "adult-competitive", name: "Competitive Leagues", icon: "🏆" },
+      { id: "adult-coed-leagues", name: "Co-ed Leagues", icon: "🤝" },
+      { id: "adult-mens-leagues", name: "Men's Leagues", icon: "👨" },
+      { id: "adult-womens-leagues", name: "Women's Leagues", icon: "👩" },
+      { id: "over-30-leagues", name: "Over 30 Leagues", icon: "3️⃣0️⃣" },
+      { id: "over-40-leagues", name: "Over 40 Leagues", icon: "4️⃣0️⃣" },
+      { id: "over-50-leagues", name: "Over 50 Leagues", icon: "5️⃣0️⃣" },
     ]
   },
   {
     id: "pickup-soccer",
     name: "Pick-up Soccer",
     items: [
-      { id: "adult-coed", name: "Adult Co-ed", icon: "🤝" },
-      { id: "adult-mens", name: "Adult Men's", icon: "👨" },
-      { id: "adult-womens", name: "Adult Women's", icon: "👩" },
-      { id: "over-30", name: "Over 30 Leagues", icon: "3️⃣0️⃣" },
-      { id: "over-40", name: "Over 40 Leagues", icon: "4️⃣0️⃣" },
-      { id: "indoor", name: "Indoor Soccer", icon: "🏢" },
-      { id: "futsal", name: "Futsal", icon: "🔴" },
-      { id: "beach-soccer", name: "Beach Soccer", icon: "🏖️" },
+      { id: "pickup-casual", name: "Casual Pick-up Games", icon: "⚽" },
+      { id: "pickup-indoor", name: "Indoor Soccer", icon: "🏢" },
+      { id: "pickup-futsal", name: "Futsal", icon: "🔴" },
+      { id: "pickup-beach", name: "Beach Soccer", icon: "🏖️" },
+      { id: "pickup-small-sided", name: "Small-Sided Games", icon: "🥅" },
     ]
   },
   {
