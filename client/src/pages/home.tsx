@@ -15,14 +15,39 @@ const continents = [
 ];
 
 const categories = [
-  { id: "national-teams", name: "National Teams", icon: "🏆" },
-  { id: "professional", name: "Professional Soccer", icon: "⚽" },
-  { id: "college", name: "College Soccer", icon: "🎓" },
-  { id: "high-school", name: "High School Soccer", icon: "🏫" },
-  { id: "youth", name: "Youth Soccer", icon: "👦" },
-  { id: "sanctioned", name: "Sanctioned Leagues", icon: "✅" },
-  { id: "pickup", name: "Pickup Soccer", icon: "🤝" },
-  { id: "fan-clubs", name: "Fan Clubs", icon: "📣" },
+  { 
+    id: "national-teams", 
+    name: "National Teams", 
+    icon: "🏆",
+    subItems: [
+      { id: "mens", name: "Men's" },
+      { id: "womens", name: "Women's" },
+    ]
+  },
+  { 
+    id: "professional", 
+    name: "Professional Soccer", 
+    icon: "⚽",
+    subItems: [
+      { id: "mls", name: "MLS" },
+      { id: "usl-championship", name: "USL Championship" },
+      { id: "usl-league-one", name: "USL League One" },
+      { id: "usl-league-two", name: "USL League Two" },
+      { id: "nisa", name: "NISA" },
+      { id: "npsl", name: "NPSL" },
+      { id: "upsl", name: "UPSL" },
+      { id: "mls-next-pro", name: "MLS Next Pro" },
+      { id: "wpsl", name: "WPSL" },
+      { id: "uws", name: "UWS" },
+      { id: "other-pro", name: "(all other pro and semi-pro leagues)" },
+    ]
+  },
+  { id: "college", name: "College Soccer", icon: "🎓", subItems: [] },
+  { id: "high-school", name: "High School Soccer", icon: "🏫", subItems: [] },
+  { id: "youth", name: "Youth Soccer", icon: "👦", subItems: [] },
+  { id: "sanctioned", name: "Sanctioned Leagues", icon: "✅", subItems: [] },
+  { id: "pickup", name: "Pickup Soccer", icon: "🤝", subItems: [] },
+  { id: "fan-clubs", name: "Fan Clubs", icon: "📣", subItems: [] },
 ];
 
 export default function Home() {
@@ -31,8 +56,10 @@ export default function Home() {
   const upcomingMatches = matches.filter(m => m.status !== "LIVE");
   const [selectedContinent, setSelectedContinent] = useState(continents[0]);
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
+  const [selectedSubItem, setSelectedSubItem] = useState<{id: string, name: string} | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [isSubItemDropdownOpen, setIsSubItemDropdownOpen] = useState(false);
 
   return (
     <AppShell>
@@ -94,6 +121,7 @@ export default function Home() {
                   key={category.id}
                   onClick={() => {
                     setSelectedCategory(category);
+                    setSelectedSubItem(null);
                     setIsCategoryDropdownOpen(false);
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
@@ -108,6 +136,44 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        {/* Sub-Item Dropdown - shows when category has sub-items */}
+        {selectedCategory.subItems && selectedCategory.subItems.length > 0 && (
+          <div className="relative mt-3">
+            <button
+              onClick={() => setIsSubItemDropdownOpen(!isSubItemDropdownOpen)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors"
+              data-testid="button-subitem-dropdown"
+            >
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-[#1a2d5c]">
+                  {selectedSubItem ? selectedSubItem.name : `Select ${selectedCategory.name}`}
+                </span>
+              </div>
+              <ChevronDown size={20} className={`text-gray-400 transition-transform ${isSubItemDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {isSubItemDropdownOpen && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden max-h-80 overflow-y-auto">
+                {selectedCategory.subItems.map((subItem) => (
+                  <button
+                    key={subItem.id}
+                    onClick={() => {
+                      setSelectedSubItem(subItem);
+                      setIsSubItemDropdownOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
+                      selectedSubItem?.id === subItem.id ? 'bg-gray-50' : ''
+                    }`}
+                    data-testid={`button-subitem-${subItem.id}`}
+                  >
+                    <span className="font-medium text-gray-700">{subItem.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="p-4 space-y-6">
