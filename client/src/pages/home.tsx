@@ -29,17 +29,17 @@ const categories = [
     name: "Professional Soccer", 
     icon: "⚽",
     subItems: [
-      { id: "mls", name: "MLS", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/MLS_crest_logo_RGB_gradient.svg/64px-MLS_crest_logo_RGB_gradient.svg.png" },
-      { id: "usl-championship", name: "USL Championship", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/f/f5/USL_Championship_shield_logo.svg/64px-USL_Championship_shield_logo.svg.png" },
-      { id: "usl-league-one", name: "USL League One", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/c/c3/USL_League_One_logo.svg/64px-USL_League_One_logo.svg.png" },
-      { id: "usl-league-two", name: "USL League Two", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/d/da/USL_League_Two_logo.svg/64px-USL_League_Two_logo.svg.png" },
-      { id: "nisa", name: "NISA", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/f/f8/National_Independent_Soccer_Association_logo.svg/64px-National_Independent_Soccer_Association_logo.svg.png" },
-      { id: "npsl", name: "NPSL", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/8/86/National_Premier_Soccer_League_logo.svg/64px-National_Premier_Soccer_League_logo.svg.png" },
-      { id: "upsl", name: "UPSL", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/1/13/United_Premier_Soccer_League_logo.png/64px-United_Premier_Soccer_League_logo.png" },
-      { id: "mls-next-pro", name: "MLS Next Pro", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/b/bf/MLS_Next_Pro_logo.svg/64px-MLS_Next_Pro_logo.svg.png" },
-      { id: "wpsl", name: "WPSL", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/1/15/Women%27s_Premier_Soccer_League_logo.png/64px-Women%27s_Premier_Soccer_League_logo.png" },
-      { id: "uws", name: "UWS", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d9/United_Women%27s_Soccer_logo.svg/64px-United_Women%27s_Soccer_logo.svg.png" },
-      { id: "other-pro", name: "(all other pro and semi-pro leagues)", logo: null },
+      { id: "mls", name: "MLS", logo: "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/19.png&w=80&h=80" },
+      { id: "usl-championship", name: "USL Championship", logo: "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/8702.png&w=80&h=80" },
+      { id: "usl-league-one", name: "USL League One", logoIcon: "1", logoBg: "#00B4D8" },
+      { id: "usl-league-two", name: "USL League Two", logoIcon: "2", logoBg: "#E63946" },
+      { id: "nisa", name: "NISA", logo: "https://cdn.ssref.net/req/202312141/tlogo/fb/95d2b0ed.png" },
+      { id: "npsl", name: "NPSL", logo: "https://cdn.ssref.net/req/202312141/tlogo/fb/8ef3de95.png" },
+      { id: "upsl", name: "UPSL", logoIcon: "UPSL", logoBg: "#1E40AF" },
+      { id: "mls-next-pro", name: "MLS Next Pro", logo: "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/22485.png&w=80&h=80" },
+      { id: "wpsl", name: "WPSL", logoIcon: "W", logoBg: "#C1153D" },
+      { id: "uws", name: "UWS", logoIcon: "UWS", logoBg: "#E63946" },
+      { id: "other-pro", name: "(all other pro and semi-pro leagues)", logoIcon: "1", logoBg: "#00B4D8" },
     ]
   },
   { id: "college", name: "College Soccer", icon: "🎓", subItems: [] },
@@ -170,10 +170,15 @@ export default function Home() {
                     data-testid={`button-subitem-${subItem.id}`}
                   >
                     {subItem.logo ? (
-                      <img src={subItem.logo} alt={subItem.name} className="w-10 h-10 object-contain rounded-lg bg-white p-1" />
+                      <div className="w-12 h-12 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center p-1.5">
+                        <img src={subItem.logo} alt={subItem.name} className="w-full h-full object-contain" />
+                      </div>
                     ) : (
-                      <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                        <span className="text-blue-600 font-bold text-xs">1</span>
+                      <div 
+                        className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold shadow-sm"
+                        style={{ backgroundColor: subItem.logoBg || '#00B4D8' }}
+                      >
+                        <span className="text-sm">{subItem.logoIcon || '?'}</span>
                       </div>
                     )}
                     <span className="font-medium text-gray-700">{subItem.name}</span>
