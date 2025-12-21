@@ -39,21 +39,25 @@ export function BottomNav() {
   );
 }
 
-export function TopBar({ title, showBack = false }: { title?: React.ReactNode; showBack?: boolean }) {
+export function TopBar({ title, showBack = false, onLogoClick }: { title?: React.ReactNode; showBack?: boolean; onLogoClick?: () => void }) {
   return (
     <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-100 shadow-sm">
       <div className="flex flex-col max-w-md mx-auto">
         {/* Top row: Logo + Icons */}
         <div className="flex items-center justify-between h-16 px-4">
-          {/* Logo on left */}
-          <div className="flex items-center">
+          {/* Logo on left - clickable to open nav drawer */}
+          <button 
+            className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={onLogoClick}
+            data-testid="button-logo-nav"
+          >
             <img 
               src={logoUrl} 
               alt="World Soccer Leagues" 
               className="h-12 w-auto object-contain"
               data-testid="img-logo-header"
             />
-          </div>
+          </button>
           
           {/* Icons on right */}
           <div className="flex items-center gap-2">
