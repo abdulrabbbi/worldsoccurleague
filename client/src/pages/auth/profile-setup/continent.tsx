@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { ArrowLeft, Globe } from "lucide-react";
 
 const CONTINENTS = [
-  { id: "usa", name: "USA Soccer League", slug: "usa" },
+  { id: "usa", name: "USA Soccer Leagues", slug: "usa" },
   { id: "euro", name: "Euro Soccer Leagues", slug: "europe" },
   { id: "africa", name: "Africa Soccer Leagues", slug: "africa" },
   { id: "asia", name: "Asia Soccer Leagues", slug: "asia" },
