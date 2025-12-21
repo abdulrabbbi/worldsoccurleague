@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Check, ChevronDown, ChevronUp } from "lucide-react";
+import LocationSelector from "@/components/ui/location-selector";
 
 interface LeagueItem {
   id: string;
@@ -12,6 +13,7 @@ interface Category {
   id: string;
   name: string;
   items: LeagueItem[];
+  hasLocationFilter?: boolean;
 }
 
 const USA_SOCCER_HIERARCHY: Category[] = [
@@ -43,6 +45,7 @@ const USA_SOCCER_HIERARCHY: Category[] = [
   {
     id: "college-soccer",
     name: "College Soccer",
+    hasLocationFilter: true,
     items: [
       { id: "ncaa-d1-men", name: "NCAA Division I Men's", icon: "🎓" },
       { id: "ncaa-d1-women", name: "NCAA Division I Women's", icon: "🎓" },
@@ -58,6 +61,7 @@ const USA_SOCCER_HIERARCHY: Category[] = [
   {
     id: "high-school-soccer",
     name: "High School Soccer",
+    hasLocationFilter: true,
     items: [
       { id: "hs-varsity-boys", name: "Varsity Boys", icon: "🏫" },
       { id: "hs-varsity-girls", name: "Varsity Girls", icon: "🏫" },
@@ -68,6 +72,7 @@ const USA_SOCCER_HIERARCHY: Category[] = [
   {
     id: "youth-soccer",
     name: "Youth Soccer",
+    hasLocationFilter: true,
     items: [
       { id: "mls-next", name: "MLS NEXT", icon: "⚽" },
       { id: "ecnl-boys", name: "ECNL Boys", icon: "🔵" },
@@ -82,6 +87,7 @@ const USA_SOCCER_HIERARCHY: Category[] = [
   {
     id: "adult-soccer",
     name: "Adult Soccer",
+    hasLocationFilter: true,
     items: [
       { id: "adult-recreational", name: "Recreational Leagues", icon: "🌱" },
       { id: "adult-competitive", name: "Competitive Leagues", icon: "🏆" },
@@ -120,6 +126,14 @@ export default function LeaguesSetup() {
   const [, setLocation] = useLocation();
   const [selected, setSelected] = useState<string[]>(["mls"]);
   const [expandedCategories, setExpandedCategories] = useState<string[]>(["national-teams", "professional-leagues"]);
+  const [locationSelections, setLocationSelections] = useState<Record<string, { state?: string; city?: string }>>({});
+
+  const handleLocationSelect = (categoryId: string, state: string, city?: string) => {
+    setLocationSelections(prev => ({
+      ...prev,
+      [categoryId]: { state, city }
+    }));
+  };
 
   const toggleCategory = (categoryId: string) => {
     setExpandedCategories(prev => 
@@ -213,6 +227,16 @@ export default function LeaguesSetup() {
               {/* Category Items */}
               {isExpanded && (
                 <div className="border-t border-slate-200">
+                  {/* Location Selector for geo-based categories */}
+                  {category.hasLocationFilter && (
+                    <div className="p-3">
+                      <LocationSelector
+                        selectedState={locationSelections[category.id]?.state}
+                        selectedCity={locationSelections[category.id]?.city}
+                        onLocationSelect={(state, city) => handleLocationSelect(category.id, state, city)}
+                      />
+                    </div>
+                  )}
                   {category.items.map((item) => (
                     <button
                       key={item.id}
