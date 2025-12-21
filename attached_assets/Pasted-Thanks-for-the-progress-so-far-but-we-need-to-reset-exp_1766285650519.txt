@@ -1,0 +1,53 @@
+Thanks for the progress so far — but we need to reset expectations:
+
+1) This must be a Figma-first, pixel-perfect clone (no improvising)
+
+Please clone/duplicate the Figma design exactly as-is.
+That means same layout, spacing, typography, icons, button styles, card styles, and flow.
+
+✅ Use Figma as the source of truth
+❌ Do not substitute “close enough” components, colors, or layouts
+
+2) Fix the logo immediately (wrong logo is being used)
+
+I uploaded my official WSL logo, but a different one is appearing in the app.
+Please replace the current logo everywhere with my uploaded WSL logo and ensure it matches the exact placement/size from Figma (Login + any other screens).
+
+3) Match the color scheme + design tokens exactly
+
+Right now, the feel is drifting. Please pull the exact values from Figma and implement them as global theme tokens:
+	•	Primary (buttons/CTAs)
+	•	Secondary / Navy
+	•	Background
+	•	Border color
+	•	Text colors
+	•	Radius values (cards/inputs/buttons)
+	•	Shadow style
+
+No guessing colors. Use exact hex codes from Figma.
+
+4) Match the flow + hierarchy exactly (current build is missing a lot)
+
+The current screens are only a small portion. You must implement the full intended hierarchy/flows from Figma.
+
+Also: do not manually type leagues (MLS/USL/etc.) as static UI content.
+All pages must be API-ready placeholders — the structure exists, data loads later.
+
+5) “Definition of Done” for this phase (how we’ll measure it)
+
+This phase is complete only when:
+	•	The screens look identical to Figma (pixel-level close)
+	•	Logo is correct everywhere
+	•	Colors/typography/spacing match Figma tokens
+	•	The intended hierarchy/navigation is implemented (not a partial version)
+	•	No hardcoded teams/leagues/players in UI
+
+6) Process request (to prevent drift)
+
+Please do this in order:
+	1.	Confirm you are using Figma Inspect + exported assets
+	2.	Implement shared components (buttons, inputs, cards, header, list rows)
+	3.	Implement screens using those components
+	4.	I review side-by-side vs Figma
+
+If anything is unclear, ask before filling gaps with assumptions.
