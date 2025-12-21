@@ -24,6 +24,16 @@ export class MemStorage implements IStorage {
   constructor() {
     this.users = new Map();
     this.preferences = new Map();
+    
+    // Add test account for development
+    const testUser: User = {
+      id: "test-user-1",
+      email: "test@test.com",
+      password: "test123",
+      name: "Test User",
+      createdAt: new Date()
+    };
+    this.users.set(testUser.id, testUser);
   }
 
   async getUser(id: string): Promise<User | undefined> {
