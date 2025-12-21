@@ -1,99 +1,154 @@
-import { AppShell } from "@/components/layout/app-shell";
-import { api } from "@/lib/mock-data";
-import { MatchCard } from "@/components/ui/match-card";
+import { useEffect, useState } from "react";
+import { useLocation, useRoute } from "wouter";
+import { sportsDataProvider } from "@/lib/sports-data-provider";
+import type { League, Team } from "@/lib/types";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from "wouter";
 
-export default function League({ params }: { params: { id: string } }) {
-  const league = api.getLeague(params.id);
-  const matches = api.getMatches().filter(m => m.leagueId === params.id);
-  const teams = api.getTeams(params.id);
+export default function LeaguePage() {
+  const [, setLocation] = useLocation();
+  const [, params] = useRoute("/league/:id-:slug");
+  const leagueId = (params as any)?.id as string;
 
-  if (!league) return <div>Not found</div>;
+  const [league, setLeague] = useState<League | null>(null);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!leagueId) return;
+      try {
+        const leagueData = await sportsDataProvider.getLeague(leagueId);
+        setLeague(leagueData);
+        if (leagueData) {
+          const teamData = await sportsDataProvider.getTeamsByLeague(leagueData.id);
+          setTeams(teamData);
+        }
+      } catch (error) {
+        console.error("Failed to load league data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [leagueId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (!league) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center flex-col gap-4">
+        <p className="text-muted-foreground">League not found</p>
+      </div>
+    );
+  }
 
   return (
-    <AppShell title={league.name}>
-      <div className="bg-sidebar text-sidebar-foreground p-6 -mt-1 pt-4">
-         <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center text-sidebar font-display font-bold text-3xl shadow-lg">
-              {league.name[0]}
-            </div>
-            <div>
-              <h1 className="text-2xl font-display font-bold uppercase">{league.name}</h1>
-              <p className="text-sidebar-foreground/60 text-sm">Season 2024/25</p>
-            </div>
-         </div>
+    <div className="min-h-screen bg-background pb-20">
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-card border-b border-border">
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
+          <button
+            onClick={() => window.history.back()}
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+            data-testid="button-back"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div className="flex-1">
+            <h1 className="text-xl font-bold text-foreground">{league.name}</h1>
+            <p className="text-xs text-muted-foreground">Tier {league.tier} • {teams.length} teams</p>
+          </div>
+        </div>
       </div>
 
-      <div className="p-4">
-        <Tabs defaultValue="matches" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 mb-6 bg-muted/50 p-1">
-            <TabsTrigger value="matches">Matches</TabsTrigger>
-            <TabsTrigger value="table">Table</TabsTrigger>
-            <TabsTrigger value="teams">Teams</TabsTrigger>
+      {/* Tabs */}
+      <div className="max-w-2xl mx-auto">
+        <Tabs defaultValue="standings" className="w-full">
+          <TabsList className="w-full justify-start border-b bg-transparent h-auto p-0 rounded-none">
+            <TabsTrigger value="standings" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+              Standings
+            </TabsTrigger>
+            <TabsTrigger value="fixtures" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+              Fixtures
+            </TabsTrigger>
+            <TabsTrigger value="results" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+              Results
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="matches" className="space-y-4">
-             {matches.length === 0 ? (
-               <div className="text-center py-12 text-muted-foreground">No matches scheduled.</div>
-             ) : (
-               matches.map(m => <MatchCard key={m.id} match={m} />)
-             )}
-          </TabsContent>
-
-          <TabsContent value="table">
-            <div className="bg-card border border-border rounded-lg overflow-hidden">
-               <table className="w-full text-sm">
-                 <thead className="bg-muted/50 text-muted-foreground font-medium uppercase text-[10px] tracking-wider text-left">
-                   <tr>
-                     <th className="p-3 w-8 text-center">#</th>
-                     <th className="p-3">Team</th>
-                     <th className="p-3 text-center">PL</th>
-                     <th className="p-3 text-center">GD</th>
-                     <th className="p-3 text-center font-bold text-foreground">PTS</th>
-                   </tr>
-                 </thead>
-                 <tbody className="divide-y divide-border/50">
-                    {/* Mock Standings Logic - Random for prototype */}
-                    {teams.map((team, i) => (
-                      <tr key={team.id} className="hover:bg-muted/20">
-                        <td className="p-3 text-center font-medium border-l-2 border-transparent first:border-accent">{i + 1}</td>
-                        <td className="p-3">
-                           <Link href={`/team/${team.id}`}>
-                             <div className="flex items-center gap-2 cursor-pointer group">
-                               <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-400 group-hover:scale-110 transition-transform">
-                                 {team.shortName[0]}
-                               </div>
-                               <span className="font-semibold group-hover:text-accent transition-colors">{team.name}</span>
-                             </div>
-                           </Link>
-                        </td>
-                        <td className="p-3 text-center text-muted-foreground">24</td>
-                        <td className="p-3 text-center text-muted-foreground">+12</td>
-                        <td className="p-3 text-center font-bold text-base">{60 - (i * 3)}</td>
-                      </tr>
-                    ))}
-                 </tbody>
-               </table>
+          {/* Standings Tab */}
+          <TabsContent value="standings" className="p-4 space-y-3">
+            <div className="space-y-2">
+              {/* Placeholder standings header */}
+              <div className="grid grid-cols-12 gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground border-b border-border">
+                <div className="col-span-1">#</div>
+                <div className="col-span-6">Team</div>
+                <div className="col-span-1">P</div>
+                <div className="col-span-1">W</div>
+                <div className="col-span-1">D</div>
+                <div className="col-span-1">Pts</div>
+              </div>
+              {/* Placeholder rows */}
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="grid grid-cols-12 gap-2 px-3 py-3 rounded-lg bg-card border border-border hover:border-primary transition-colors cursor-pointer">
+                  <div className="col-span-1 text-sm font-semibold">{i}</div>
+                  <div className="col-span-6 text-sm font-semibold">Team {i}</div>
+                  <div className="col-span-1 text-sm text-muted-foreground">0</div>
+                  <div className="col-span-1 text-sm text-muted-foreground">0</div>
+                  <div className="col-span-1 text-sm text-muted-foreground">0</div>
+                  <div className="col-span-1 text-sm font-bold">0</div>
+                </div>
+              ))}
             </div>
           </TabsContent>
 
-           <TabsContent value="teams">
-             <div className="grid grid-cols-2 gap-3">
-               {teams.map(team => (
-                 <Link key={team.id} href={`/team/${team.id}`}>
-                   <div className="bg-card border border-border p-3 rounded-lg flex items-center gap-3 cursor-pointer hover:border-accent/50 transition-colors">
-                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">
-                         {team.shortName[0]}
-                      </div>
-                      <span className="font-medium text-sm">{team.name}</span>
-                   </div>
-                 </Link>
-               ))}
-             </div>
-           </TabsContent>
+          {/* Fixtures Tab */}
+          <TabsContent value="fixtures" className="p-4 space-y-3">
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Upcoming fixtures loading...</p>
+            </div>
+          </TabsContent>
+
+          {/* Results Tab */}
+          <TabsContent value="results" className="p-4 space-y-3">
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Recent results loading...</p>
+            </div>
+          </TabsContent>
         </Tabs>
+
+        {/* Teams List */}
+        <div className="px-4 py-6">
+          <h2 className="text-lg font-bold text-foreground mb-4">Teams</h2>
+          <div className="space-y-3">
+            {teams.map((team) => (
+              <button
+                key={team.id}
+                onClick={() => setLocation(`/team/${team.id}-${team.slug}`)}
+                className="w-full flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:border-primary hover:bg-muted/50 transition-all text-left group"
+                data-testid={`team-button-${team.slug}`}
+              >
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold">
+                  {team.name.charAt(0)}
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-foreground">{team.name}</p>
+                  {team.city && <p className="text-xs text-muted-foreground">{team.city}</p>}
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
-    </AppShell>
+    </div>
   );
 }

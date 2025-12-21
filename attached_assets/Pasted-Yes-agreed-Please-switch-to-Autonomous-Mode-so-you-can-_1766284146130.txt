@@ -1,0 +1,91 @@
+Yes — agreed. Please switch to Autonomous Mode so you can implement this properly with full architectural control.
+
+What I want you to build first (Core App Structure)
+
+Your goal in this phase is to create the foundation for the league hierarchy and dynamic content.
+
+1) Hierarchy + Dynamic Routing (required)
+
+Implement the continuous navigation flow:
+
+World → Continent → Country → League → Team → Player → Match
+
+Use dynamic routes (slug + ID-based) so the pages are API-ready:
+	•	/world
+	•	/continent/:continentSlug
+	•	/country/:countrySlug
+	•	/league/:leagueId-:leagueSlug
+	•	/team/:teamId-:teamSlug
+	•	/player/:playerId-:playerSlug
+	•	/match/:matchId
+
+Add a Global Search route:
+	•	/search
+
+And authenticated user pages:
+	•	/profile
+	•	/favorites
+
+2) Page Scaffolds (UI shells with correct layout + tabs)
+
+Each page should exist and be navigable end-to-end, with placeholders (no hardcoded data):
+
+League Page
+
+Tabs:
+	•	Standings
+	•	Fixtures
+	•	Results
+	•	Stats (optional placeholder)
+
+Team Page
+
+Tabs:
+	•	Overview
+	•	Squad
+	•	Fixtures/Results
+	•	Table/Stats
+
+Player Page
+	•	Bio header + key stats blocks
+
+Match Page
+	•	Scoreline header
+	•	Timeline/events placeholder
+	•	Lineups placeholder
+	•	Match stats placeholder
+
+3) Data Model (API-ready, no hardcoding)
+
+Create normalized types/interfaces so either API can populate the same UI:
+	•	Continent { id, name, slug }
+	•	Country { id, name, code, slug, continentId }
+	•	League { id, name, slug, countryId, seasonId? }
+	•	Team { id, name, slug, leagueId, countryId, crestUrl? }
+	•	Player { id, name, slug, teamId, position?, nationality? }
+	•	Match { id, homeTeamId, awayTeamId, kickoffTime, status, score }
+
+Build the UI to consume data through a single data layer:
+	•	providers/sportmonks (pro data)
+	•	providers/grassroots (lower tiers / later)
+
+Even if you mock the provider responses initially, structure it as if it’s live.
+
+4) Critical rule
+
+✅ Pages must render using dynamic placeholders and fetched data objects.
+❌ Do not manually enter teams/leagues/players into UI components.
+
+5) Navigation + Layout
+	•	Top bar: Search, Profile, Notifications, Settings
+	•	Bottom nav: Home, Standings, Community (placeholder), Chatbot (placeholder), Menu/Browse
+	•	Mobile-first, clean ESPN/Kicker-style layout.
+
+6) Success checkpoint for this phase
+
+I should be able to:
+	1.	Navigate World → Continent → Country → League → Team → Player without dead ends
+	2.	See proper page layouts/tabs with placeholder data
+	3.	Confirm routing + data types are ready for SportMonks + Grassroots integration
+
+Proceed with this as the foundation. Once complete, next phase is SportMonks integration + Favorites.

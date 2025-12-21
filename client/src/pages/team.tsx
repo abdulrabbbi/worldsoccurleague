@@ -1,68 +1,136 @@
-import { AppShell } from "@/components/layout/app-shell";
-import { api } from "@/lib/mock-data";
-import { MatchCard } from "@/components/ui/match-card";
+import { useEffect, useState } from "react";
+import { useLocation, useRoute } from "wouter";
+import { sportsDataProvider } from "@/lib/sports-data-provider";
+import type { Team, Player } from "@/lib/types";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User } from "lucide-react";
 
-export default function Team({ params }: { params: { id: string } }) {
-  const team = api.getTeam(params.id);
-  // Mock matches for this team
-  const matches = api.getMatches().filter(m => m.homeTeamId === params.id || m.awayTeamId === params.id);
-  
-  // Mock players if empty
-  const players = team?.players.length ? team.players : Array.from({ length: 11 }).map((_, i) => ({
-    id: `p-${i}`,
-    name: `Player ${i + 1}`,
-    position: i === 0 ? "GK" : i < 5 ? "DEF" : i < 9 ? "MID" : "FWD",
-    number: i + 1,
-  }));
+export default function TeamPage() {
+  const [, setLocation] = useLocation();
+  const [, params] = useRoute("/team/:id-:slug");
+  const teamId = (params as any)?.id as string;
 
-  if (!team) return <div>Not found</div>;
+  const [team, setTeam] = useState<Team | null>(null);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!teamId) return;
+      try {
+        const teamData = await sportsDataProvider.getTeam(teamId);
+        setTeam(teamData);
+        if (teamData) {
+          const playerData = await sportsDataProvider.getPlayersByTeam(teamData.id);
+          setPlayers(playerData);
+        }
+      } catch (error) {
+        console.error("Failed to load team data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [teamId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (!team) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center flex-col gap-4">
+        <p className="text-muted-foreground">Team not found</p>
+      </div>
+    );
+  }
 
   return (
-    <AppShell title={team.name}>
-      <div className="bg-sidebar p-6 -mt-1 pt-4 text-center">
-         <div className="mx-auto w-24 h-24 bg-white rounded-full flex items-center justify-center text-sidebar font-display font-bold text-4xl shadow-xl border-4 border-sidebar-accent mb-4">
-            {team.shortName[0]}
-         </div>
-         <h1 className="text-3xl font-display font-bold text-white uppercase">{team.name}</h1>
-         <p className="text-accent font-medium uppercase tracking-widest text-xs mt-1">{team.shortName}</p>
+    <div className="min-h-screen bg-background pb-20">
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-card border-b border-border">
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
+          <button
+            onClick={() => window.history.back()}
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+            data-testid="button-back"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div className="flex-1">
+            <h1 className="text-xl font-bold text-foreground">{team.name}</h1>
+            {team.city && <p className="text-xs text-muted-foreground">{team.city}</p>}
+          </div>
+        </div>
       </div>
 
-      <div className="p-4">
-        <Tabs defaultValue="squad" className="w-full">
-          <TabsList className="w-full grid grid-cols-2 mb-6 bg-muted/50 p-1">
-            <TabsTrigger value="squad">Squad</TabsTrigger>
-            <TabsTrigger value="matches">Matches</TabsTrigger>
+      {/* Tabs */}
+      <div className="max-w-2xl mx-auto">
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="w-full justify-start border-b bg-transparent h-auto p-0 rounded-none">
+            <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="squad" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+              Squad
+            </TabsTrigger>
+            <TabsTrigger value="fixtures" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+              Fixtures
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="squad">
-             <div className="grid gap-2">
-               {/* Group by position logic could go here */}
-               {players.map((player) => (
-                 <div key={player.id} className="bg-card border border-border p-3 rounded-lg flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                        <User size={20} />
-                      </div>
-                      <div>
-                        <div className="font-bold text-sm">{player.name}</div>
-                        <div className="text-[10px] uppercase text-muted-foreground font-medium">{player.position}</div>
-                      </div>
-                    </div>
-                    <div className="text-xl font-display font-bold text-muted-foreground/30">
-                      {player.number}
-                    </div>
-                 </div>
-               ))}
-             </div>
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="p-4">
+            <div className="space-y-4">
+              <div className="bg-card border border-border rounded-lg p-4">
+                <p className="text-sm text-muted-foreground mb-2">Founded</p>
+                <p className="text-lg font-bold text-foreground">{team.founded || "N/A"}</p>
+              </div>
+            </div>
           </TabsContent>
 
-          <TabsContent value="matches" className="space-y-4">
-             {matches.map(m => <MatchCard key={m.id} match={m} />)}
+          {/* Squad Tab */}
+          <TabsContent value="squad" className="p-4 space-y-3">
+            {players.length > 0 ? (
+              <div className="space-y-3">
+                {players.map((player) => (
+                  <button
+                    key={player.id}
+                    onClick={() => setLocation(`/player/${player.id}-${player.slug}`)}
+                    className="w-full flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:border-primary hover:bg-muted/50 transition-all text-left group"
+                    data-testid={`player-button-${player.slug}`}
+                  >
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-xs font-bold text-muted-foreground">#{player.number || "—"}</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-foreground">{player.name}</p>
+                      <p className="text-xs text-muted-foreground">{player.position || "N/A"}</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Squad data loading...</p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Fixtures Tab */}
+          <TabsContent value="fixtures" className="p-4">
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Fixtures & results loading...</p>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
-    </AppShell>
+    </div>
   );
 }

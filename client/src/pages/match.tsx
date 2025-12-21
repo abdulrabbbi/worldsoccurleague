@@ -1,70 +1,164 @@
-import { AppShell } from "@/components/layout/app-shell";
-import { api } from "@/lib/mock-data";
-import { format } from "date-fns";
-import { Clock, MapPin } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation, useRoute } from "wouter";
+import { sportsDataProvider } from "@/lib/sports-data-provider";
+import type { Match, Team } from "@/lib/types";
+import { ChevronLeft, Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export default function Match({ params }: { params: { id: string } }) {
-  const match = api.getMatch(params.id);
-  const homeTeam = match ? api.getTeam(match.homeTeamId) : null;
-  const awayTeam = match ? api.getTeam(match.awayTeamId) : null;
-  const league = match ? api.getLeague(match.leagueId) : null;
+export default function MatchPage() {
+  const [, setLocation] = useLocation();
+  const [, params] = useRoute("/match/:id");
+  const matchId = params?.id as string;
 
-  if (!match || !homeTeam || !awayTeam) return <div>Not found</div>;
+  const [match, setMatch] = useState<Match | null>(null);
+  const [homeTeam, setHomeTeam] = useState<Team | null>(null);
+  const [awayTeam, setAwayTeam] = useState<Team | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!matchId) return;
+      try {
+        const matchData = await sportsDataProvider.getMatch(matchId);
+        setMatch(matchData);
+        if (matchData) {
+          const home = await sportsDataProvider.getTeam(matchData.homeTeamId);
+          const away = await sportsDataProvider.getTeam(matchData.awayTeamId);
+          setHomeTeam(home);
+          setAwayTeam(away);
+        }
+      } catch (error) {
+        console.error("Failed to load match data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [matchId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (!match || !homeTeam || !awayTeam) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center flex-col gap-4">
+        <p className="text-muted-foreground">Match not found</p>
+      </div>
+    );
+  }
 
   const isLive = match.status === "LIVE";
+  const isFinished = match.status === "FT";
 
   return (
-    <AppShell title="Match Center">
-      {/* Scoreboard */}
-      <div className="bg-sidebar text-white pb-8 -mt-1 pt-2">
-         <div className="text-center text-xs font-medium uppercase tracking-widest text-sidebar-foreground/60 mb-6">
-           {league?.name} • {match.status === 'LIVE' ? 'Week 24' : format(new Date(match.startTime), "MMM d")}
-         </div>
-
-         <div className="flex items-center justify-between px-6 max-w-sm mx-auto">
-            <div className="flex flex-col items-center gap-3 w-24">
-               <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-sidebar text-2xl font-bold">
-                 {homeTeam.shortName[0]}
-               </div>
-               <span className="text-sm font-bold text-center leading-tight">{homeTeam.shortName}</span>
-            </div>
-
-            <div className="flex flex-col items-center">
-               <div className="text-5xl font-display font-bold tracking-tighter flex items-center gap-4">
-                 <span>{match.score.home}</span>
-                 <span className="text-sidebar-foreground/20">:</span>
-                 <span>{match.score.away}</span>
-               </div>
-               {isLive && (
-                 <div className="mt-2 bg-destructive text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse">
-                   {match.minute}'
-                 </div>
-               )}
-            </div>
-
-            <div className="flex flex-col items-center gap-3 w-24">
-               <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-sidebar text-2xl font-bold">
-                 {awayTeam.shortName[0]}
-               </div>
-               <span className="text-sm font-bold text-center leading-tight">{awayTeam.shortName}</span>
-            </div>
-         </div>
+    <div className="min-h-screen bg-background pb-20">
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-card border-b border-border">
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
+          <button
+            onClick={() => window.history.back()}
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+            data-testid="button-back"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div className="flex-1">
+            <h1 className="text-lg font-bold text-foreground">Match Details</h1>
+            <p className="text-xs text-muted-foreground">
+              {isLive && "LIVE"}
+              {isFinished && "FINISHED"}
+              {!isLive && !isFinished && "SCHEDULED"}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className="p-4 space-y-6">
-         {/* Stats / Timeline would go here */}
-         <div className="bg-card border border-border rounded-xl p-4 shadow-sm text-center py-12">
-            <p className="text-muted-foreground text-sm">Match events and stats would populate here.</p>
-         </div>
-         
-         <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 flex items-center gap-3">
-           <MapPin className="text-accent" />
-           <div>
-             <div className="text-xs font-bold uppercase text-accent">Venue</div>
-             <div className="font-medium text-sm">Etihad Stadium, Manchester</div>
-           </div>
-         </div>
+      {/* Match Scoreline */}
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        <div className="bg-card border border-border rounded-lg p-6 space-y-6">
+          {/* Teams & Score */}
+          <div className="space-y-4">
+            {/* Home Team */}
+            <button
+              onClick={() => setLocation(`/team/${homeTeam.id}-${homeTeam.slug}`)}
+              className="w-full flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+            >
+              <div className="text-center flex-1">
+                <p className="font-bold text-foreground mb-2">{homeTeam.name}</p>
+                <p className="text-3xl font-bold text-primary">{match.homeScore ?? "—"}</p>
+              </div>
+            </button>
+
+            {/* Status/Minute */}
+            <div className="text-center py-4 border-y border-border">
+              {isLive && (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-destructive rounded-full animate-pulse"></div>
+                  <p className="text-sm font-bold text-destructive">LIVE - {match.minute}'</p>
+                </div>
+              )}
+              {isFinished && <p className="text-sm font-bold text-muted-foreground">Full Time</p>}
+              {!isLive && !isFinished && (
+                <p className="text-sm font-bold text-muted-foreground">
+                  {new Date(match.kickoffTime).toLocaleTimeString()}
+                </p>
+              )}
+            </div>
+
+            {/* Away Team */}
+            <button
+              onClick={() => setLocation(`/team/${awayTeam.id}-${awayTeam.slug}`)}
+              className="w-full flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+            >
+              <div className="text-center flex-1">
+                <p className="font-bold text-foreground mb-2">{awayTeam.name}</p>
+                <p className="text-3xl font-bold text-primary">{match.awayScore ?? "—"}</p>
+              </div>
+            </button>
+          </div>
+        </div>
       </div>
-    </AppShell>
+
+      {/* Tabs */}
+      <div className="max-w-2xl mx-auto mt-6">
+        <Tabs defaultValue="timeline" className="w-full">
+          <TabsList className="w-full justify-start border-b bg-transparent h-auto p-0 rounded-none">
+            <TabsTrigger value="timeline" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+              Timeline
+            </TabsTrigger>
+            <TabsTrigger value="lineups" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+              Lineups
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+              Stats
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="timeline" className="p-4">
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Match events & timeline loading...</p>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="lineups" className="p-4">
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Team lineups loading...</p>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="stats" className="p-4">
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Match statistics loading...</p>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
   );
 }

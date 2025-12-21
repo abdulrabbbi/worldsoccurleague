@@ -7,10 +7,10 @@ export function BottomNav() {
 
   const navItems = [
     { icon: Home, label: "Home", path: "/home" },
-    { icon: Trophy, label: "Leagues", path: "/explore" },
-    { icon: Globe, label: "Explore", path: "/explore" },
+    { icon: Globe, label: "World", path: "/world" },
     { icon: Users, label: "Community", path: "/community" },
-    { icon: Menu, label: "Menu", path: "/menu" },
+    { icon: Trophy, label: "Search", path: "/search" },
+    { icon: Menu, label: "Menu", path: "/profile" },
   ];
 
   return (

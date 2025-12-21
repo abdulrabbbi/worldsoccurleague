@@ -6,10 +6,6 @@ import { ProfileSetupProvider } from "@/lib/profile-setup-context";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
-import Explore, { ContinentView, CountryView } from "@/pages/explore";
-import League from "@/pages/league";
-import Team from "@/pages/team";
-import Match from "@/pages/match";
 import Community from "@/pages/community";
 
 // Auth pages
@@ -22,6 +18,18 @@ import ContinentSetup from "@/pages/auth/profile-setup/continent";
 import LeaguesSetup from "@/pages/auth/profile-setup/leagues";
 import NationalTeamSetup from "@/pages/auth/profile-setup/national-team";
 import NotificationsSetup from "@/pages/auth/profile-setup/notifications";
+
+// Hierarchy pages
+import World from "@/pages/world";
+import Continent from "@/pages/continent";
+import Country from "@/pages/country";
+import League from "@/pages/league";
+import Team from "@/pages/team";
+import Player from "@/pages/player";
+import Match from "@/pages/match";
+import Search from "@/pages/search";
+import Profile from "@/pages/profile";
+import Favorites from "@/pages/favorites";
 
 function Router() {
   return (
@@ -42,15 +50,21 @@ function Router() {
       <Route path="/auth/profile-setup/national-team" component={NationalTeamSetup} />
       <Route path="/auth/profile-setup/notifications" component={NotificationsSetup} />
 
-      {/* App Routes */}
+      {/* App Routes - Authenticated */}
       <Route path="/home" component={Home} />
-      <Route path="/explore" component={Explore} />
-      <Route path="/explore/continent/:id" component={ContinentView} />
-      <Route path="/explore/country/:id" component={CountryView} />
-      <Route path="/league/:id" component={League} />
-      <Route path="/team/:id" component={Team} />
-      <Route path="/match/:id" component={Match} />
       <Route path="/community" component={Community} />
+      <Route path="/search" component={Search} />
+      <Route path="/profile" component={Profile} />
+      <Route path="/favorites" component={Favorites} />
+
+      {/* Hierarchy Routes - World → Continent → Country → League → Team → Player → Match */}
+      <Route path="/world" component={World} />
+      <Route path="/continent/:slug" component={Continent} />
+      <Route path="/country/:slug" component={Country} />
+      <Route path="/league/:id-:slug" component={League} />
+      <Route path="/team/:id-:slug" component={Team} />
+      <Route path="/player/:id-:slug" component={Player} />
+      <Route path="/match/:id" component={Match} />
       
       <Route component={NotFound} />
     </Switch>
