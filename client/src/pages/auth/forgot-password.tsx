@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import logoUrl from "@assets/generated_images/world_soccer_leagues_logo_with_globe.png";
 
 export default function ForgotPassword() {
   const [, setLocation] = useLocation();
@@ -35,8 +36,8 @@ export default function ForgotPassword() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-sidebar rounded-lg mb-4 shadow-lg">
-            <div className="font-display font-bold text-2xl text-white">WSL</div>
+          <div className="inline-flex items-center justify-center w-24 h-24 mb-4">
+            <img src={logoUrl} alt="World Soccer Leagues" className="w-full h-full object-contain" data-testid="img-logo" />
           </div>
           <h1 className="text-2xl font-bold text-foreground mb-1">
             {step === "email" && "Forgot Password"}
