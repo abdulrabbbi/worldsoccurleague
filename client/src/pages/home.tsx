@@ -6,12 +6,12 @@ import { Link } from "wouter";
 import { useState } from "react";
 
 const continents = [
-  { id: "north-america", name: "North America", flag: "🇺🇸" },
-  { id: "europe", name: "Europe", flag: "🇪🇺" },
-  { id: "south-america", name: "South America", flag: "🇧🇷" },
-  { id: "africa", name: "Africa", flag: "🇿🇦" },
-  { id: "asia", name: "Asia", flag: "🇯🇵" },
-  { id: "oceania", name: "Oceania", flag: "🇦🇺" },
+  { id: "usa", name: "USA Soccer Leagues", flag: "🇺🇸" },
+  { id: "euro", name: "Euro Soccer Leagues", flag: "🇪🇺" },
+  { id: "africa", name: "Africa Soccer Leagues", flag: "🌍" },
+  { id: "asia", name: "Asia Soccer Leagues", flag: "🌏" },
+  { id: "latino", name: "Latino Soccer Leagues", flag: "🌎" },
+  { id: "aussie", name: "Aussie Soccer Leagues", flag: "🇦🇺" },
 ];
 
 export default function Home() {
