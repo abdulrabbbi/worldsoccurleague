@@ -6,7 +6,7 @@ import { Link } from "wouter";
 import { useState } from "react";
 
 const continents = [
-  { id: "usa", name: "USA Soccer Leagues", flag: "🇺🇸" },
+  { id: "usa", name: "USA Soccer Leagues", flag: "🇺🇸", logo: "/attached_assets/USASL_Icon_1766299234835.jpeg" },
   { id: "euro", name: "Euro Soccer Leagues", flag: "🇪🇺" },
   { id: "africa", name: "Africa Soccer Leagues", flag: "🌍" },
   { id: "asia", name: "Asia Soccer Leagues", flag: "🌏" },
@@ -101,7 +101,11 @@ export default function Home() {
             data-testid="button-continent-dropdown"
           >
             <div className="flex items-center gap-3">
-              <span className="text-2xl">{selectedContinent.flag}</span>
+              {(selectedContinent as any).logo ? (
+                <img src={(selectedContinent as any).logo} alt={selectedContinent.name} className="w-8 h-8 object-contain rounded" />
+              ) : (
+                <span className="text-2xl">{selectedContinent.flag}</span>
+              )}
               <span className="font-semibold text-[#1a2d5c]">{selectedContinent.name}</span>
             </div>
             <ChevronDown size={20} className={`text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -121,7 +125,11 @@ export default function Home() {
                   }`}
                   data-testid={`button-continent-${continent.id}`}
                 >
-                  <span className="text-2xl">{continent.flag}</span>
+                  {(continent as any).logo ? (
+                    <img src={(continent as any).logo} alt={continent.name} className="w-8 h-8 object-contain rounded" />
+                  ) : (
+                    <span className="text-2xl">{continent.flag}</span>
+                  )}
                   <span className="font-medium text-gray-700">{continent.name}</span>
                 </button>
               ))}
