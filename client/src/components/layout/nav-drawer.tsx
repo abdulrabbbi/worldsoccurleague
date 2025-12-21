@@ -118,6 +118,7 @@ const USA_SOCCER_HIERARCHY: Category[] = [
     name: "Adult Soccer",
     hasLocationFilter: true,
     items: [
+      { id: "sanctioned-leagues", name: "Sanctioned Leagues", icon: "✅" },
       { id: "adult-recreational", name: "Recreational Leagues", icon: "🌱" },
       { id: "adult-competitive", name: "Competitive Leagues", icon: "🏆" },
       { id: "adult-coed-leagues", name: "Co-ed Leagues", icon: "🤝" },
