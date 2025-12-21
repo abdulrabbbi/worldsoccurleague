@@ -100,45 +100,47 @@ export default function Home() {
           )}
         </div>
 
-        {/* Category Dropdown - shows for selected continent */}
-        <div className="relative mt-3">
-          <button
-            onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors"
-            data-testid="button-category-dropdown"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-xl">{selectedCategory.icon}</span>
-              <span className="font-semibold text-[#1a2d5c]">{selectedCategory.name}</span>
-            </div>
-            <ChevronDown size={20} className={`text-gray-400 transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
-          </button>
-          
-          {isCategoryDropdownOpen && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden max-h-80 overflow-y-auto">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => {
-                    setSelectedCategory(category);
-                    setSelectedSubItem(null);
-                    setIsCategoryDropdownOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
-                    selectedCategory.id === category.id ? 'bg-gray-50' : ''
-                  }`}
-                  data-testid={`button-category-${category.id}`}
-                >
-                  <span className="text-xl">{category.icon}</span>
-                  <span className="font-medium text-gray-700">{category.name}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Category Dropdown - shows ONLY for USA Soccer Leagues */}
+        {selectedContinent.id === "usa" && (
+          <div className="relative mt-3">
+            <button
+              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors"
+              data-testid="button-category-dropdown"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">{selectedCategory.icon}</span>
+                <span className="font-semibold text-[#1a2d5c]">{selectedCategory.name}</span>
+              </div>
+              <ChevronDown size={20} className={`text-gray-400 transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {isCategoryDropdownOpen && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden max-h-80 overflow-y-auto">
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => {
+                      setSelectedCategory(category);
+                      setSelectedSubItem(null);
+                      setIsCategoryDropdownOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
+                      selectedCategory.id === category.id ? 'bg-gray-50' : ''
+                    }`}
+                    data-testid={`button-category-${category.id}`}
+                  >
+                    <span className="text-xl">{category.icon}</span>
+                    <span className="font-medium text-gray-700">{category.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Sub-Item Dropdown - shows when category has sub-items */}
-        {selectedCategory.subItems && selectedCategory.subItems.length > 0 && (
+        {/* Sub-Item Dropdown - shows when USA is selected AND category has sub-items */}
+        {selectedContinent.id === "usa" && selectedCategory.subItems && selectedCategory.subItems.length > 0 && (
           <div className="relative mt-3">
             <button
               onClick={() => setIsSubItemDropdownOpen(!isSubItemDropdownOpen)}
@@ -172,6 +174,13 @@ export default function Home() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Placeholder for other continents - coming soon */}
+        {selectedContinent.id !== "usa" && (
+          <div className="mt-3 p-4 bg-gray-50 rounded-xl border border-gray-200 text-center">
+            <p className="text-gray-500 text-sm">Leagues for {selectedContinent.name} coming soon!</p>
           </div>
         )}
       </div>
