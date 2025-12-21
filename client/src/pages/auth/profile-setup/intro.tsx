@@ -28,7 +28,7 @@ export default function IntroSetup() {
 
         {/* Description */}
         <p className="text-sm text-slate-500 leading-relaxed mb-8 px-2">
-          Select your favorite teams and leagues from national powerhouses to your local pick-up squads. This helps us tailor your feed with match updates, standings, events, and more, all based on your location and interests. Whether you're into National, International, MLS, USL, college, high school, youth, or pick up leagues, we've got you covered. Simply select your preferred leagues on the left, and then pick your favorite teams on the right.
+          Select your favorite teams and leagues from national powerhouses and professional clubs all the way down to your local pick-up leagues. This helps us tailor your feed with match updates, standings, events, and more, all based on your location and interests. Whether you're into national, international, MLS, USL, college soccer, high school soccer, youth soccer, adult soccer, pick-up soccer or finding your local fan clubs, we've got you covered. Simply select your preferred leagues, teams, clubs from the dropdown menu on the left then pick your favorites and start enjoying soccer like never before.
         </p>
 
         {/* Button */}
