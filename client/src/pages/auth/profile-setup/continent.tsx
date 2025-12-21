@@ -1,18 +1,26 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { api } from "@/lib/mock-data";
 import { ArrowLeft, Globe } from "lucide-react";
+
+const CONTINENTS = [
+  { id: "usa", name: "USA Soccer League", slug: "usa" },
+  { id: "euro", name: "Euro Soccer Leagues", slug: "europe" },
+  { id: "africa", name: "Africa Soccer Leagues", slug: "africa" },
+  { id: "asia", name: "Asia Soccer Leagues", slug: "asia" },
+  { id: "latino", name: "Latino Soccer Leagues", slug: "south-america" },
+  { id: "aussie", name: "Aussie Soccer Leagues", slug: "oceania" },
+];
 
 export default function ContinentSetup() {
   const [, setLocation] = useLocation();
-  // Using hardcoded continents from the mock data hook or provider
-  const continents = api.getContinents(); 
+  const [selected, setSelected] = useState<string>("usa");
 
   return (
     <div className="min-h-screen bg-white flex flex-col p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button
-          onClick={() => setLocation("/auth/profile-setup/location")}
+          onClick={() => setLocation("/auth/profile-setup/intro")}
           className="text-slate-800 hover:text-slate-600 flex items-center gap-2 font-medium text-sm"
           data-testid="button-back"
         >
@@ -45,22 +53,35 @@ export default function ContinentSetup() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <h3 className="text-sm font-semibold text-slate-500 mb-3 uppercase tracking-wider">World Soccer Leagues</h3>
+        <h3 className="text-sm font-bold text-slate-900 mb-3 tracking-wide">World Soccer Leagues</h3>
         <div className="space-y-3">
-          {continents.map((continent) => (
-            <button
-              key={continent.id}
-              onClick={() => setLocation("/auth/profile-setup/leagues")} // For now, all go to leagues
-              className="w-full flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-[#1a2d5c] hover:bg-slate-50 transition-all text-left bg-white shadow-sm"
-              data-testid={`continent-${continent.id}`}
-            >
-              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 text-xl">
-                <Globe className="text-slate-400 w-6 h-6" />
-              </div>
-              <span className="font-semibold text-slate-900 flex-1">{continent.name} Soccer Leagues</span>
-              <div className={`w-5 h-5 rounded-full border-2 border-slate-300`}></div>
-            </button>
-          ))}
+          {CONTINENTS.map((continent) => {
+            const isSelected = selected === continent.id;
+            return (
+              <button
+                key={continent.id}
+                onClick={() => setSelected(continent.id)}
+                className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left shadow-sm ${
+                  isSelected 
+                    ? "bg-slate-200/60 border-[#1a2d5c]/20" 
+                    : "bg-white border-slate-100 hover:border-[#1a2d5c] hover:bg-slate-50"
+                }`}
+                data-testid={`continent-${continent.id}`}
+              >
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-xl text-[#1a2d5c]">
+                  <Globe className="w-6 h-6 stroke-[1.5]" />
+                </div>
+                <span className={`flex-1 font-medium ${isSelected ? "text-[#1a2d5c]" : "text-slate-800"}`}>
+                  {continent.name}
+                </span>
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  isSelected ? "border-[#1a2d5c]" : "border-slate-300"
+                }`}>
+                  {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#1a2d5c]" />}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
