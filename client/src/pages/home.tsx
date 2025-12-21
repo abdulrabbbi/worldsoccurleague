@@ -14,6 +14,34 @@ const continents = [
   { id: "aussie", name: "Aussie Soccer Leagues", flag: "🇦🇺" },
 ];
 
+const moreSports = [
+  { id: "ncaa-football", name: "NCAA Football", icon: "🏈" },
+  { id: "nba", name: "NBA", icon: "🏀" },
+  { id: "nhl", name: "NHL", icon: "🏒" },
+  { id: "ncaa-mens-basketball", name: "NCAA Men's Basketball", icon: "🏀" },
+  { id: "ncaa-womens-basketball", name: "NCAA Women's Basketball", icon: "🏀" },
+  { id: "mlb", name: "MLB", icon: "⚾" },
+  { id: "wnba", name: "WNBA", icon: "🏀" },
+  { id: "wwe", name: "WWE", icon: "🤼" },
+  { id: "golf", name: "Golf", icon: "⛳" },
+  { id: "pga-tour", name: "PGA Tour", icon: "⛳" },
+  { id: "lpga-tour", name: "LPGA Tour", icon: "⛳" },
+  { id: "liv-golf", name: "LIV Golf", icon: "⛳" },
+  { id: "tgl", name: "TGL", icon: "⛳" },
+  { id: "tennis", name: "Tennis", icon: "🎾" },
+  { id: "mens-tennis", name: "Men's Tennis", icon: "🎾" },
+  { id: "womens-tennis", name: "Women's Tennis", icon: "🎾" },
+  { id: "mma", name: "MMA", icon: "🥊" },
+  { id: "pfl", name: "Professional Fighters League", icon: "🥊" },
+  { id: "ufl", name: "UFL", icon: "🏈" },
+  { id: "ncaa-womens-volleyball", name: "NCAA Women's Volleyball", icon: "🏐" },
+  { id: "nll", name: "National Lacrosse League", icon: "🥍" },
+  { id: "pll", name: "Premier Lacrosse League", icon: "🥍" },
+  { id: "racing", name: "Racing", icon: "🏁" },
+  { id: "nascar", name: "NASCAR Cup Series", icon: "🏎️" },
+  { id: "indycar", name: "IndyCar Series", icon: "🏎️" },
+];
+
 const categories = [
   { 
     id: "national-teams", 
@@ -79,7 +107,7 @@ export default function Home() {
           </button>
           
           {isDropdownOpen && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden max-h-96 overflow-y-auto">
               {continents.map((continent) => (
                 <button
                   key={continent.id}
@@ -94,6 +122,28 @@ export default function Home() {
                 >
                   <span className="text-2xl">{continent.flag}</span>
                   <span className="font-medium text-gray-700">{continent.name}</span>
+                </button>
+              ))}
+              
+              {/* Divider and More Sports Section */}
+              <div className="border-t border-gray-200 my-2"></div>
+              <div className="px-4 py-2">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">More Sports</span>
+              </div>
+              {moreSports.map((sport) => (
+                <button
+                  key={sport.id}
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
+                  data-testid={`button-sport-${sport.id}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">{sport.icon}</span>
+                    <span className="font-medium text-gray-700">{sport.name}</span>
+                  </div>
+                  <ChevronRight size={18} className="text-gray-400" />
                 </button>
               ))}
             </div>
