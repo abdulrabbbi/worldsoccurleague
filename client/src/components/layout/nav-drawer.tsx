@@ -16,10 +16,18 @@ const moreSports = [
   { id: "nba", name: "NBA", icon: "🏀" },
   { id: "mlb", name: "MLB", icon: "⚾" },
   { id: "nhl", name: "NHL", icon: "🏒" },
+  // Badminton
+  { id: "badminton", name: "Badminton", icon: "🏸" },
   // Basketball
   { id: "ncaa-mens-basketball", name: "NCAA Men's Basketball", icon: "🏀" },
   { id: "ncaa-womens-basketball", name: "NCAA Women's Basketball", icon: "🏀" },
   { id: "wnba", name: "WNBA", icon: "🏀" },
+  // Chess
+  { id: "chess", name: "Chess", icon: "♟️" },
+  // Cricket
+  { id: "cricket", name: "Cricket", icon: "🏏" },
+  // Cycling
+  { id: "cycling", name: "Cycling", icon: "🚴" },
   // Fighting / Combat Sports
   { id: "mma", name: "MMA", icon: "🥊" },
   { id: "pfl", name: "Professional Fighters League", icon: "🥊" },
@@ -27,26 +35,38 @@ const moreSports = [
   // Football
   { id: "ncaa-football", name: "NCAA Football", icon: "🏈" },
   { id: "ufl", name: "UFL", icon: "🏈" },
+  // Gaming / Esports
+  { id: "gaming", name: "Gaming", icon: "🎮" },
   // Golf
   { id: "golf", name: "Golf", icon: "⛳" },
   { id: "liv-golf", name: "LIV Golf", icon: "⛳" },
   { id: "lpga-tour", name: "LPGA Tour", icon: "⛳" },
   { id: "pga-tour", name: "PGA Tour", icon: "⛳" },
   { id: "tgl", name: "TGL", icon: "⛳" },
+  // Horse Racing
+  { id: "horse-racing", name: "Horse Racing", icon: "🏇" },
   // Lacrosse
   { id: "nll", name: "National Lacrosse League", icon: "🥍" },
   { id: "pll", name: "Premier Lacrosse League", icon: "🥍" },
+  // Olympics
+  { id: "olympics", name: "Olympics", icon: "🏅" },
   // Racing
   { id: "racing", name: "Racing", icon: "🏁" },
   { id: "f1", name: "Formula One", icon: "🏎️" },
   { id: "indycar", name: "IndyCar Series", icon: "🏎️" },
   { id: "nascar", name: "NASCAR Cup Series", icon: "🏎️" },
+  // Rugby
+  { id: "rugby", name: "Rugby", icon: "🏉" },
+  // Snooker
+  { id: "snooker", name: "Snooker", icon: "🎱" },
   // Tennis
   { id: "tennis", name: "Tennis", icon: "🎾" },
   { id: "mens-tennis", name: "Men's Tennis", icon: "🎾" },
   { id: "womens-tennis", name: "Women's Tennis", icon: "🎾" },
   // Volleyball
   { id: "ncaa-womens-volleyball", name: "NCAA Women's Volleyball", icon: "🏐" },
+  // X Games
+  { id: "xgames", name: "X Games", icon: "🛹" },
 ];
 
 const categories = [
