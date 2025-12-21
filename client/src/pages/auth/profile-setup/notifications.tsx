@@ -26,6 +26,15 @@ export default function NotificationsSetup() {
     }
 
     setLoading(true);
+    
+    // For demo users, skip saving to database and go directly to home
+    if (user.id === "demo-user") {
+      toast({ title: "Welcome!", description: "Profile setup complete!" });
+      setLocation("/home");
+      setLoading(false);
+      return;
+    }
+
     try {
       await api.preferences.save({
         userId: user.id,
