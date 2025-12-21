@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const continents = [
   { id: "usa", name: "USA Soccer Leagues", flag: "🇺🇸", logo: "/attached_assets/USASL_Icon_1766299234835.jpeg" },
@@ -86,17 +86,36 @@ export function NavDrawer({ isOpen, onClose }: NavDrawerProps) {
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   const [selectedSubItem, setSelectedSubItem] = useState<any>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>("continents");
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      requestAnimationFrame(() => {
+        setIsAnimating(true);
+      });
+    } else {
+      setIsAnimating(false);
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  if (!shouldRender) return null;
 
   return (
     <>
       <div 
-        className="fixed inset-0 bg-black/50 z-50 transition-opacity"
+        className={`fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose}
         data-testid="drawer-overlay"
       />
-      <div className="fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-white z-50 shadow-2xl overflow-y-auto animate-in slide-in-from-left duration-300">
+      <div 
+        className={`fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-white z-50 shadow-2xl overflow-y-auto transition-transform duration-300 ease-out ${isAnimating ? 'translate-x-0' : '-translate-x-full'}`}
+      >
         <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#1a2d5c]">Navigation</h2>
           <button 

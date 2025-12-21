@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Heart, ShoppingBag, ShoppingBasket, Users, Search, Bell, Settings, Sparkles } from "lucide-react";
+import { Home, Heart, ShoppingBag, ShoppingBasket, Users, Search, Bell, Settings, Sparkles, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logoUrl from "@assets/WSL_Tall_1766285125334.png";
 
@@ -39,7 +39,7 @@ export function BottomNav() {
   );
 }
 
-export function TopBar({ title, showBack = false, onLogoClick }: { title?: React.ReactNode; showBack?: boolean; onLogoClick?: () => void }) {
+export function TopBar({ title, showBack = false, onLogoClick, isNavOpen = false }: { title?: React.ReactNode; showBack?: boolean; onLogoClick?: () => void; isNavOpen?: boolean }) {
   return (
     <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-100 shadow-sm">
       <div className="flex flex-col max-w-md mx-auto">
@@ -47,7 +47,7 @@ export function TopBar({ title, showBack = false, onLogoClick }: { title?: React
         <div className="flex items-center justify-between h-16 px-4">
           {/* Logo on left - clickable to open nav drawer */}
           <button 
-            className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+            className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={onLogoClick}
             data-testid="button-logo-nav"
           >
@@ -56,6 +56,13 @@ export function TopBar({ title, showBack = false, onLogoClick }: { title?: React
               alt="World Soccer Leagues" 
               className="h-12 w-auto object-contain"
               data-testid="img-logo-header"
+            />
+            <ChevronDown 
+              size={16} 
+              className={cn(
+                "text-gray-500 transition-transform duration-300",
+                isNavOpen && "rotate-180"
+              )}
             />
           </button>
           
