@@ -102,6 +102,7 @@ const USA_SOCCER_HIERARCHY: Category[] = [
   {
     id: "pickup-soccer",
     name: "Pick-up Soccer",
+    hasLocationFilter: true,
     items: [
       { id: "pickup-casual", name: "Casual Pick-up Games", icon: "⚽" },
       { id: "pickup-indoor", name: "Indoor Soccer", icon: "🏢" },
@@ -113,6 +114,7 @@ const USA_SOCCER_HIERARCHY: Category[] = [
   {
     id: "fan-clubs",
     name: "Fan Clubs",
+    hasLocationFilter: true,
     items: [
       { id: "supporters-groups", name: "Supporters Groups", icon: "📣" },
       { id: "local-watch-parties", name: "Local Watch Parties", icon: "📺" },
