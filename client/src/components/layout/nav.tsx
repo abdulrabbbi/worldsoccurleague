@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Home, Trophy, Users, MessageSquare, Menu, Globe, Calendar, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import logoUrl from "@assets/WSL_Tall_1766285125334.png";
 
 export function BottomNav() {
   const [location] = useLocation();
@@ -40,10 +41,12 @@ export function TopBar({ title, showBack = false }: { title?: React.ReactNode; s
     <header className="sticky top-0 z-40 w-full bg-sidebar text-sidebar-foreground border-b border-sidebar-border shadow-sm">
       <div className="flex items-center justify-between h-14 px-4 max-w-md mx-auto">
         <div className="flex items-center gap-3">
-          {/* Logo or Back Button would go here */}
-           <div className="font-display font-bold text-xl tracking-tighter uppercase italic text-white">
-             WSL<span className="text-accent">.</span>
-           </div>
+          <img 
+            src={logoUrl} 
+            alt="World Soccer Leagues" 
+            className="h-10 w-auto object-contain"
+            data-testid="img-logo-header"
+          />
         </div>
         
         <div className="flex-1 text-center font-medium truncate px-4">
