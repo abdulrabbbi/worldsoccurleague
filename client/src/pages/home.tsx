@@ -38,6 +38,7 @@ const moreSports = [
   { id: "nll", name: "National Lacrosse League", icon: "🥍" },
   { id: "pll", name: "Premier Lacrosse League", icon: "🥍" },
   { id: "racing", name: "Racing", icon: "🏁" },
+  { id: "f1", name: "Formula One", icon: "🏎️" },
   { id: "nascar", name: "NASCAR Cup Series", icon: "🏎️" },
   { id: "indycar", name: "IndyCar Series", icon: "🏎️" },
 ];
