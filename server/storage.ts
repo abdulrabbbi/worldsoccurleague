@@ -2,89 +2,80 @@ import {
   type User, 
   type InsertUser,
   type UserPreferences,
-  type InsertUserPreferences 
+  type InsertUserPreferences,
+  users,
+  userPreferences
 } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
-  // User management
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
-  // User preferences
   getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
   upsertUserPreferences(prefs: InsertUserPreferences): Promise<UserPreferences>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private preferences: Map<string, UserPreferences>;
-
-  constructor() {
-    this.users = new Map();
-    this.preferences = new Map();
-    
-    // Add test account for development
-    const testUser: User = {
-      id: "test-user-1",
-      email: "test@test.com",
-      password: "test123",
-      name: "Test User",
-      createdAt: new Date()
-    };
-    this.users.set(testUser.id, testUser);
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.email === email,
-    );
+    const result = await db.select().from(users).where(eq(users.email, email));
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { 
-      id,
+    const result = await db.insert(users).values({
       email: insertUser.email,
       password: insertUser.password,
-      name: insertUser.name ?? null,
-      createdAt: new Date()
-    };
-    this.users.set(id, user);
-    return user;
+      name: insertUser.name,
+    }).returning();
+    return result[0];
   }
 
   async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
-    return Array.from(this.preferences.values()).find(
-      (pref) => pref.userId === userId
-    );
+    const result = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId));
+    return result[0];
   }
 
   async upsertUserPreferences(prefs: InsertUserPreferences): Promise<UserPreferences> {
     const existing = await this.getUserPreferences(prefs.userId);
     
-    const updated: UserPreferences = {
-      id: existing?.id || randomUUID(),
-      userId: prefs.userId,
-      locationEnabled: prefs.locationEnabled ?? null,
-      selectedContinent: prefs.selectedContinent ?? null,
-      favoriteLeagues: prefs.favoriteLeagues ?? null,
-      favoriteTeams: prefs.favoriteTeams ?? null,
-      notificationsEnabled: prefs.notificationsEnabled ?? null,
-      scoreUpdatesEnabled: prefs.scoreUpdatesEnabled ?? null,
-      communityPollsEnabled: prefs.communityPollsEnabled ?? null,
-      weeklyDigestEnabled: prefs.weeklyDigestEnabled ?? null,
-      updatedAt: new Date()
-    };
+    if (existing) {
+      const result = await db.update(userPreferences)
+        .set({
+          locationEnabled: prefs.locationEnabled ?? existing.locationEnabled,
+          selectedContinent: prefs.selectedContinent ?? existing.selectedContinent,
+          favoriteLeagues: prefs.favoriteLeagues ?? existing.favoriteLeagues,
+          favoriteTeams: prefs.favoriteTeams ?? existing.favoriteTeams,
+          notificationsEnabled: prefs.notificationsEnabled ?? existing.notificationsEnabled,
+          scoreUpdatesEnabled: prefs.scoreUpdatesEnabled ?? existing.scoreUpdatesEnabled,
+          communityPollsEnabled: prefs.communityPollsEnabled ?? existing.communityPollsEnabled,
+          weeklyDigestEnabled: prefs.weeklyDigestEnabled ?? existing.weeklyDigestEnabled,
+          updatedAt: new Date(),
+        })
+        .where(eq(userPreferences.userId, prefs.userId))
+        .returning();
+      return result[0];
+    }
     
-    this.preferences.set(updated.id, updated);
-    return updated;
+    const result = await db.insert(userPreferences).values({
+      userId: prefs.userId,
+      locationEnabled: prefs.locationEnabled,
+      selectedContinent: prefs.selectedContinent,
+      favoriteLeagues: prefs.favoriteLeagues,
+      favoriteTeams: prefs.favoriteTeams,
+      notificationsEnabled: prefs.notificationsEnabled,
+      scoreUpdatesEnabled: prefs.scoreUpdatesEnabled,
+      communityPollsEnabled: prefs.communityPollsEnabled,
+      weeklyDigestEnabled: prefs.weeklyDigestEnabled,
+    }).returning();
+    return result[0];
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
