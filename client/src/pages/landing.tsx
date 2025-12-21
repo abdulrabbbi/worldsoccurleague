@@ -1,7 +1,21 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import logoUrl from "@assets/WSL_Tall_1766285125334.png";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Landing() {
+  const [, setLocation] = useLocation();
+  const { setUser } = useAuth();
+
+  const handleDemoMode = () => {
+    setUser({ 
+      id: "demo-user", 
+      email: "demo@worldsoccerleagues.com", 
+      name: "Demo User", 
+      createdAt: new Date() 
+    } as any);
+    setLocation("/auth/profile-setup/location");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a2d5c] via-[#2a4a8c] to-[#C1153D] flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
@@ -39,6 +53,14 @@ export default function Landing() {
                 I already have an account
               </button>
             </Link>
+
+            <button 
+              onClick={handleDemoMode}
+              className="w-full py-4 bg-[#C1153D] text-white font-bold rounded-full text-sm shadow-lg hover:bg-[#a01232] transition-all"
+              data-testid="button-demo"
+            >
+              Try Demo - See Full Experience
+            </button>
           </div>
 
           <div className="pt-6 space-y-4">
