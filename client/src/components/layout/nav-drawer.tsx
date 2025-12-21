@@ -18,12 +18,12 @@ const moreSports = [
   { id: "nhl", name: "NHL", icon: "🏒" },
   { id: "ncaa-football", name: "NCAA Football", icon: "🏈" },
   { id: "ufl", name: "UFL", icon: "🏈" },
-  // Badminton
-  { id: "badminton", name: "Badminton", icon: "🏸" },
   // Basketball
   { id: "ncaa-mens-basketball", name: "NCAA Men's Basketball", icon: "🏀" },
   { id: "ncaa-womens-basketball", name: "NCAA Women's Basketball", icon: "🏀" },
   { id: "wnba", name: "WNBA", icon: "🏀" },
+  // Badminton
+  { id: "badminton", name: "Badminton", icon: "🏸" },
   // Chess
   { id: "chess", name: "Chess", icon: "♟️" },
   // Cricket
