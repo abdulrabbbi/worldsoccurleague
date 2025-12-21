@@ -1,62 +1,64 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { MatchCard } from "@/components/ui/match-card";
 import { api } from "@/lib/mock-data";
-import { Search, MapPin, ChevronRight, Star } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { Link } from "wouter";
-import heroBg from "@assets/generated_images/abstract_dark_stadium_background_with_stadium_lights.png";
+import { useState } from "react";
+
+const continents = [
+  { id: "north-america", name: "North America", flag: "🇺🇸" },
+  { id: "europe", name: "Europe", flag: "🇪🇺" },
+  { id: "south-america", name: "South America", flag: "🇧🇷" },
+  { id: "africa", name: "Africa", flag: "🇿🇦" },
+  { id: "asia", name: "Asia", flag: "🇯🇵" },
+  { id: "oceania", name: "Oceania", flag: "🇦🇺" },
+];
 
 export default function Home() {
   const matches = api.getMatches();
   const liveMatches = matches.filter(m => m.status === "LIVE");
   const upcomingMatches = matches.filter(m => m.status !== "LIVE");
+  const [selectedContinent, setSelectedContinent] = useState(continents[0]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
     <AppShell>
-      {/* Hero / Search Section */}
-      <div className="relative h-48 bg-sidebar flex flex-col justify-end p-4 pb-6 overflow-hidden">
-        {/* Abstract Background Image */}
-        <div 
-          className="absolute inset-0 opacity-40 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroBg})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-sidebar to-transparent" />
-        
-        <div className="relative z-10 space-y-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white leading-tight uppercase italic">
-              World Soccer <br/><span className="text-accent">Leagues</span>
-            </h1>
-            <p className="text-sidebar-foreground/70 text-sm">The game, organized globally.</p>
-          </div>
-
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <input 
-              type="text" 
-              placeholder="Search teams, leagues, players..." 
-              className="w-full h-10 pl-9 pr-4 rounded-lg bg-white/10 border border-white/10 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-accent/50 text-sm backdrop-blur-sm"
-            />
-          </div>
+      {/* Continent Dropdown */}
+      <div className="px-4 py-3 bg-white border-b border-gray-100">
+        <div className="relative">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors"
+            data-testid="button-continent-dropdown"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">{selectedContinent.flag}</span>
+              <span className="font-semibold text-[#1a2d5c]">{selectedContinent.name}</span>
+            </div>
+            <ChevronDown size={20} className={`text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+          
+          {isDropdownOpen && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden">
+              {continents.map((continent) => (
+                <button
+                  key={continent.id}
+                  onClick={() => {
+                    setSelectedContinent(continent);
+                    setIsDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
+                    selectedContinent.id === continent.id ? 'bg-gray-50' : ''
+                  }`}
+                  data-testid={`button-continent-${continent.id}`}
+                >
+                  <span className="text-2xl">{continent.flag}</span>
+                  <span className="font-medium text-gray-700">{continent.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
-
-      {/* Quick Access / Shortcuts */}
-      <div className="grid grid-cols-4 gap-2 p-4 border-b border-border/40 bg-card">
-         <Link href="/explore">
-          <div className="flex flex-col items-center gap-2 cursor-pointer group">
-            <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent border border-accent/20 group-hover:bg-accent group-hover:text-white transition-colors">
-              <MapPin size={20} />
-            </div>
-            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground group-hover:text-foreground">Near Me</span>
-          </div>
-         </Link>
-          <div className="flex flex-col items-center gap-2 cursor-pointer group">
-            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-              <Star size={20} />
-            </div>
-            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground group-hover:text-foreground">Following</span>
-          </div>
-           {/* Placeholders for other actions */}
       </div>
 
       <div className="p-4 space-y-6">

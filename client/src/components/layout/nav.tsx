@@ -79,16 +79,6 @@ export function TopBar({ title, showBack = false }: { title?: React.ReactNode; s
             </div>
           </div>
         </div>
-        
-        {/* Search bar row */}
-        <div className="px-4 pb-3">
-          <Link href="/search">
-            <div className="w-full h-12 px-4 rounded-full bg-gray-100 flex items-center justify-between cursor-pointer hover:bg-gray-200 transition-colors">
-              <span className="text-gray-400 text-sm">Search here...</span>
-              <Search size={18} className="text-gray-400" />
-            </div>
-          </Link>
-        </div>
       </div>
     </header>
   );
