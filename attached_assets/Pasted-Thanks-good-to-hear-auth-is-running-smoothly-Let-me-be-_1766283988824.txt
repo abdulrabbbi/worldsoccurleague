@@ -1,0 +1,91 @@
+Thanks — good to hear auth is running smoothly.
+
+Let me be very clear on priorities so we don’t lose time or build the wrong things.
+
+1️⃣ Do NOT focus on the logo right now
+
+The logo is not the priority. It can be refined later.
+What matters first is structure, hierarchy, and data flow.
+
+⸻
+
+2️⃣ Primary focus: implement the core app structure from Figma
+
+I want you to start implementing the actual product experience, not just styling.
+
+Specifically:
+
+A) League hierarchy & navigation (highest priority)
+Implement the core browsing flow exactly like the Figma intent:
+
+World → Continent → Country → League → Team → Player
+
+This should include:
+	•	World Soccer Leagues landing view
+	•	Continent selection
+	•	Country pages
+	•	League pages (standings, fixtures placeholders)
+	•	Team pages
+	•	Player pages
+
+⚠️ Important rule:
+NO hardcoded teams, leagues, or players.
+Everything must be dynamic placeholders ready to be populated via APIs.
+
+⸻
+
+B) Page scaffolding (MVP pages)
+Please implement the following pages/components as functional shells:
+	•	League page (tabs for Standings / Fixtures / Results)
+	•	Team page (Squad / Fixtures / Table position)
+	•	Player profile page
+	•	Match page (scoreline + event timeline placeholder)
+	•	Global search page (can return mocked results for now)
+
+These do not need full data yet — they need:
+	•	Correct layout
+	•	Correct routing
+	•	Correct component structure
+
+⸻
+
+3️⃣ Styling: align with Figma AFTER structure
+
+Once the hierarchy and pages exist:
+	•	Adjust colors, spacing, typography to match Figma
+	•	Match overall “ESPN + Kicker.de” clean feel
+	•	Mobile-first layout is critical
+
+Styling comes after navigation and page structure.
+
+⸻
+
+4️⃣ What NOT to do
+
+Please do NOT:
+	•	Manually enter teams, leagues, or players
+	•	Build static demo content
+	•	Reorganize the hierarchy into separate categories (National / Pro / College, etc.)
+
+The hierarchy must be one continuous vertical flow, not segmented.
+
+⸻
+
+5️⃣ Success checkpoint
+
+We’re aligned if, after this phase:
+	•	I can click from World → League → Team → Player
+	•	Pages load cleanly with placeholders
+	•	The structure is 100% API-ready
+	•	USA Soccer Leagues can later plug into the same hierarchy
+
+⸻
+
+If helpful, I’m happy to prioritize one flow first (e.g. World → Europe → England → Premier League → Team) as the reference implementation.
+
+Once this is in place, we’ll move to:
+	•	SportMonks API integration
+	•	Grassroots API hooks
+	•	Favorites & personalization
+
+Let’s lock the foundation first.
