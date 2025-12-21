@@ -131,6 +131,20 @@ export default function Login() {
             Register
           </button>
         </div>
+
+        {/* Dev Mode Skip */}
+        <div className="text-center mt-4">
+          <button
+            onClick={() => {
+              setUser({ id: "test-user-1", email: "test@test.com", name: "Test User", createdAt: new Date() } as any);
+              setLocation("/home");
+            }}
+            className="text-xs text-slate-400 hover:text-slate-600 underline"
+            data-testid="button-skip-dev"
+          >
+            [Dev] Skip to Home
+          </button>
+        </div>
       </div>
     </div>
   );
