@@ -15,6 +15,7 @@ const continents = [
 ];
 
 const moreSports = [
+  { id: "nfl", name: "NFL", icon: "🏈" },
   { id: "ncaa-football", name: "NCAA Football", icon: "🏈" },
   { id: "nba", name: "NBA", icon: "🏀" },
   { id: "nhl", name: "NHL", icon: "🏒" },
