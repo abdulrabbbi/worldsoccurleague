@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Trophy, Users, MessageSquare, Menu, Globe, Search, Bell, Settings, Sparkles } from "lucide-react";
+import { Home, Heart, ShoppingBag, ShoppingBasket, Users, Search, Bell, Settings, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logoUrl from "@assets/WSL_Tall_1766285125334.png";
 
@@ -8,14 +8,14 @@ export function BottomNav() {
 
   const navItems = [
     { icon: Home, label: "Home", path: "/home" },
-    { icon: Globe, label: "World", path: "/world" },
+    { icon: Heart, label: "Favorites", path: "/favorites" },
+    { icon: ShoppingBag, label: "Shop", path: "/shop" },
+    { icon: ShoppingBasket, label: "Marketplace", path: "/marketplace" },
     { icon: Users, label: "Community", path: "/community" },
-    { icon: Trophy, label: "Search", path: "/search" },
-    { icon: Menu, label: "Menu", path: "/profile" },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-sidebar border-t border-sidebar-border pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 pb-safe">
       <div className="flex items-center justify-around h-16 max-w-md mx-auto px-2">
         {navItems.map((item) => {
           const isActive = location === item.path || (item.path !== "/" && location.startsWith(item.path));
@@ -23,10 +23,13 @@ export function BottomNav() {
             <Link key={item.path} href={item.path}>
               <div className={cn(
                 "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors duration-200 cursor-pointer",
-                isActive ? "text-accent" : "text-sidebar-foreground/60 hover:text-sidebar-foreground"
+                isActive ? "text-[#1a2d5c]" : "text-gray-400 hover:text-gray-600"
               )}>
-                <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-                <span className="text-[10px] font-medium tracking-wide uppercase">{item.label}</span>
+                <item.icon size={24} strokeWidth={1.5} fill={isActive ? "#1a2d5c" : "none"} />
+                <span className={cn(
+                  "text-[10px] font-medium",
+                  isActive ? "text-[#1a2d5c]" : "text-gray-400"
+                )}>{item.label}</span>
               </div>
             </Link>
           );

@@ -33,6 +33,8 @@ import Match from "@/pages/match";
 import Search from "@/pages/search";
 import Profile from "@/pages/profile";
 import Favorites from "@/pages/favorites";
+import Shop from "@/pages/shop";
+import Marketplace from "@/pages/marketplace";
 
 function Router() {
   return (
@@ -56,10 +58,12 @@ function Router() {
 
       {/* App Routes - Authenticated */}
       <Route path="/home" component={Home} />
+      <Route path="/favorites" component={Favorites} />
+      <Route path="/shop" component={Shop} />
+      <Route path="/marketplace" component={Marketplace} />
       <Route path="/community" component={Community} />
       <Route path="/search" component={Search} />
       <Route path="/profile" component={Profile} />
-      <Route path="/favorites" component={Favorites} />
 
       {/* Hierarchy Routes - World → Continent → Country → Category → League → Team → Player → Match */}
       <Route path="/world" component={World} />
