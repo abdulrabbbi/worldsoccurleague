@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, X } from "lucide-react";
 import { PLAN_TIERS, type PlanTier, type BillingCycle, formatPrice } from "@shared/plans";
 import { useAuth } from "@/lib/auth-context";
 import { apiRequest } from "@/lib/queryClient";
@@ -17,11 +17,60 @@ function PlanCard({ planId, isSelected, billingCycle, onSelect }: PlanCardProps)
   const plan = PLAN_TIERS[planId];
   const price = billingCycle === "monthly" ? plan.priceMonthly : plan.priceYearly;
 
-  const highlights = {
-    free: ["Follow teams & leagues", "Live scores & updates", "Community access"],
-    pro: ["Everything in Free", "Ad-free experience", "Exclusive content", "Priority support"],
-    partner: ["Everything in Pro", "Grassroots API access", "Create organizations", "Manage teams & events"],
+  const planContent = {
+    free: {
+      subtitle: "FAN ACCESS",
+      title: "FREE",
+      intro: "Includes Access To:",
+      features: [
+        "All Leagues Worldwide",
+        "Community",
+        "Marketplace",
+        "Shop",
+        "Fan Clubs & Pick-Up Leagues",
+        "Teams, Standings, Schedules",
+        "Location Discovery",
+      ],
+      excluded: [
+        "No Chatbot",
+        "No Tournament Reminders",
+        "No Calendar Invites",
+        "No Data Submission",
+      ],
+    },
+    pro: {
+      subtitle: "PLAYER & FAN +",
+      title: "PRO",
+      intro: "Includes everything in FREE, plus:",
+      features: [
+        "AI Chatbot Access",
+        "Tournament & Tryout Tracker",
+        "Event Reminders & Notifications",
+        "Calendar Invites",
+        "Advanced Filters & Search",
+      ],
+      excluded: [],
+    },
+    partner: {
+      subtitle: "ORGANIZER & DATA PARTNER",
+      title: "PARTNER",
+      intro: "Includes everything in PRO, plus ability to:",
+      features: [
+        "Access Grassroots API",
+        "Manage, Sync Data, Schedules & Venues",
+        "Submit League, Club, Pick-Up League",
+        "Submit Tournaments, Tryouts, Events",
+        "Submit Fan Club",
+        "Upload Docs",
+        "Update News & Announcements",
+        "Maintain Their Organisation Profile",
+        "See Basic Analytics (views, clicks, RSVPs)",
+      ],
+      excluded: [],
+    },
   };
+
+  const content = planContent[planId];
 
   return (
     <button
@@ -34,24 +83,19 @@ function PlanCard({ planId, isSelected, billingCycle, onSelect }: PlanCardProps)
       data-testid={`plan-${planId}`}
     >
       <div className="bg-gradient-to-r from-[#1a2d5c] to-[#2a4a8c] p-3 flex items-center justify-between">
-        <span className="text-white font-bold text-lg font-display">{plan.name}</span>
-        <img src={logoUrl} alt="WSL" className="h-8 w-auto" />
+        <div>
+          <span className="text-white/80 text-xs font-medium block">{content.subtitle}</span>
+          <span className="text-white font-bold text-xl font-display">{content.title}</span>
+        </div>
+        <img src={logoUrl} alt="WSL" className="h-10 w-auto" />
       </div>
       
       <div className="bg-white p-4">
         {isSelected && (
-          <div className="absolute top-12 right-3 w-6 h-6 bg-[#C1153D] rounded-full flex items-center justify-center">
+          <div className="absolute top-14 right-3 w-6 h-6 bg-[#C1153D] rounded-full flex items-center justify-center">
             <Check className="w-4 h-4 text-white" strokeWidth={3} />
           </div>
         )}
-        
-        {plan.badge && (
-          <span className="inline-block text-xs font-bold px-2 py-0.5 rounded bg-[#C1153D] text-white mb-2">
-            {plan.badge}
-          </span>
-        )}
-        
-        <p className="text-sm text-slate-600 mb-3">{plan.description}</p>
         
         <div className="mb-3">
           <span className="text-2xl font-bold text-[#1a2d5c]">
@@ -63,15 +107,28 @@ function PlanCard({ planId, isSelected, billingCycle, onSelect }: PlanCardProps)
             </span>
           )}
         </div>
+
+        <p className="text-sm font-medium text-slate-700 mb-2">{content.intro}</p>
         
-        <ul className="space-y-2">
-          {highlights[planId].map((feature, i) => (
-            <li key={i} className="flex items-center gap-2 text-sm text-slate-700">
-              <Check className="w-4 h-4 text-[#1a2d5c] flex-shrink-0" />
+        <ul className="space-y-1.5 mb-3">
+          {content.features.map((feature, i) => (
+            <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+              <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
               {feature}
             </li>
           ))}
         </ul>
+
+        {content.excluded.length > 0 && (
+          <ul className="space-y-1.5 pt-2 border-t border-slate-100">
+            {content.excluded.map((item, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-slate-400">
+                <X className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </button>
   );
@@ -179,16 +236,6 @@ export default function PlanSelectionSetup() {
             onSelect={() => setSelectedPlan("partner")}
           />
         </div>
-
-        {selectedPlan === "partner" && (
-          <div className="mt-4 p-4 bg-[#1a2d5c]/5 rounded-xl border border-[#1a2d5c]/20">
-            <h4 className="font-semibold text-[#1a2d5c] mb-2">Partner Benefits</h4>
-            <p className="text-sm text-slate-600">
-              As a Partner, you'll get access to the Grassroots API to manage your clubs, leagues, 
-              tournaments, and more. Your organization will need to be verified before publishing data.
-            </p>
-          </div>
-        )}
       </div>
 
       <div className="p-4 border-t border-slate-200 bg-white">
