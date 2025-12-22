@@ -5,7 +5,7 @@ export default function IntroSetup() {
   const [, setLocation] = useLocation();
 
   const handleNext = () => {
-    setLocation("/auth/profile-setup/continent");
+    setLocation("/auth/profile-setup/plan");
   };
 
   return (

@@ -114,7 +114,7 @@ export default function PlanSelectionSetup() {
         setIsLoading(false);
       }
     }
-    setLocation("/auth/profile-setup/leagues");
+    setLocation("/auth/profile-setup/continent");
   };
 
   return (
