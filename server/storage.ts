@@ -3,18 +3,56 @@ import {
   type InsertUser,
   type UserPreferences,
   type InsertUserPreferences,
+  type UserSubscription,
+  type InsertUserSubscription,
+  type Organization,
+  type InsertOrganization,
+  type OrganizationMember,
+  type InsertOrganizationMember,
+  type PartnerVerification,
+  type InsertPartnerVerification,
   users,
-  userPreferences
+  userPreferences,
+  userSubscriptions,
+  organizations,
+  organizationMembers,
+  partnerVerifications
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
+import type { PlanTier } from "@shared/plans";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserPlan(userId: string, planTier: PlanTier): Promise<User | undefined>;
   getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
   upsertUserPreferences(prefs: InsertUserPreferences): Promise<UserPreferences>;
+  
+  getUserSubscription(userId: string): Promise<UserSubscription | undefined>;
+  createSubscription(subscription: InsertUserSubscription): Promise<UserSubscription>;
+  updateSubscription(id: string, updates: Partial<UserSubscription>): Promise<UserSubscription | undefined>;
+  
+  getOrganization(id: string): Promise<Organization | undefined>;
+  getOrganizationBySlug(slug: string): Promise<Organization | undefined>;
+  getOrganizationsByUser(userId: string): Promise<Organization[]>;
+  createOrganization(org: InsertOrganization): Promise<Organization>;
+  updateOrganization(id: string, updates: Partial<Organization>): Promise<Organization | undefined>;
+  deleteOrganization(id: string): Promise<boolean>;
+  
+  getOrganizationMembers(orgId: string): Promise<OrganizationMember[]>;
+  getOrganizationMember(orgId: string, userId: string): Promise<OrganizationMember | undefined>;
+  addOrganizationMember(member: InsertOrganizationMember): Promise<OrganizationMember>;
+  updateOrganizationMemberRole(id: string, role: string): Promise<OrganizationMember | undefined>;
+  removeOrganizationMember(id: string): Promise<boolean>;
+  
+  getPartnerVerification(orgId: string): Promise<PartnerVerification | undefined>;
+  createPartnerVerification(verification: InsertPartnerVerification): Promise<PartnerVerification>;
+  updatePartnerVerification(id: string, updates: Partial<PartnerVerification>): Promise<PartnerVerification | undefined>;
+  submitForVerification(orgId: string): Promise<PartnerVerification | undefined>;
+  approveVerification(id: string, reviewerId: string, notes?: string): Promise<PartnerVerification | undefined>;
+  rejectVerification(id: string, reviewerId: string, reason: string): Promise<PartnerVerification | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -34,6 +72,14 @@ export class DatabaseStorage implements IStorage {
       password: insertUser.password,
       name: insertUser.name,
     }).returning();
+    return result[0];
+  }
+
+  async updateUserPlan(userId: string, planTier: PlanTier): Promise<User | undefined> {
+    const result = await db.update(users)
+      .set({ planTier })
+      .where(eq(users.id, userId))
+      .returning();
     return result[0];
   }
 
@@ -75,6 +121,175 @@ export class DatabaseStorage implements IStorage {
       weeklyDigestEnabled: prefs.weeklyDigestEnabled,
     }).returning();
     return result[0];
+  }
+
+  async getUserSubscription(userId: string): Promise<UserSubscription | undefined> {
+    const result = await db.select().from(userSubscriptions).where(eq(userSubscriptions.userId, userId));
+    return result[0];
+  }
+
+  async createSubscription(subscription: InsertUserSubscription): Promise<UserSubscription> {
+    const result = await db.insert(userSubscriptions).values(subscription).returning();
+    return result[0];
+  }
+
+  async updateSubscription(id: string, updates: Partial<UserSubscription>): Promise<UserSubscription | undefined> {
+    const result = await db.update(userSubscriptions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userSubscriptions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async getOrganization(id: string): Promise<Organization | undefined> {
+    const result = await db.select().from(organizations).where(eq(organizations.id, id));
+    return result[0];
+  }
+
+  async getOrganizationBySlug(slug: string): Promise<Organization | undefined> {
+    const result = await db.select().from(organizations).where(eq(organizations.slug, slug));
+    return result[0];
+  }
+
+  async getOrganizationsByUser(userId: string): Promise<Organization[]> {
+    const memberships = await db.select().from(organizationMembers).where(eq(organizationMembers.userId, userId));
+    const orgIds = memberships.map(m => m.organizationId);
+    if (orgIds.length === 0) return [];
+    
+    const orgs: Organization[] = [];
+    for (const orgId of orgIds) {
+      const org = await this.getOrganization(orgId);
+      if (org) orgs.push(org);
+    }
+    return orgs;
+  }
+
+  async createOrganization(org: InsertOrganization): Promise<Organization> {
+    const result = await db.insert(organizations).values(org).returning();
+    const newOrg = result[0];
+    
+    const user = await this.getUser(org.createdById);
+    if (user && !user.primaryOrgId) {
+      await db.update(users)
+        .set({ primaryOrgId: newOrg.id })
+        .where(eq(users.id, org.createdById));
+    }
+    
+    return newOrg;
+  }
+
+  async updateOrganization(id: string, updates: Partial<Organization>): Promise<Organization | undefined> {
+    const result = await db.update(organizations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(organizations.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteOrganization(id: string): Promise<boolean> {
+    const result = await db.delete(organizations).where(eq(organizations.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getOrganizationMembers(orgId: string): Promise<OrganizationMember[]> {
+    return await db.select().from(organizationMembers).where(eq(organizationMembers.organizationId, orgId));
+  }
+
+  async getOrganizationMember(orgId: string, userId: string): Promise<OrganizationMember | undefined> {
+    const result = await db.select().from(organizationMembers)
+      .where(and(
+        eq(organizationMembers.organizationId, orgId),
+        eq(organizationMembers.userId, userId)
+      ));
+    return result[0];
+  }
+
+  async addOrganizationMember(member: InsertOrganizationMember): Promise<OrganizationMember> {
+    const result = await db.insert(organizationMembers).values(member).returning();
+    return result[0];
+  }
+
+  async updateOrganizationMemberRole(id: string, role: string): Promise<OrganizationMember | undefined> {
+    const result = await db.update(organizationMembers)
+      .set({ role: role as any })
+      .where(eq(organizationMembers.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async removeOrganizationMember(id: string): Promise<boolean> {
+    const result = await db.delete(organizationMembers).where(eq(organizationMembers.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getPartnerVerification(orgId: string): Promise<PartnerVerification | undefined> {
+    const result = await db.select().from(partnerVerifications)
+      .where(eq(partnerVerifications.organizationId, orgId));
+    return result[0];
+  }
+
+  async createPartnerVerification(verification: InsertPartnerVerification): Promise<PartnerVerification> {
+    const result = await db.insert(partnerVerifications).values(verification).returning();
+    return result[0];
+  }
+
+  async updatePartnerVerification(id: string, updates: Partial<PartnerVerification>): Promise<PartnerVerification | undefined> {
+    const result = await db.update(partnerVerifications)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(partnerVerifications.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async submitForVerification(orgId: string): Promise<PartnerVerification | undefined> {
+    const existing = await this.getPartnerVerification(orgId);
+    if (!existing) return undefined;
+    
+    return await this.updatePartnerVerification(existing.id, {
+      status: "review",
+      submittedAt: new Date(),
+    });
+  }
+
+  async approveVerification(id: string, reviewerId: string, notes?: string): Promise<PartnerVerification | undefined> {
+    const verification = await this.updatePartnerVerification(id, {
+      status: "verified",
+      reviewedAt: new Date(),
+      reviewerId,
+      reviewNotes: notes,
+    });
+    
+    if (verification) {
+      const org = await this.getOrganization(verification.organizationId);
+      if (org) {
+        await db.update(organizations)
+          .set({ verificationStatus: "verified" })
+          .where(eq(organizations.id, verification.organizationId));
+        
+        await db.update(users)
+          .set({ primaryOrgId: org.id, platformRole: "partner_admin" })
+          .where(eq(users.id, org.createdById));
+      }
+    }
+    
+    return verification;
+  }
+
+  async rejectVerification(id: string, reviewerId: string, reason: string): Promise<PartnerVerification | undefined> {
+    const verification = await this.updatePartnerVerification(id, {
+      status: "rejected",
+      reviewedAt: new Date(),
+      reviewerId,
+      rejectionReason: reason,
+    });
+    
+    if (verification) {
+      await db.update(organizations)
+        .set({ verificationStatus: "rejected" })
+        .where(eq(organizations.id, verification.organizationId));
+    }
+    
+    return verification;
   }
 }
 

@@ -1,7 +1,22 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertUserPreferencesSchema } from "@shared/schema";
+import { 
+  insertUserSchema, 
+  insertUserPreferencesSchema,
+  insertOrganizationSchema,
+  insertOrganizationMemberSchema 
+} from "@shared/schema";
+import { PLAN_TIERS, type PlanTier } from "@shared/plans";
+import { 
+  authMiddleware, 
+  requireAuth, 
+  requirePlan, 
+  requireGrassrootsAccess,
+  requireVerifiedPartner,
+  requireOrgAccess,
+  canVerifyPartners
+} from "./rbac";
 import { z } from "zod";
 
 export async function registerRoutes(
@@ -9,21 +24,19 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  // Auth routes
+  app.use(authMiddleware);
+  
   app.post("/api/auth/signup", async (req, res) => {
     try {
       const data = insertUserSchema.parse(req.body);
       
-      // Check if user exists
       const existing = await storage.getUserByEmail(data.email);
       if (existing) {
         return res.status(400).json({ error: "Email already registered" });
       }
 
-      // In production, hash password here
       const user = await storage.createUser(data);
       
-      // Don't send password back
       const { password, ...userWithoutPassword } = user;
       res.json({ user: userWithoutPassword });
     } catch (error) {
@@ -44,13 +57,18 @@ export async function registerRoutes(
       }
 
       const { password: _, ...userWithoutPassword } = user;
-      res.json({ user: userWithoutPassword });
+      const planConfig = PLAN_TIERS[user.planTier as PlanTier];
+      
+      res.json({ 
+        user: userWithoutPassword,
+        plan: planConfig,
+        features: planConfig.features,
+      });
     } catch (error) {
       res.status(500).json({ error: "Login failed" });
     }
   });
 
-  // User preferences
   app.get("/api/preferences/:userId", async (req, res) => {
     try {
       const prefs = await storage.getUserPreferences(req.params.userId);
@@ -70,6 +88,271 @@ export async function registerRoutes(
         return res.status(400).json({ error: error.errors });
       }
       res.status(500).json({ error: "Failed to save preferences" });
+    }
+  });
+
+  app.get("/api/plans", (req, res) => {
+    res.json({ plans: Object.values(PLAN_TIERS) });
+  });
+
+  app.get("/api/user/plan", requireAuth, async (req, res) => {
+    const user = req.ctx!.user!;
+    const planConfig = PLAN_TIERS[user.planTier];
+    const subscription = await storage.getUserSubscription(user.id);
+    
+    res.json({
+      plan: planConfig,
+      features: planConfig.features,
+      subscription: subscription || null,
+    });
+  });
+
+  app.post("/api/user/upgrade", requireAuth, async (req, res) => {
+    try {
+      const { planTier, billingCycle } = req.body as { planTier: PlanTier; billingCycle: "monthly" | "yearly" };
+      const user = req.ctx!.user!;
+      
+      if (!PLAN_TIERS[planTier]) {
+        return res.status(400).json({ error: "Invalid plan tier" });
+      }
+      
+      const updatedUser = await storage.updateUserPlan(user.id, planTier);
+      
+      let subscription = await storage.getUserSubscription(user.id);
+      if (subscription) {
+        subscription = await storage.updateSubscription(subscription.id, {
+          planTier,
+          billingCycle,
+          status: "active",
+          stripePriceId: billingCycle === "monthly" 
+            ? PLAN_TIERS[planTier].stripePriceIdMonthly 
+            : PLAN_TIERS[planTier].stripePriceIdYearly,
+        }) || subscription;
+      } else {
+        subscription = await storage.createSubscription({
+          userId: user.id,
+          planTier,
+          billingCycle,
+          status: "active",
+          stripeSubscriptionId: `sub_stub_${Date.now()}`,
+          stripePriceId: billingCycle === "monthly" 
+            ? PLAN_TIERS[planTier].stripePriceIdMonthly 
+            : PLAN_TIERS[planTier].stripePriceIdYearly,
+        });
+      }
+      
+      res.json({
+        user: updatedUser,
+        subscription,
+        plan: PLAN_TIERS[planTier],
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to upgrade plan" });
+    }
+  });
+
+  app.get("/api/grassroots/organizations", requireAuth, requireGrassrootsAccess, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const orgs = await storage.getOrganizationsByUser(user.id);
+      res.json({ organizations: orgs });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch organizations" });
+    }
+  });
+
+  app.post("/api/grassroots/organizations", requireAuth, requireGrassrootsAccess, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const data = insertOrganizationSchema.parse({
+        ...req.body,
+        createdById: user.id,
+      });
+      
+      const existing = await storage.getOrganizationBySlug(data.slug);
+      if (existing) {
+        return res.status(400).json({ error: "Organization slug already exists" });
+      }
+      
+      const org = await storage.createOrganization(data);
+      
+      await storage.addOrganizationMember({
+        organizationId: org.id,
+        userId: user.id,
+        role: "owner",
+      });
+      
+      await storage.createPartnerVerification({
+        organizationId: org.id,
+        status: "draft",
+      });
+      
+      res.json({ organization: org });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create organization" });
+    }
+  });
+
+  app.get("/api/grassroots/organizations/:orgId", requireAuth, requireGrassrootsAccess, requireOrgAccess("viewer"), async (req, res) => {
+    try {
+      const org = await storage.getOrganization(req.params.orgId);
+      if (!org) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+      
+      const verification = await storage.getPartnerVerification(org.id);
+      const members = await storage.getOrganizationMembers(org.id);
+      
+      res.json({ 
+        organization: org,
+        verification,
+        members,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch organization" });
+    }
+  });
+
+  app.put("/api/grassroots/organizations/:orgId", requireAuth, requireGrassrootsAccess, requireOrgAccess("editor"), async (req, res) => {
+    try {
+      const org = await storage.getOrganization(req.params.orgId);
+      if (!org) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+      
+      if (org.verificationStatus === "review") {
+        return res.status(400).json({ error: "Cannot edit organization while under review" });
+      }
+      
+      const { name, description, website, logoUrl, stateCode, city } = req.body;
+      const updated = await storage.updateOrganization(req.params.orgId, {
+        name,
+        description,
+        website,
+        logoUrl,
+        stateCode,
+        city,
+      });
+      
+      res.json({ organization: updated });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update organization" });
+    }
+  });
+
+  app.delete("/api/grassroots/organizations/:orgId", requireAuth, requireGrassrootsAccess, requireOrgAccess("owner"), async (req, res) => {
+    try {
+      const org = await storage.getOrganization(req.params.orgId);
+      if (!org) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+      
+      if (org.verificationStatus === "verified") {
+        return res.status(400).json({ error: "Cannot delete verified organization" });
+      }
+      
+      await storage.deleteOrganization(req.params.orgId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete organization" });
+    }
+  });
+
+  app.post("/api/grassroots/organizations/:orgId/members", requireAuth, requireGrassrootsAccess, requireOrgAccess("admin"), async (req, res) => {
+    try {
+      const { userId, role } = req.body;
+      const user = req.ctx!.user!;
+      
+      const existing = await storage.getOrganizationMember(req.params.orgId, userId);
+      if (existing) {
+        return res.status(400).json({ error: "User is already a member" });
+      }
+      
+      const member = await storage.addOrganizationMember({
+        organizationId: req.params.orgId,
+        userId,
+        role: role || "viewer",
+        invitedById: user.id,
+      });
+      
+      res.json({ member });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to add member" });
+    }
+  });
+
+  app.post("/api/grassroots/organizations/:orgId/submit-verification", requireAuth, requireGrassrootsAccess, requireOrgAccess("owner"), async (req, res) => {
+    try {
+      const org = await storage.getOrganization(req.params.orgId);
+      if (!org) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+      
+      if (org.verificationStatus !== "draft" && org.verificationStatus !== "rejected") {
+        return res.status(400).json({ error: "Organization cannot be submitted for verification" });
+      }
+      
+      const verification = await storage.submitForVerification(req.params.orgId);
+      await storage.updateOrganization(req.params.orgId, { verificationStatus: "review" });
+      
+      res.json({ verification, message: "Submitted for verification" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to submit verification" });
+    }
+  });
+
+  app.get("/api/admin/verifications/pending", requireAuth, async (req, res) => {
+    if (!canVerifyPartners(req)) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    
+    res.json({ verifications: [] });
+  });
+
+  app.post("/api/admin/verifications/:id/approve", requireAuth, async (req, res) => {
+    if (!canVerifyPartners(req)) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    
+    try {
+      const user = req.ctx!.user!;
+      const { notes } = req.body;
+      
+      const verification = await storage.approveVerification(req.params.id, user.id, notes);
+      if (!verification) {
+        return res.status(404).json({ error: "Verification not found" });
+      }
+      
+      res.json({ verification, message: "Partner verified successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to approve verification" });
+    }
+  });
+
+  app.post("/api/admin/verifications/:id/reject", requireAuth, async (req, res) => {
+    if (!canVerifyPartners(req)) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    
+    try {
+      const user = req.ctx!.user!;
+      const { reason } = req.body;
+      
+      if (!reason) {
+        return res.status(400).json({ error: "Rejection reason required" });
+      }
+      
+      const verification = await storage.rejectVerification(req.params.id, user.id, reason);
+      if (!verification) {
+        return res.status(404).json({ error: "Verification not found" });
+      }
+      
+      res.json({ verification, message: "Verification rejected" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to reject verification" });
     }
   });
 

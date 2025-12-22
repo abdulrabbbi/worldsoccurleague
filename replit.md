@@ -38,7 +38,24 @@ Routes follow a hierarchy pattern with ID + slug combinations for SEO and API-re
 
 ### Data Layer
 - **Sports Data Provider:** Abstraction layer (`sports-data-provider.ts`) that wraps API calls, currently using mock data but designed to swap in SportMonks or custom Grassroots API
-- **Schema:** Drizzle schema defines users and user preferences tables with Zod validation via drizzle-zod
+- **Schema:** Drizzle schema defines users, userPreferences, organizations, organizationMembers, userSubscriptions, and partnerVerifications tables with Zod validation via drizzle-zod
+
+### Subscription Tiers
+- **Free (Fan Access):** $0 - Follow teams and leagues, live scores, community access
+- **Pro (Player & Fan+):** $2.99/mo or $29.99/yr - Ad-free experience, exclusive content, priority support
+- **Partner (Organizer & Data Partner):** $9.99/mo or $99/yr - Grassroots API access, create/manage organizations (clubs, leagues, tournaments, fan clubs, pickup groups)
+
+### RBAC & Permissions
+- **Platform Roles:** platform_admin, platform_moderator, partner_admin, user
+- **Org Member Roles:** owner, admin, editor, viewer
+- **Feature Gating:** Plan-based feature flags in shared/plans.ts, checked via AuthContext and server middleware
+- **Org Scope Enforcement:** Partners can only manage their own organization data
+
+### Partner Verification Workflow
+- **Draft:** Organization created, partner can edit freely
+- **Review:** Submitted for verification, locked for editing
+- **Verified:** Partner approved, gains full Grassroots API publishing rights
+- **Rejected:** Returned to draft with feedback, partner can revise and resubmit
 
 ### Component Architecture
 - **Layout Components:** AppShell with TopBar, BottomNav, and NavDrawer for mobile-first navigation
