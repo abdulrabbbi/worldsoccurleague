@@ -95,6 +95,7 @@ export const uslChampionshipTeams: Team[] = [
   { id: "uslc-miami", name: "Miami FC", shortName: "Miami FC", city: "Miami", state: "FL" },
   { id: "uslc-monterey", name: "Monterey Bay FC", shortName: "Monterey Bay", city: "Seaside", state: "CA" },
   { id: "uslc-new-mexico", name: "New Mexico United", shortName: "New Mexico", city: "Albuquerque", state: "NM" },
+  { id: "uslc-north-carolina", name: "North Carolina FC", shortName: "North Carolina", city: "Cary", state: "NC" },
   { id: "uslc-oakland", name: "Oakland Roots SC", shortName: "Oakland", city: "Oakland", state: "CA" },
   { id: "uslc-orange-county", name: "Orange County SC", shortName: "Orange County", city: "Irvine", state: "CA" },
   { id: "uslc-phoenix", name: "Phoenix Rising FC", shortName: "Phoenix", city: "Phoenix", state: "AZ" },
