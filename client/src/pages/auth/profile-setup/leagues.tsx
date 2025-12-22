@@ -2,11 +2,22 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Check, ChevronDown, ChevronUp } from "lucide-react";
 import LocationSelector from "@/components/ui/location-selector";
+import { 
+  nationalTeams, 
+  mlsTeams, 
+  nwslTeams, 
+  uslChampionshipTeams, 
+  uslLeagueOneTeams, 
+  uslLeagueTwoTeams, 
+  mlsNextProTeams,
+  Team
+} from "@/lib/data/us-soccer-teams";
 
 interface LeagueItem {
   id: string;
   name: string;
   icon?: string;
+  teams?: { id: string; name: string; city: string; state: string }[];
 }
 
 interface Category {
@@ -21,23 +32,63 @@ const USA_SOCCER_HIERARCHY: Category[] = [
     id: "national-teams",
     name: "National Teams",
     items: [
-      { id: "usmnt", name: "Men's National Team", icon: "🇺🇸" },
-      { id: "uswnt", name: "Women's National Team", icon: "🇺🇸" },
+      { 
+        id: "usmnt", 
+        name: "Men's National Team", 
+        icon: "🇺🇸",
+        teams: nationalTeams.men.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
+      { 
+        id: "uswnt", 
+        name: "Women's National Team", 
+        icon: "🇺🇸",
+        teams: nationalTeams.women.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
     ]
   },
   {
     id: "professional-leagues",
     name: "Professional Leagues",
     items: [
-      { id: "mls", name: "MLS", icon: "⚽" },
-      { id: "mls-next-pro", name: "MLS Next Pro", icon: "⏭️" },
-      { id: "usl-championship", name: "USL Championship", icon: "⭐" },
-      { id: "usl-league-one", name: "USL League One", icon: "1️⃣" },
-      { id: "usl-league-two", name: "USL League Two", icon: "2️⃣" },
+      { 
+        id: "mls", 
+        name: "MLS", 
+        icon: "⚽",
+        teams: mlsTeams.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
+      { 
+        id: "nwsl", 
+        name: "NWSL", 
+        icon: "👩",
+        teams: nwslTeams.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
+      { 
+        id: "usl-championship", 
+        name: "USL Championship", 
+        icon: "⭐",
+        teams: uslChampionshipTeams.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
+      { 
+        id: "mls-next-pro", 
+        name: "MLS Next Pro", 
+        icon: "⏭️",
+        teams: mlsNextProTeams.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
+      { 
+        id: "usl-league-one", 
+        name: "USL League One", 
+        icon: "1️⃣",
+        teams: uslLeagueOneTeams.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
+      { 
+        id: "usl-league-two", 
+        name: "USL League Two", 
+        icon: "2️⃣",
+        teams: uslLeagueTwoTeams.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
       { id: "nisa", name: "NISA", icon: "🏆" },
       { id: "npsl", name: "NPSL", icon: "🛡️" },
       { id: "upsl", name: "UPSL", icon: "📍" },
-      { id: "nwsl", name: "NWSL", icon: "👩" },
       { id: "wpsl", name: "WPSL", icon: "👟" },
       { id: "uws", name: "UWS", icon: "🌟" },
     ]
@@ -129,6 +180,7 @@ export default function LeaguesSetup() {
   const [, setLocation] = useLocation();
   const [selected, setSelected] = useState<string[]>(["mls"]);
   const [expandedCategories, setExpandedCategories] = useState<string[]>(["national-teams", "professional-leagues"]);
+  const [expandedLeagues, setExpandedLeagues] = useState<string[]>([]);
   const [locationSelections, setLocationSelections] = useState<Record<string, { state?: string; city?: string }>>({});
 
   const handleLocationSelect = (categoryId: string, state: string, city?: string) => {
@@ -146,6 +198,14 @@ export default function LeaguesSetup() {
     );
   };
 
+  const toggleLeague = (leagueId: string) => {
+    setExpandedLeagues(prev =>
+      prev.includes(leagueId)
+        ? prev.filter(l => l !== leagueId)
+        : [...prev, leagueId]
+    );
+  };
+
   const toggleItem = (id: string) => {
     setSelected(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
@@ -157,7 +217,13 @@ export default function LeaguesSetup() {
   };
 
   const getSelectedCount = (category: Category) => {
-    return category.items.filter(item => selected.includes(item.id)).length;
+    let count = category.items.filter(item => selected.includes(item.id)).length;
+    category.items.forEach(item => {
+      if (item.teams) {
+        count += item.teams.filter(team => selected.includes(team.id)).length;
+      }
+    });
+    return count;
   };
 
   return (
@@ -240,32 +306,102 @@ export default function LeaguesSetup() {
                       />
                     </div>
                   )}
-                  {category.items.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => toggleItem(item.id)}
-                      className={`w-full flex items-center gap-3 p-3 pl-6 border-b border-slate-100 last:border-b-0 transition-all text-left ${
-                        selected.includes(item.id)
-                          ? "bg-[#1a2d5c]/5"
-                          : "bg-white hover:bg-slate-50"
-                      }`}
-                      data-testid={`item-${item.id}`}
-                    >
-                      <div className="w-8 h-8 flex items-center justify-center text-xl">
-                        {item.icon}
-                      </div>
-                      <span className="font-medium text-slate-800 flex-1 text-sm">{item.name}</span>
-                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
-                        selected.includes(item.id)
-                          ? "bg-[#1a2d5c] border-[#1a2d5c]"
-                          : "border-slate-300"
-                      }`}>
-                        {selected.includes(item.id) && (
-                          <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                  {category.items.map((item) => {
+                    const hasTeams = item.teams && item.teams.length > 0;
+                    const isLeagueExpanded = expandedLeagues.includes(item.id);
+                    const teamSelectedCount = item.teams?.filter(t => selected.includes(t.id)).length || 0;
+                    
+                    return (
+                      <div key={item.id}>
+                        {/* League/Item Row */}
+                        <div
+                          className={`w-full flex items-center gap-3 p-3 pl-6 border-b border-slate-100 transition-all ${
+                            selected.includes(item.id)
+                              ? "bg-[#1a2d5c]/5"
+                              : "bg-white hover:bg-slate-50"
+                          }`}
+                        >
+                          <div className="w-8 h-8 flex items-center justify-center text-xl">
+                            {item.icon}
+                          </div>
+                          <button
+                            onClick={() => toggleItem(item.id)}
+                            className="font-medium text-slate-800 flex-1 text-sm text-left flex items-center gap-2"
+                            data-testid={`item-${item.id}`}
+                          >
+                            {item.name}
+                            {teamSelectedCount > 0 && (
+                              <span className="bg-[#C1153D] text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
+                                {teamSelectedCount}
+                              </span>
+                            )}
+                          </button>
+                          
+                          {hasTeams && (
+                            <button
+                              onClick={() => toggleLeague(item.id)}
+                              className="p-1 hover:bg-slate-200 rounded"
+                              data-testid={`expand-${item.id}`}
+                            >
+                              {isLeagueExpanded ? (
+                                <ChevronUp className="w-4 h-4 text-slate-500" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4 text-slate-500" />
+                              )}
+                            </button>
+                          )}
+                          
+                          <button
+                            onClick={() => toggleItem(item.id)}
+                            className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
+                              selected.includes(item.id)
+                                ? "bg-[#1a2d5c] border-[#1a2d5c]"
+                                : "border-slate-300"
+                            }`}
+                          >
+                            {selected.includes(item.id) && (
+                              <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Teams under League */}
+                        {hasTeams && isLeagueExpanded && (
+                          <div className="bg-slate-50/50">
+                            {item.teams!.map((team) => (
+                              <button
+                                key={team.id}
+                                onClick={() => toggleItem(team.id)}
+                                className={`w-full flex items-center gap-3 p-2.5 pl-14 border-b border-slate-100 last:border-b-0 transition-all text-left ${
+                                  selected.includes(team.id)
+                                    ? "bg-[#1a2d5c]/10"
+                                    : "hover:bg-slate-100"
+                                }`}
+                                data-testid={`team-${team.id}`}
+                              >
+                                <div className="w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center text-xs font-bold text-slate-600">
+                                  {team.name.charAt(0)}
+                                </div>
+                                <div className="flex-1">
+                                  <span className="font-medium text-slate-700 text-xs">{team.name}</span>
+                                  <span className="text-slate-400 text-xs ml-2">{team.city}, {team.state}</span>
+                                </div>
+                                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                                  selected.includes(team.id)
+                                    ? "bg-[#1a2d5c] border-[#1a2d5c]"
+                                    : "border-slate-300"
+                                }`}>
+                                  {selected.includes(team.id) && (
+                                    <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                                  )}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
                         )}
                       </div>
-                    </button>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
