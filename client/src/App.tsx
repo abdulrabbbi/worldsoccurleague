@@ -19,6 +19,7 @@ import IntroSetup from "@/pages/auth/profile-setup/intro";
 import ContinentSetup from "@/pages/auth/profile-setup/continent";
 import LeaguesSetup from "@/pages/auth/profile-setup/leagues";
 import NationalTeamSetup from "@/pages/auth/profile-setup/national-team";
+import FavoritesSetup from "@/pages/auth/profile-setup/favorites";
 import NotificationsSetup from "@/pages/auth/profile-setup/notifications";
 
 // Hierarchy pages
@@ -53,6 +54,7 @@ function Router() {
       <Route path="/auth/profile-setup/intro" component={IntroSetup} />
       <Route path="/auth/profile-setup/continent" component={ContinentSetup} />
       <Route path="/auth/profile-setup/leagues" component={LeaguesSetup} />
+      <Route path="/auth/profile-setup/favorites" component={FavoritesSetup} />
       <Route path="/auth/profile-setup/national-team" component={NationalTeamSetup} />
       <Route path="/auth/profile-setup/notifications" component={NotificationsSetup} />
 
