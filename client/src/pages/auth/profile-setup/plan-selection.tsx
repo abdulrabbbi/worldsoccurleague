@@ -242,7 +242,7 @@ export default function PlanSelectionSetup() {
         <button
           onClick={handleNext}
           disabled={isLoading}
-          className="w-full bg-[#C1153D] hover:bg-[#a01232] disabled:opacity-50 text-white py-3.5 rounded-full font-bold transition-colors shadow-sm"
+          className="w-full bg-[#1a2d5c] hover:bg-[#152347] disabled:opacity-50 text-white py-3.5 rounded-full font-bold transition-colors shadow-sm"
           data-testid="button-continue"
         >
           {isLoading ? "Processing..." : selectedPlan === "free" ? "Continue with Free" : `Continue with ${PLAN_TIERS[selectedPlan].name}`}
