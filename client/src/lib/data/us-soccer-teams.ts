@@ -53,7 +53,6 @@ export const mlsTeams: Team[] = [
   { id: "ny-red-bulls", name: "New York Red Bulls", shortName: "NY Red Bulls", city: "Harrison", state: "NJ" },
   { id: "orl-city", name: "Orlando City SC", shortName: "Orlando", city: "Orlando", state: "FL" },
   { id: "phi-union", name: "Philadelphia Union", shortName: "Philadelphia", city: "Chester", state: "PA" },
-  { id: "phx-rising", name: "Phoenix Rising FC", shortName: "Phoenix", city: "Phoenix", state: "AZ" },
   { id: "por-timbers", name: "Portland Timbers", shortName: "Portland", city: "Portland", state: "OR" },
   { id: "real-sl", name: "Real Salt Lake", shortName: "RSL", city: "Sandy", state: "UT" },
   { id: "sj-earthquakes", name: "San Jose Earthquakes", shortName: "San Jose", city: "San Jose", state: "CA" },
@@ -67,7 +66,7 @@ export const mlsTeams: Team[] = [
 export const nwslTeams: Team[] = [
   { id: "ang-city", name: "Angel City FC", shortName: "Angel City", city: "Los Angeles", state: "CA" },
   { id: "bay-fc", name: "Bay FC", shortName: "Bay FC", city: "San Francisco", state: "CA" },
-  { id: "chi-stars", name: "Chicago Stars FC", shortName: "Chicago", city: "Chicago", state: "IL" },
+  { id: "chi-red-stars", name: "Chicago Red Stars", shortName: "Chicago", city: "Chicago", state: "IL" },
   { id: "hou-dash", name: "Houston Dash", shortName: "Houston", city: "Houston", state: "TX" },
   { id: "kc-current", name: "Kansas City Current", shortName: "KC Current", city: "Kansas City", state: "MO" },
   { id: "nj-ny-gotham", name: "NJ/NY Gotham FC", shortName: "Gotham", city: "Harrison", state: "NJ" },
@@ -103,7 +102,6 @@ export const uslChampionshipTeams: Team[] = [
   { id: "uslc-rhode-island", name: "Rhode Island FC", shortName: "Rhode Island", city: "Smithfield", state: "RI" },
   { id: "uslc-sacramento", name: "Sacramento Republic FC", shortName: "Sacramento", city: "Sacramento", state: "CA" },
   { id: "uslc-san-antonio", name: "San Antonio FC", shortName: "San Antonio", city: "San Antonio", state: "TX" },
-  { id: "uslc-san-diego", name: "San Diego Loyal SC", shortName: "SD Loyal", city: "San Diego", state: "CA" },
   { id: "uslc-tampa-bay", name: "Tampa Bay Rowdies", shortName: "Tampa Bay", city: "St. Petersburg", state: "FL" },
   { id: "uslc-tulsa", name: "FC Tulsa", shortName: "Tulsa", city: "Tulsa", state: "OK" },
 ];
@@ -115,14 +113,12 @@ export const uslLeagueOneTeams: Team[] = [
   { id: "usl1-forward-madison", name: "Forward Madison FC", shortName: "Madison", city: "Madison", state: "WI" },
   { id: "usl1-greenville", name: "Greenville Triumph SC", shortName: "Greenville", city: "Greenville", state: "SC" },
   { id: "usl1-lexington", name: "Lexington SC", shortName: "Lexington", city: "Lexington", state: "KY" },
-  { id: "usl1-north-carolina", name: "North Carolina FC", shortName: "North Carolina", city: "Cary", state: "NC" },
   { id: "usl1-northern-colorado", name: "Northern Colorado Hailstorm FC", shortName: "N. Colorado", city: "Windsor", state: "CO" },
   { id: "usl1-omaha", name: "Union Omaha", shortName: "Omaha", city: "Omaha", state: "NE" },
   { id: "usl1-one-knoxville", name: "One Knoxville SC", shortName: "Knoxville", city: "Knoxville", state: "TN" },
   { id: "usl1-richmond", name: "Richmond Kickers", shortName: "Richmond", city: "Richmond", state: "VA" },
   { id: "usl1-spokane", name: "Spokane Velocity FC", shortName: "Spokane", city: "Spokane", state: "WA" },
   { id: "usl1-tormenta", name: "South Georgia Tormenta FC", shortName: "Tormenta", city: "Statesboro", state: "GA" },
-  { id: "usl1-tucson", name: "FC Tucson", shortName: "Tucson", city: "Tucson", state: "AZ" },
 ];
 
 export const mlsNextProTeams: Team[] = [

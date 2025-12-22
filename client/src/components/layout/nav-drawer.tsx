@@ -1,5 +1,14 @@
-import { ChevronDown, ChevronUp, X, Check, MapPin, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, X, MapPin, Search } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
+import { 
+  nationalTeams, 
+  mlsTeams, 
+  nwslTeams, 
+  uslChampionshipTeams, 
+  uslLeagueOneTeams, 
+  uslLeagueTwoTeams, 
+  mlsNextProTeams
+} from "@/lib/data/us-soccer-teams";
 
 const continents = [
   { id: "usa", name: "USA Soccer Leagues", flag: "🇺🇸", logo: "/attached_assets/USASL_Icon_1766299234835.jpeg" },
@@ -36,6 +45,7 @@ interface LeagueItem {
   id: string;
   name: string;
   icon?: string;
+  teams?: { id: string; name: string; city: string; state: string }[];
 }
 
 interface Category {
@@ -50,23 +60,63 @@ const USA_SOCCER_HIERARCHY: Category[] = [
     id: "national-teams",
     name: "National Teams",
     items: [
-      { id: "usmnt", name: "Men's National Team", icon: "🇺🇸" },
-      { id: "uswnt", name: "Women's National Team", icon: "🇺🇸" },
+      { 
+        id: "usmnt", 
+        name: "Men's National Team", 
+        icon: "🇺🇸",
+        teams: nationalTeams.men.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
+      { 
+        id: "uswnt", 
+        name: "Women's National Team", 
+        icon: "🇺🇸",
+        teams: nationalTeams.women.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
     ]
   },
   {
     id: "professional-leagues",
     name: "Professional Leagues",
     items: [
-      { id: "mls", name: "MLS", icon: "⚽" },
-      { id: "mls-next-pro", name: "MLS Next Pro", icon: "⏭️" },
-      { id: "usl-championship", name: "USL Championship", icon: "⭐" },
-      { id: "usl-league-one", name: "USL League One", icon: "1️⃣" },
-      { id: "usl-league-two", name: "USL League Two", icon: "2️⃣" },
+      { 
+        id: "mls", 
+        name: "MLS", 
+        icon: "⚽",
+        teams: mlsTeams.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
+      { 
+        id: "nwsl", 
+        name: "NWSL", 
+        icon: "👩",
+        teams: nwslTeams.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
+      { 
+        id: "usl-championship", 
+        name: "USL Championship", 
+        icon: "⭐",
+        teams: uslChampionshipTeams.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
+      { 
+        id: "mls-next-pro", 
+        name: "MLS Next Pro", 
+        icon: "⏭️",
+        teams: mlsNextProTeams.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
+      { 
+        id: "usl-league-one", 
+        name: "USL League One", 
+        icon: "1️⃣",
+        teams: uslLeagueOneTeams.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
+      { 
+        id: "usl-league-two", 
+        name: "USL League Two", 
+        icon: "2️⃣",
+        teams: uslLeagueTwoTeams.map(t => ({ id: t.id, name: t.name, city: t.city, state: t.state }))
+      },
       { id: "nisa", name: "NISA", icon: "🏆" },
       { id: "npsl", name: "NPSL", icon: "🛡️" },
       { id: "upsl", name: "UPSL", icon: "📍" },
-      { id: "nwsl", name: "NWSL", icon: "👩" },
       { id: "wpsl", name: "WPSL", icon: "👟" },
       { id: "uws", name: "UWS", icon: "🌟" },
     ]
@@ -195,6 +245,7 @@ interface NavDrawerProps {
 export function NavDrawer({ isOpen, onClose }: NavDrawerProps) {
   const [selectedContinent, setSelectedContinent] = useState(continents[0]);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [expandedLeagues, setExpandedLeagues] = useState<string[]>([]);
   const [expandedSection, setExpandedSection] = useState<string | null>("continents");
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
@@ -222,6 +273,14 @@ export function NavDrawer({ isOpen, onClose }: NavDrawerProps) {
       prev.includes(categoryId) 
         ? prev.filter(c => c !== categoryId)
         : [...prev, categoryId]
+    );
+  };
+
+  const toggleLeague = (leagueId: string) => {
+    setExpandedLeagues(prev =>
+      prev.includes(leagueId)
+        ? prev.filter(l => l !== leagueId)
+        : [...prev, leagueId]
     );
   };
 
@@ -451,19 +510,66 @@ export function NavDrawer({ isOpen, onClose }: NavDrawerProps) {
                         )}
 
                         {/* League/Team Items */}
-                        {category.items.map((item) => (
-                          <button
-                            key={item.id}
-                            onClick={onClose}
-                            className="w-full flex items-center gap-3 p-3 pl-4 border-b border-slate-100 last:border-b-0 bg-white hover:bg-slate-50 transition-all text-left"
-                            data-testid={`nav-item-${item.id}`}
-                          >
-                            <div className="w-7 h-7 flex items-center justify-center text-lg">
-                              {item.icon}
+                        {category.items.map((item) => {
+                          const hasTeams = item.teams && item.teams.length > 0;
+                          const isLeagueExpanded = expandedLeagues.includes(item.id);
+                          
+                          return (
+                            <div key={item.id}>
+                              {/* League Row */}
+                              <div
+                                className="w-full flex items-center gap-3 p-3 pl-4 border-b border-slate-100 bg-white hover:bg-slate-50 transition-all"
+                              >
+                                <div className="w-7 h-7 flex items-center justify-center text-lg">
+                                  {item.icon}
+                                </div>
+                                <button
+                                  onClick={onClose}
+                                  className="font-medium text-slate-800 text-sm flex-1 text-left"
+                                  data-testid={`nav-item-${item.id}`}
+                                >
+                                  {item.name}
+                                </button>
+                                {hasTeams && (
+                                  <button
+                                    onClick={() => toggleLeague(item.id)}
+                                    className="p-1 hover:bg-slate-200 rounded flex items-center gap-1"
+                                    data-testid={`expand-nav-${item.id}`}
+                                  >
+                                    <span className="text-xs text-slate-400">{item.teams!.length}</span>
+                                    {isLeagueExpanded ? (
+                                      <ChevronUp className="w-4 h-4 text-slate-500" />
+                                    ) : (
+                                      <ChevronDown className="w-4 h-4 text-slate-500" />
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Teams under League */}
+                              {hasTeams && isLeagueExpanded && (
+                                <div className="bg-slate-50/50 max-h-64 overflow-y-auto">
+                                  {item.teams!.map((team) => (
+                                    <button
+                                      key={team.id}
+                                      onClick={onClose}
+                                      className="w-full flex items-center gap-3 p-2.5 pl-12 border-b border-slate-100 last:border-b-0 hover:bg-slate-100 transition-all text-left"
+                                      data-testid={`nav-team-${team.id}`}
+                                    >
+                                      <div className="w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center text-xs font-bold text-slate-600">
+                                        {team.name.charAt(0)}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <span className="font-medium text-slate-700 text-xs block truncate">{team.name}</span>
+                                        <span className="text-slate-400 text-xs">{team.city}, {team.state}</span>
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                            <span className="font-medium text-slate-800 text-sm">{item.name}</span>
-                          </button>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
