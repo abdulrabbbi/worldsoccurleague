@@ -1,0 +1,149 @@
+You are my senior full-stack architect + product engineer. I need you to DESIGN (not fully implement) a comprehensive Admin Panel + Admin API for the World Soccer Leagues / USA Soccer Leagues platform. This admin system must control ALL modules and ALL third-party integrations while enforcing role-based permissions and supporting a “template-style” data contributor model.
+
+CRITICAL CONTEXT:
+The front end hierarchy is already built. Pro soccer data comes from SportMonks (or equivalent). All lower-level data comes from our Grassroots API. The Admin Panel must manage:
+- Data ingestion + verification + moderation
+- Third-party integrations configuration + health monitoring
+- Content/news management
+- Users, roles, contributor scopes
+- Ads (AdButler) inventory and geo targeting
+- Community + marketplace integrations (3rd party via API)
+- Shop + affiliate links + tracking
+- Chatbot/AI assistant configuration
+- QA/testing tools and logs
+
+PRIMARY GOAL:
+Deliver a production-ready blueprint/spec for an Admin Panel + Admin API that a dev team can build quickly and correctly, with clear modules, permissions, data models, and workflows.
+
+MODULES THE ADMIN PANEL MUST INCLUDE:
+1) USERS & ROLES
+   - Role-based access control (RBAC) + scoped permissions
+   - Roles:
+     * Super Admin (platform owner)
+     * Product Admin (global configuration)
+     * Regional Admin (state-level)
+     * Data Partner Admin (league/school/club level)
+     * Team Manager/Captain
+     * Fan Club Organizer
+     * Pickup Organizer
+     * Content Editor (news/posts)
+     * Support/Moderator
+     * Read-only Auditor
+   - Scope rules: users can only manage data within assigned State/City/Org/Competition.
+
+2) DATA CONTRIBUTOR “TEMPLATE” SYSTEM (CORE FEATURE)
+   - Template assignment per contributor/org:
+     * College Template
+     * High School Template
+     * Youth Club/League Template
+     * Adult Sanctioned League Template
+     * Pickup Template
+     * Fan Club Template
+   - Admin can create/clone/edit templates, enforce required fields, validation rules, and review states.
+   - Bulk import tools (CSV/JSON upload) with field mapping + error reporting.
+
+3) GRASSROOTS API MANAGEMENT
+   - Entity management (States/Cities/Organizations/Competitions/Teams/Venues/Seasons/Matches/Standings/Rosters)
+   - Verification workflow tiers:
+     Unverified -> Community Verified -> Partner Verified -> Admin Verified
+   - Approval queue for submissions and edits
+   - Audit logs (who changed what/when) + rollback
+   - Data freshness indicators + reminders
+
+4) PRO DATA INTEGRATION (SPORTMONKS OR OTHER)
+   - Store API keys/secrets securely
+   - Mapping rules: SportMonks entities -> our display model (leagues/teams/players/matches)
+   - Sync controls: manual “pull now” + scheduled sync
+   - Webhook handling if available
+   - De-duplication rules and conflict resolution with Grassroots where needed (e.g., USL2 vs local data)
+
+5) TEAM PASS / EXTERNAL SOURCE CONNECTORS
+   - “Connector” framework UI:
+     * Add connector (TeamPass, etc.)
+     * Configure auth
+     * Choose sync scope (league/team/season)
+     * Map external fields -> our schema
+     * Sync schedule + logs
+     * Error handling + retries
+   - Data provenance display: show source per record (manual vs partner vs TeamPass vs API)
+
+6) CONTENT MANAGEMENT (NEWS, POSTS, MATCH REPORTS, EVENTS)
+   - News/Announcements per level (league/team/school/club/fan club)
+   - Match reports/recaps
+   - Events calendar (tryouts, tournaments, trainings, watch parties)
+   - Documents (rules/waivers/handbooks) as URL-based assets
+   - Media library (logos/photos/videos links)
+   - Push notification feed references (do not implement push; just admin configuration hooks)
+
+7) ADS MANAGEMENT (ADBUTLER)
+   - Ad zones (global, national, state, city)
+   - Banner placements by app section (home, league pages, team pages, community, etc.)
+   - Geo targeting rules + scheduling
+   - Impression/click reporting dashboard
+   - Fallback ads and compliance rules
+
+8) COMMUNITY INTEGRATION (3RD PARTY, e.g., BetterMode)
+   - SSO strategy (admin config)
+   - Group mapping: states/cities/fan clubs/teams -> community groups
+   - Moderation settings + reporting (via API hooks)
+   - Content sync rules (optional)
+   - Display embedding configuration
+
+9) MARKETPLACE INTEGRATION (3RD PARTY)
+   - Vendor/item moderation settings
+   - Category configuration (soccer items + general items)
+   - Fraud/reporting hooks
+   - Geographic filters
+   - Commission/fee settings (if applicable)
+
+10) SHOP / AFFILIATE MANAGEMENT
+   - Shop categories (gear, apparel, tickets, travel, training tools)
+   - Affiliate partner configuration (Expedia/Booking/etc.)
+   - Link management + UTM tracking rules
+   - Reporting (clicks, conversions if available via affiliate reporting import)
+
+11) CHATBOT / AI ASSISTANT MANAGEMENT
+   - Chatbot instances (global + module-specific bots)
+   - Knowledge base sources (docs/FAQs/manuals/links)
+   - Safety filters + allowed topics
+   - Usage reporting
+   - “Escalate to support” workflow config
+   - Per-section bot behavior settings (league pages vs community vs help)
+
+12) QA / TESTING / MONITORING (MUST HAVE)
+   - Integration health dashboard (SportMonks, Grassroots, AdButler, Community, Marketplace, Shop affiliates, Chatbot)
+   - Logs viewer (requests/errors)
+   - Test tools: “validate data mapping”, “simulate API response”, “run sync dry-run”
+   - Status page view for admins
+   - Environment config: dev/staging/prod toggles
+
+DELIVERABLES REQUIRED IN OUTPUT:
+A) Admin Panel Information Architecture (menu structure + modules)
+B) RBAC Permission Matrix (roles x capabilities)
+C) Admin Data Model additions (admin-specific tables/collections: users, roles, scopes, audit logs, connectors, sync jobs, integration configs)
+D) Core workflows (step-by-step):
+   - onboarding a new data partner (college, youth league, etc.)
+   - approving a submission/edit
+   - setting up a TeamPass connector and syncing
+   - configuring AdButler zones and mapping placements
+   - enabling community SSO and mapping groups
+E) Admin API endpoint list (REST) with example payloads for:
+   - auth + user management
+   - template management
+   - approvals + verification
+   - connectors + sync jobs + logs
+   - integration config endpoints
+   - ads config endpoints
+F) UI page list with recommended fields and actions per page
+G) Implementation notes:
+   - suggest stack (Postgres + Prisma or similar; or NoSQL option)
+   - multi-tenant considerations (future: World + continents)
+   - security practices (secrets, least privilege, audit trails)
+   - scalability + caching suggestions
+
+IMPORTANT RULES:
+- Do NOT build full production code; design/spec only.
+- Be extremely specific and structured.
+- Assume the app must scale to all 50 states and multiple countries/continents later.
+- Output must be immediately usable as a developer blueprint.
+Start now.
