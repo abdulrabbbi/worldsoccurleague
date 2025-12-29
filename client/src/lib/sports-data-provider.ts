@@ -27,13 +27,80 @@ const MOCK_CONTINENTS: Continent[] = [
 ];
 
 const MOCK_COUNTRIES: Country[] = [
+  // Europe
   { id: "c-eng", name: "England", code: "ENG", slug: "england", continentId: "cont-eu" },
   { id: "c-esp", name: "Spain", code: "ESP", slug: "spain", continentId: "cont-eu" },
   { id: "c-ger", name: "Germany", code: "GER", slug: "germany", continentId: "cont-eu" },
+  { id: "c-fra", name: "France", code: "FRA", slug: "france", continentId: "cont-eu" },
+  { id: "c-ita", name: "Italy", code: "ITA", slug: "italy", continentId: "cont-eu" },
+  { id: "c-por", name: "Portugal", code: "POR", slug: "portugal", continentId: "cont-eu" },
+  { id: "c-ned", name: "Netherlands", code: "NED", slug: "netherlands", continentId: "cont-eu" },
+  { id: "c-bel", name: "Belgium", code: "BEL", slug: "belgium", continentId: "cont-eu" },
+  { id: "c-sco", name: "Scotland", code: "SCO", slug: "scotland", continentId: "cont-eu" },
+  { id: "c-tur", name: "Turkey", code: "TUR", slug: "turkey", continentId: "cont-eu" },
+  { id: "c-gre", name: "Greece", code: "GRE", slug: "greece", continentId: "cont-eu" },
+  { id: "c-aut", name: "Austria", code: "AUT", slug: "austria", continentId: "cont-eu" },
+  { id: "c-sui", name: "Switzerland", code: "SUI", slug: "switzerland", continentId: "cont-eu" },
+  { id: "c-ukr", name: "Ukraine", code: "UKR", slug: "ukraine", continentId: "cont-eu" },
+  { id: "c-pol", name: "Poland", code: "POL", slug: "poland", continentId: "cont-eu" },
+  { id: "c-cze", name: "Czech Republic", code: "CZE", slug: "czech-republic", continentId: "cont-eu" },
+  { id: "c-den", name: "Denmark", code: "DEN", slug: "denmark", continentId: "cont-eu" },
+  { id: "c-nor", name: "Norway", code: "NOR", slug: "norway", continentId: "cont-eu" },
+  { id: "c-swe", name: "Sweden", code: "SWE", slug: "sweden", continentId: "cont-eu" },
+  { id: "c-rus", name: "Russia", code: "RUS", slug: "russia", continentId: "cont-eu" },
+  { id: "c-cro", name: "Croatia", code: "CRO", slug: "croatia", continentId: "cont-eu" },
+  { id: "c-srb", name: "Serbia", code: "SRB", slug: "serbia", continentId: "cont-eu" },
+  // North America
   { id: "c-usa", name: "USA", code: "USA", slug: "usa", continentId: "cont-na" },
   { id: "c-can", name: "Canada", code: "CAN", slug: "canada", continentId: "cont-na" },
   { id: "c-mex", name: "Mexico", code: "MEX", slug: "mexico", continentId: "cont-na" },
+  { id: "c-crc", name: "Costa Rica", code: "CRC", slug: "costa-rica", continentId: "cont-na" },
+  { id: "c-jam", name: "Jamaica", code: "JAM", slug: "jamaica", continentId: "cont-na" },
+  { id: "c-hon", name: "Honduras", code: "HON", slug: "honduras", continentId: "cont-na" },
+  { id: "c-pan", name: "Panama", code: "PAN", slug: "panama", continentId: "cont-na" },
+  { id: "c-slv", name: "El Salvador", code: "SLV", slug: "el-salvador", continentId: "cont-na" },
+  { id: "c-gua", name: "Guatemala", code: "GUA", slug: "guatemala", continentId: "cont-na" },
+  // South America
   { id: "c-bra", name: "Brazil", code: "BRA", slug: "brazil", continentId: "cont-sa" },
+  { id: "c-arg", name: "Argentina", code: "ARG", slug: "argentina", continentId: "cont-sa" },
+  { id: "c-col", name: "Colombia", code: "COL", slug: "colombia", continentId: "cont-sa" },
+  { id: "c-chi", name: "Chile", code: "CHI", slug: "chile", continentId: "cont-sa" },
+  { id: "c-uru", name: "Uruguay", code: "URU", slug: "uruguay", continentId: "cont-sa" },
+  { id: "c-per", name: "Peru", code: "PER", slug: "peru", continentId: "cont-sa" },
+  { id: "c-ecu", name: "Ecuador", code: "ECU", slug: "ecuador", continentId: "cont-sa" },
+  { id: "c-par", name: "Paraguay", code: "PAR", slug: "paraguay", continentId: "cont-sa" },
+  { id: "c-ven", name: "Venezuela", code: "VEN", slug: "venezuela", continentId: "cont-sa" },
+  { id: "c-bol", name: "Bolivia", code: "BOL", slug: "bolivia", continentId: "cont-sa" },
+  // Asia
+  { id: "c-jpn", name: "Japan", code: "JPN", slug: "japan", continentId: "cont-as" },
+  { id: "c-kor", name: "South Korea", code: "KOR", slug: "south-korea", continentId: "cont-as" },
+  { id: "c-chn", name: "China", code: "CHN", slug: "china", continentId: "cont-as" },
+  { id: "c-sau", name: "Saudi Arabia", code: "SAU", slug: "saudi-arabia", continentId: "cont-as" },
+  { id: "c-uae", name: "UAE", code: "UAE", slug: "uae", continentId: "cont-as" },
+  { id: "c-qat", name: "Qatar", code: "QAT", slug: "qatar", continentId: "cont-as" },
+  { id: "c-irn", name: "Iran", code: "IRN", slug: "iran", continentId: "cont-as" },
+  { id: "c-aus", name: "Australia", code: "AUS", slug: "australia", continentId: "cont-as" },
+  { id: "c-tha", name: "Thailand", code: "THA", slug: "thailand", continentId: "cont-as" },
+  { id: "c-ind", name: "India", code: "IND", slug: "india", continentId: "cont-as" },
+  { id: "c-idn", name: "Indonesia", code: "IDN", slug: "indonesia", continentId: "cont-as" },
+  { id: "c-mys", name: "Malaysia", code: "MYS", slug: "malaysia", continentId: "cont-as" },
+  // Africa
+  { id: "c-egy", name: "Egypt", code: "EGY", slug: "egypt", continentId: "cont-af" },
+  { id: "c-mar", name: "Morocco", code: "MAR", slug: "morocco", continentId: "cont-af" },
+  { id: "c-nga", name: "Nigeria", code: "NGA", slug: "nigeria", continentId: "cont-af" },
+  { id: "c-sen", name: "Senegal", code: "SEN", slug: "senegal", continentId: "cont-af" },
+  { id: "c-gha", name: "Ghana", code: "GHA", slug: "ghana", continentId: "cont-af" },
+  { id: "c-civ", name: "Ivory Coast", code: "CIV", slug: "ivory-coast", continentId: "cont-af" },
+  { id: "c-cmr", name: "Cameroon", code: "CMR", slug: "cameroon", continentId: "cont-af" },
+  { id: "c-alg", name: "Algeria", code: "ALG", slug: "algeria", continentId: "cont-af" },
+  { id: "c-tun", name: "Tunisia", code: "TUN", slug: "tunisia", continentId: "cont-af" },
+  { id: "c-rsa", name: "South Africa", code: "RSA", slug: "south-africa", continentId: "cont-af" },
+  // Oceania
+  { id: "c-nzl", name: "New Zealand", code: "NZL", slug: "new-zealand", continentId: "cont-oc" },
+  { id: "c-fij", name: "Fiji", code: "FIJ", slug: "fiji", continentId: "cont-oc" },
+  { id: "c-png", name: "Papua New Guinea", code: "PNG", slug: "papua-new-guinea", continentId: "cont-oc" },
+  { id: "c-sol", name: "Solomon Islands", code: "SOL", slug: "solomon-islands", continentId: "cont-oc" },
+  { id: "c-tah", name: "Tahiti", code: "TAH", slug: "tahiti", continentId: "cont-oc" },
 ];
 
 const MOCK_REGIONS: Region[] = [
@@ -52,50 +119,189 @@ const MOCK_CITIES: City[] = [
 ];
 
 const MOCK_LEAGUES: League[] = [
+  // ============ ENGLAND ============
+  // Leagues
+  { id: "l-eng-pl", name: "Premier League", slug: "premier-league", countryId: "c-eng", category: "Professional Leagues", tier: 1 },
+  { id: "l-eng-champ", name: "EFL Championship", slug: "efl-championship", countryId: "c-eng", category: "Professional Leagues", tier: 2 },
+  { id: "l-eng-l1", name: "EFL League One", slug: "efl-league-one", countryId: "c-eng", category: "Professional Leagues", tier: 3 },
+  { id: "l-eng-l2", name: "EFL League Two", slug: "efl-league-two", countryId: "c-eng", category: "Professional Leagues", tier: 4 },
+  { id: "l-eng-natl", name: "National League", slug: "national-league", countryId: "c-eng", category: "Professional Leagues", tier: 5 },
+  { id: "l-eng-wsl", name: "Women's Super League", slug: "womens-super-league", countryId: "c-eng", category: "Professional Leagues", tier: 1 },
+  // Cups
+  { id: "l-eng-facup", name: "FA Cup", slug: "fa-cup", countryId: "c-eng", category: "National Teams", tier: 1 },
+  { id: "l-eng-eflcup", name: "EFL Cup (Carabao Cup)", slug: "efl-cup", countryId: "c-eng", category: "National Teams", tier: 2 },
+  { id: "l-eng-comshield", name: "Community Shield", slug: "community-shield", countryId: "c-eng", category: "National Teams", tier: 3 },
+  { id: "l-eng-fatrophy", name: "FA Trophy", slug: "fa-trophy", countryId: "c-eng", category: "National Teams", tier: 4 },
+
+  // ============ SPAIN ============
+  { id: "l-esp-laliga", name: "La Liga", slug: "la-liga", countryId: "c-esp", category: "Professional Leagues", tier: 1 },
+  { id: "l-esp-segunda", name: "La Liga 2", slug: "la-liga-2", countryId: "c-esp", category: "Professional Leagues", tier: 2 },
+  { id: "l-esp-primera", name: "Primera Federación", slug: "primera-federacion", countryId: "c-esp", category: "Professional Leagues", tier: 3 },
+  { id: "l-esp-segunda-rfef", name: "Segunda Federación", slug: "segunda-federacion", countryId: "c-esp", category: "Professional Leagues", tier: 4 },
+  { id: "l-esp-ligaf", name: "Liga F (Women)", slug: "liga-f", countryId: "c-esp", category: "Professional Leagues", tier: 1 },
+  { id: "l-esp-copa", name: "Copa del Rey", slug: "copa-del-rey", countryId: "c-esp", category: "National Teams", tier: 1 },
+  { id: "l-esp-supercopa", name: "Supercopa de España", slug: "supercopa-espana", countryId: "c-esp", category: "National Teams", tier: 2 },
+
+  // ============ GERMANY ============
+  { id: "l-ger-buli", name: "Bundesliga", slug: "bundesliga", countryId: "c-ger", category: "Professional Leagues", tier: 1 },
+  { id: "l-ger-buli2", name: "2. Bundesliga", slug: "2-bundesliga", countryId: "c-ger", category: "Professional Leagues", tier: 2 },
+  { id: "l-ger-3liga", name: "3. Liga", slug: "3-liga", countryId: "c-ger", category: "Professional Leagues", tier: 3 },
+  { id: "l-ger-regl", name: "Regionalliga", slug: "regionalliga", countryId: "c-ger", category: "Professional Leagues", tier: 4 },
+  { id: "l-ger-frauen", name: "Frauen-Bundesliga", slug: "frauen-bundesliga", countryId: "c-ger", category: "Professional Leagues", tier: 1 },
+  { id: "l-ger-dfb", name: "DFB-Pokal", slug: "dfb-pokal", countryId: "c-ger", category: "National Teams", tier: 1 },
+  { id: "l-ger-super", name: "DFL-Supercup", slug: "dfl-supercup", countryId: "c-ger", category: "National Teams", tier: 2 },
+
+  // ============ FRANCE ============
+  { id: "l-fra-l1", name: "Ligue 1", slug: "ligue-1", countryId: "c-fra", category: "Professional Leagues", tier: 1 },
+  { id: "l-fra-l2", name: "Ligue 2", slug: "ligue-2", countryId: "c-fra", category: "Professional Leagues", tier: 2 },
+  { id: "l-fra-national", name: "Championnat National", slug: "championnat-national", countryId: "c-fra", category: "Professional Leagues", tier: 3 },
+  { id: "l-fra-d1f", name: "Division 1 Féminine", slug: "division-1-feminine", countryId: "c-fra", category: "Professional Leagues", tier: 1 },
+  { id: "l-fra-coupe", name: "Coupe de France", slug: "coupe-de-france", countryId: "c-fra", category: "National Teams", tier: 1 },
+  { id: "l-fra-ligue", name: "Coupe de la Ligue", slug: "coupe-de-la-ligue", countryId: "c-fra", category: "National Teams", tier: 2 },
+  { id: "l-fra-trophee", name: "Trophée des Champions", slug: "trophee-des-champions", countryId: "c-fra", category: "National Teams", tier: 3 },
+
+  // ============ ITALY ============
+  { id: "l-ita-seriea", name: "Serie A", slug: "serie-a", countryId: "c-ita", category: "Professional Leagues", tier: 1 },
+  { id: "l-ita-serieb", name: "Serie B", slug: "serie-b", countryId: "c-ita", category: "Professional Leagues", tier: 2 },
+  { id: "l-ita-seriec", name: "Serie C", slug: "serie-c", countryId: "c-ita", category: "Professional Leagues", tier: 3 },
+  { id: "l-ita-seried", name: "Serie D", slug: "serie-d", countryId: "c-ita", category: "Professional Leagues", tier: 4 },
+  { id: "l-ita-serieaf", name: "Serie A Femminile", slug: "serie-a-femminile", countryId: "c-ita", category: "Professional Leagues", tier: 1 },
+  { id: "l-ita-coppa", name: "Coppa Italia", slug: "coppa-italia", countryId: "c-ita", category: "National Teams", tier: 1 },
+  { id: "l-ita-supercoppa", name: "Supercoppa Italiana", slug: "supercoppa-italiana", countryId: "c-ita", category: "National Teams", tier: 2 },
+
+  // ============ PORTUGAL ============
+  { id: "l-por-primeira", name: "Primeira Liga", slug: "primeira-liga", countryId: "c-por", category: "Professional Leagues", tier: 1 },
+  { id: "l-por-segunda", name: "Liga Portugal 2", slug: "liga-portugal-2", countryId: "c-por", category: "Professional Leagues", tier: 2 },
+  { id: "l-por-terceira", name: "Liga 3", slug: "liga-3", countryId: "c-por", category: "Professional Leagues", tier: 3 },
+  { id: "l-por-taca", name: "Taça de Portugal", slug: "taca-de-portugal", countryId: "c-por", category: "National Teams", tier: 1 },
+  { id: "l-por-supertaca", name: "Supertaça", slug: "supertaca", countryId: "c-por", category: "National Teams", tier: 2 },
+
+  // ============ NETHERLANDS ============
+  { id: "l-ned-ere", name: "Eredivisie", slug: "eredivisie", countryId: "c-ned", category: "Professional Leagues", tier: 1 },
+  { id: "l-ned-eerste", name: "Eerste Divisie", slug: "eerste-divisie", countryId: "c-ned", category: "Professional Leagues", tier: 2 },
+  { id: "l-ned-knvb", name: "KNVB Cup", slug: "knvb-cup", countryId: "c-ned", category: "National Teams", tier: 1 },
+  { id: "l-ned-super", name: "Johan Cruyff Shield", slug: "johan-cruyff-shield", countryId: "c-ned", category: "National Teams", tier: 2 },
+
+  // ============ BELGIUM ============
+  { id: "l-bel-proa", name: "Pro League", slug: "belgian-pro-league", countryId: "c-bel", category: "Professional Leagues", tier: 1 },
+  { id: "l-bel-first", name: "Challenger Pro League", slug: "challenger-pro-league", countryId: "c-bel", category: "Professional Leagues", tier: 2 },
+  { id: "l-bel-cup", name: "Croky Cup", slug: "croky-cup", countryId: "c-bel", category: "National Teams", tier: 1 },
+  { id: "l-bel-super", name: "Belgian Super Cup", slug: "belgian-super-cup", countryId: "c-bel", category: "National Teams", tier: 2 },
+
+  // ============ SCOTLAND ============
+  { id: "l-sco-prem", name: "Scottish Premiership", slug: "scottish-premiership", countryId: "c-sco", category: "Professional Leagues", tier: 1 },
+  { id: "l-sco-champ", name: "Scottish Championship", slug: "scottish-championship", countryId: "c-sco", category: "Professional Leagues", tier: 2 },
+  { id: "l-sco-l1", name: "Scottish League One", slug: "scottish-league-one", countryId: "c-sco", category: "Professional Leagues", tier: 3 },
+  { id: "l-sco-l2", name: "Scottish League Two", slug: "scottish-league-two", countryId: "c-sco", category: "Professional Leagues", tier: 4 },
+  { id: "l-sco-cup", name: "Scottish Cup", slug: "scottish-cup", countryId: "c-sco", category: "National Teams", tier: 1 },
+  { id: "l-sco-league", name: "Scottish League Cup", slug: "scottish-league-cup", countryId: "c-sco", category: "National Teams", tier: 2 },
+
+  // ============ TURKEY ============
+  { id: "l-tur-super", name: "Süper Lig", slug: "super-lig", countryId: "c-tur", category: "Professional Leagues", tier: 1 },
+  { id: "l-tur-1lig", name: "TFF 1. Lig", slug: "tff-1-lig", countryId: "c-tur", category: "Professional Leagues", tier: 2 },
+  { id: "l-tur-2lig", name: "TFF 2. Lig", slug: "tff-2-lig", countryId: "c-tur", category: "Professional Leagues", tier: 3 },
+  { id: "l-tur-cup", name: "Turkish Cup", slug: "turkish-cup", countryId: "c-tur", category: "National Teams", tier: 1 },
+  { id: "l-tur-super-cup", name: "Turkish Super Cup", slug: "turkish-super-cup", countryId: "c-tur", category: "National Teams", tier: 2 },
+
+  // ============ USA ============
+  { id: "l-usa-mls", name: "MLS", slug: "mls", countryId: "c-usa", category: "Professional Leagues", tier: 1 },
+  { id: "l-usa-nwsl", name: "NWSL", slug: "nwsl", countryId: "c-usa", category: "Professional Leagues", tier: 1 },
+  { id: "l-usa-uslc", name: "USL Championship", slug: "usl-championship", countryId: "c-usa", category: "Professional Leagues", tier: 2 },
+  { id: "l-usa-usl1", name: "USL League One", slug: "usl-league-one", countryId: "c-usa", category: "Professional Leagues", tier: 3 },
+  { id: "l-usa-usl2", name: "USL League Two", slug: "usl-league-two", countryId: "c-usa", category: "Professional Leagues", tier: 4 },
+  { id: "l-usa-mlsnp", name: "MLS NEXT Pro", slug: "mls-next-pro", countryId: "c-usa", category: "Professional Leagues", tier: 3 },
+  { id: "l-usa-npsl", name: "NPSL", slug: "npsl", countryId: "c-usa", category: "Sanctioned Leagues", tier: 5 },
+  { id: "l-usa-upsl", name: "UPSL", slug: "upsl", countryId: "c-usa", category: "Sanctioned Leagues", tier: 5 },
+  { id: "l-usa-ncaa", name: "NCAA Division I", slug: "ncaa-d1", countryId: "c-usa", category: "College Soccer", tier: 1 },
+  { id: "l-usa-ncaa2", name: "NCAA Division II", slug: "ncaa-d2", countryId: "c-usa", category: "College Soccer", tier: 2 },
+  { id: "l-usa-ncaa3", name: "NCAA Division III", slug: "ncaa-d3", countryId: "c-usa", category: "College Soccer", tier: 3 },
+  { id: "l-usa-naia", name: "NAIA", slug: "naia", countryId: "c-usa", category: "College Soccer", tier: 2 },
+  { id: "l-usa-njcaa", name: "NJCAA", slug: "njcaa", countryId: "c-usa", category: "College Soccer", tier: 3 },
+  { id: "l-usa-usopen", name: "U.S. Open Cup", slug: "us-open-cup", countryId: "c-usa", category: "National Teams", tier: 1 },
+  { id: "l-usa-mlscup", name: "MLS Cup", slug: "mls-cup", countryId: "c-usa", category: "National Teams", tier: 1 },
+  { id: "l-usa-supportsshield", name: "Supporters' Shield", slug: "supporters-shield", countryId: "c-usa", category: "National Teams", tier: 2 },
   // National Teams
-  { id: "l-nat-usa-m", name: "USMNT", slug: "usmnt", countryId: "c-usa", category: "National Teams", tier: 1 },
-  { id: "l-nat-usa-w", name: "USWNT", slug: "uswnt", countryId: "c-usa", category: "National Teams", tier: 1 },
+  { id: "l-usa-usmnt", name: "USMNT", slug: "usmnt", countryId: "c-usa", category: "National Teams", tier: 1 },
+  { id: "l-usa-uswnt", name: "USWNT", slug: "uswnt", countryId: "c-usa", category: "National Teams", tier: 1 },
 
-  // Professional Leagues (USA)
-  { id: "l-mls", name: "MLS", slug: "mls", countryId: "c-usa", category: "Professional Leagues", tier: 1 },
-  { id: "l-usl-c", name: "USL Championship", slug: "usl-championship", countryId: "c-usa", category: "Professional Leagues", tier: 2 },
-  { id: "l-usl-1", name: "USL League One", slug: "usl-league-one", countryId: "c-usa", category: "Professional Leagues", tier: 3 },
-  { id: "l-nisa", name: "NISA", slug: "nisa", countryId: "c-usa", category: "Professional Leagues", tier: 3 },
-  
-  // European Leagues
-  { id: "l-pl", name: "Premier League", slug: "premier-league", countryId: "c-eng", category: "Professional Leagues", tier: 1 },
-  { id: "l-ll", name: "La Liga", slug: "la-liga", countryId: "c-esp", category: "Professional Leagues", tier: 1 },
-  { id: "l-bl", name: "Bundesliga", slug: "bundesliga", countryId: "c-ger", category: "Professional Leagues", tier: 1 },
+  // ============ MEXICO ============
+  { id: "l-mex-ligamx", name: "Liga MX", slug: "liga-mx", countryId: "c-mex", category: "Professional Leagues", tier: 1 },
+  { id: "l-mex-expansion", name: "Liga de Expansión MX", slug: "liga-expansion-mx", countryId: "c-mex", category: "Professional Leagues", tier: 2 },
+  { id: "l-mex-liga2", name: "Liga Premier", slug: "liga-premier", countryId: "c-mex", category: "Professional Leagues", tier: 3 },
+  { id: "l-mex-femenil", name: "Liga MX Femenil", slug: "liga-mx-femenil", countryId: "c-mex", category: "Professional Leagues", tier: 1 },
+  { id: "l-mex-copa", name: "Copa MX", slug: "copa-mx", countryId: "c-mex", category: "National Teams", tier: 1 },
+  { id: "l-mex-campeon", name: "Campeón de Campeones", slug: "campeon-de-campeones", countryId: "c-mex", category: "National Teams", tier: 2 },
 
-  // College Soccer (USA)
-  { id: "l-ncaa-d1", name: "NCAA Division I", slug: "ncaa-d1", countryId: "c-usa", category: "College Soccer", tier: 1 },
-  
-  // High School (Texas)
-  { id: "l-uil-6a", name: "UIL 6A", slug: "uil-6a", countryId: "c-usa", regionId: "r-tx", category: "High School Soccer", tier: 1 },
-  
-  // Pickup Soccer
-  { id: "l-pickup-hou", name: "Houston Pickup", slug: "houston-pickup", countryId: "c-usa", regionId: "r-tx", cityId: "city-hou", category: "Pickup Soccer", tier: 1 },
+  // ============ BRAZIL ============
+  { id: "l-bra-seriea", name: "Brasileirão Série A", slug: "brasileirao-serie-a", countryId: "c-bra", category: "Professional Leagues", tier: 1 },
+  { id: "l-bra-serieb", name: "Brasileirão Série B", slug: "brasileirao-serie-b", countryId: "c-bra", category: "Professional Leagues", tier: 2 },
+  { id: "l-bra-seriec", name: "Brasileirão Série C", slug: "brasileirao-serie-c", countryId: "c-bra", category: "Professional Leagues", tier: 3 },
+  { id: "l-bra-seried", name: "Brasileirão Série D", slug: "brasileirao-serie-d", countryId: "c-bra", category: "Professional Leagues", tier: 4 },
+  { id: "l-bra-braf", name: "Brasileirão Feminino A1", slug: "brasileirao-feminino", countryId: "c-bra", category: "Professional Leagues", tier: 1 },
+  { id: "l-bra-copa", name: "Copa do Brasil", slug: "copa-do-brasil", countryId: "c-bra", category: "National Teams", tier: 1 },
+  { id: "l-bra-super", name: "Supercopa do Brasil", slug: "supercopa-do-brasil", countryId: "c-bra", category: "National Teams", tier: 2 },
+  // State Championships
+  { id: "l-bra-paulista", name: "Campeonato Paulista", slug: "campeonato-paulista", countryId: "c-bra", category: "Professional Leagues", tier: 2 },
+  { id: "l-bra-carioca", name: "Campeonato Carioca", slug: "campeonato-carioca", countryId: "c-bra", category: "Professional Leagues", tier: 2 },
+  { id: "l-bra-gaucho", name: "Campeonato Gaúcho", slug: "campeonato-gaucho", countryId: "c-bra", category: "Professional Leagues", tier: 2 },
+  { id: "l-bra-mineiro", name: "Campeonato Mineiro", slug: "campeonato-mineiro", countryId: "c-bra", category: "Professional Leagues", tier: 2 },
+
+  // ============ ARGENTINA ============
+  { id: "l-arg-primera", name: "Liga Profesional", slug: "liga-profesional-argentina", countryId: "c-arg", category: "Professional Leagues", tier: 1 },
+  { id: "l-arg-nacional", name: "Primera Nacional", slug: "primera-nacional", countryId: "c-arg", category: "Professional Leagues", tier: 2 },
+  { id: "l-arg-metro", name: "Primera B Metropolitana", slug: "primera-b-metropolitana", countryId: "c-arg", category: "Professional Leagues", tier: 3 },
+  { id: "l-arg-copa", name: "Copa Argentina", slug: "copa-argentina", countryId: "c-arg", category: "National Teams", tier: 1 },
+  { id: "l-arg-trofeo", name: "Trofeo de Campeones", slug: "trofeo-de-campeones", countryId: "c-arg", category: "National Teams", tier: 2 },
+
+  // ============ JAPAN ============
+  { id: "l-jpn-j1", name: "J1 League", slug: "j1-league", countryId: "c-jpn", category: "Professional Leagues", tier: 1 },
+  { id: "l-jpn-j2", name: "J2 League", slug: "j2-league", countryId: "c-jpn", category: "Professional Leagues", tier: 2 },
+  { id: "l-jpn-j3", name: "J3 League", slug: "j3-league", countryId: "c-jpn", category: "Professional Leagues", tier: 3 },
+  { id: "l-jpn-we", name: "WE League", slug: "we-league", countryId: "c-jpn", category: "Professional Leagues", tier: 1 },
+  { id: "l-jpn-emperor", name: "Emperor's Cup", slug: "emperors-cup", countryId: "c-jpn", category: "National Teams", tier: 1 },
+  { id: "l-jpn-league", name: "J.League Cup", slug: "j-league-cup", countryId: "c-jpn", category: "National Teams", tier: 2 },
+  { id: "l-jpn-super", name: "Japanese Super Cup", slug: "japanese-super-cup", countryId: "c-jpn", category: "National Teams", tier: 3 },
+
+  // ============ SAUDI ARABIA ============
+  { id: "l-sau-spl", name: "Saudi Pro League", slug: "saudi-pro-league", countryId: "c-sau", category: "Professional Leagues", tier: 1 },
+  { id: "l-sau-first", name: "Saudi First Division", slug: "saudi-first-division", countryId: "c-sau", category: "Professional Leagues", tier: 2 },
+  { id: "l-sau-king", name: "King Cup", slug: "kings-cup", countryId: "c-sau", category: "National Teams", tier: 1 },
+  { id: "l-sau-crown", name: "Crown Prince Cup", slug: "crown-prince-cup", countryId: "c-sau", category: "National Teams", tier: 2 },
+  { id: "l-sau-super", name: "Saudi Super Cup", slug: "saudi-super-cup", countryId: "c-sau", category: "National Teams", tier: 3 },
+
+  // ============ EGYPT ============
+  { id: "l-egy-premier", name: "Egyptian Premier League", slug: "egyptian-premier-league", countryId: "c-egy", category: "Professional Leagues", tier: 1 },
+  { id: "l-egy-second", name: "Egyptian Second Division", slug: "egyptian-second-division", countryId: "c-egy", category: "Professional Leagues", tier: 2 },
+  { id: "l-egy-cup", name: "Egypt Cup", slug: "egypt-cup", countryId: "c-egy", category: "National Teams", tier: 1 },
+  { id: "l-egy-super", name: "Egyptian Super Cup", slug: "egyptian-super-cup", countryId: "c-egy", category: "National Teams", tier: 2 },
+
+  // ============ MOROCCO ============
+  { id: "l-mar-botola", name: "Botola Pro", slug: "botola-pro", countryId: "c-mar", category: "Professional Leagues", tier: 1 },
+  { id: "l-mar-botola2", name: "Botola 2", slug: "botola-2", countryId: "c-mar", category: "Professional Leagues", tier: 2 },
+  { id: "l-mar-throne", name: "Throne Cup", slug: "throne-cup", countryId: "c-mar", category: "National Teams", tier: 1 },
 ];
 
 const MOCK_TEAMS: Team[] = [
   // MLS
-  { id: "t-mia", name: "Inter Miami CF", slug: "inter-miami-cf", leagueId: "l-mls", countryId: "c-usa", city: "Miami", type: "Club" },
-  { id: "t-lafc", name: "LAFC", slug: "lafc", leagueId: "l-mls", countryId: "c-usa", city: "Los Angeles", type: "Club" },
-  
+  { id: "t-mia", name: "Inter Miami CF", slug: "inter-miami-cf", leagueId: "l-usa-mls", countryId: "c-usa", city: "Miami", type: "Club" },
+  { id: "t-lafc", name: "LAFC", slug: "lafc", leagueId: "l-usa-mls", countryId: "c-usa", city: "Los Angeles", type: "Club" },
   // Premier League
-  { id: "t-mci", name: "Manchester City", slug: "manchester-city", leagueId: "l-pl", countryId: "c-eng", city: "Manchester", type: "Club" },
-  
+  { id: "t-mci", name: "Manchester City", slug: "manchester-city", leagueId: "l-eng-pl", countryId: "c-eng", city: "Manchester", type: "Club" },
+  { id: "t-liv", name: "Liverpool", slug: "liverpool", leagueId: "l-eng-pl", countryId: "c-eng", city: "Liverpool", type: "Club" },
+  { id: "t-ars", name: "Arsenal", slug: "arsenal", leagueId: "l-eng-pl", countryId: "c-eng", city: "London", type: "Club" },
+  // La Liga
+  { id: "t-rma", name: "Real Madrid", slug: "real-madrid", leagueId: "l-esp-laliga", countryId: "c-esp", city: "Madrid", type: "Club" },
+  { id: "t-bar", name: "Barcelona", slug: "barcelona", leagueId: "l-esp-laliga", countryId: "c-esp", city: "Barcelona", type: "Club" },
   // High School
-  { id: "t-woodlands", name: "The Woodlands HS", slug: "the-woodlands-hs", leagueId: "l-uil-6a", countryId: "c-usa", city: "The Woodlands", type: "School" },
-  
+  { id: "t-woodlands", name: "The Woodlands HS", slug: "the-woodlands-hs", leagueId: "l-usa-ncaa", countryId: "c-usa", city: "The Woodlands", type: "School" },
   // Pickup
-  { id: "t-urban-soccer", name: "Urban Soccer Group", slug: "urban-soccer-group", leagueId: "l-pickup-hou", countryId: "c-usa", city: "Houston", type: "Pickup Group" },
+  { id: "t-urban-soccer", name: "Urban Soccer Group", slug: "urban-soccer-group", leagueId: "l-usa-upsl", countryId: "c-usa", city: "Houston", type: "Pickup Group" },
 ];
 
 const MOCK_MATCHES: Match[] = [
   {
     id: "m-1",
-    leagueId: "l-pl",
+    leagueId: "l-eng-pl",
     homeTeamId: "t-mci",
     awayTeamId: "t-liv",
     kickoffTime: new Date(Date.now() + 86400000).toISOString(),
@@ -129,8 +335,6 @@ const MOCK_CONTINENTAL_CUPS: ContinentalCup[] = [
   { id: "cup-ccl", name: "CONCACAF Champions Cup", shortName: "CCL", slug: "concacaf-champions-cup", continentId: "cont-na", type: "club", tier: 1, description: "CONCACAF's premier club competition" },
   { id: "cup-leaguescup", name: "Leagues Cup", shortName: "Leagues Cup", slug: "leagues-cup", continentId: "cont-na", type: "club", tier: 2, description: "MLS vs Liga MX tournament" },
   { id: "cup-campeones", name: "Campeones Cup", shortName: "Campeones", slug: "campeones-cup", continentId: "cont-na", type: "club", tier: 2 },
-  { id: "cup-usopen", name: "U.S. Open Cup", shortName: "US Open", slug: "us-open-cup", continentId: "cont-na", type: "club", tier: 3 },
-  { id: "cup-canadachamp", name: "Canadian Championship", shortName: "Can Champ", slug: "canadian-championship", continentId: "cont-na", type: "club", tier: 3 },
   // North America - National Team Competitions
   { id: "cup-goldcup", name: "CONCACAF Gold Cup", shortName: "Gold Cup", slug: "gold-cup", continentId: "cont-na", type: "national", tier: 1, description: "CONCACAF's premier national team competition" },
   { id: "cup-nationsl", name: "CONCACAF Nations League", shortName: "CNL", slug: "concacaf-nations-league", continentId: "cont-na", type: "national", tier: 2 },
@@ -190,9 +394,7 @@ export class SportsDataProvider {
     return MOCK_LEAGUES.filter(l => l.countryId === countryId && l.category === category);
   }
 
-  // Helper for hierarchical browsing
   async getCategories(countryId: string): Promise<LeagueCategory[]> {
-    // In a real API, this would return categories available for that country
     return [
       "National Teams",
       "Professional Leagues",
@@ -208,8 +410,20 @@ export class SportsDataProvider {
     return MOCK_LEAGUES.filter((l) => l.countryId === countryId);
   }
 
+  async getLeaguesByTier(countryId: string, category: "league" | "cup"): Promise<League[]> {
+    const leagues = MOCK_LEAGUES.filter(l => l.countryId === countryId);
+    if (category === "cup") {
+      return leagues.filter(l => l.category === "National Teams").sort((a, b) => a.tier - b.tier);
+    }
+    return leagues.filter(l => l.category === "Professional Leagues").sort((a, b) => a.tier - b.tier);
+  }
+
   async getLeague(id: string): Promise<League | null> {
     return MOCK_LEAGUES.find((l) => l.id === id) || null;
+  }
+
+  async getLeagueBySlug(slug: string): Promise<League | null> {
+    return MOCK_LEAGUES.find((l) => l.slug === slug) || null;
   }
 
   async getTeamsByLeague(leagueId: string): Promise<Team[]> {
