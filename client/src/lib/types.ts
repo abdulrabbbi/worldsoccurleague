@@ -129,3 +129,15 @@ export interface TeamStats {
   goalsFor: number;
   goalsAgainst: number;
 }
+
+export interface ContinentalCup {
+  id: string;
+  name: string;
+  shortName: string;
+  slug: string;
+  continentId: string;
+  type: "club" | "national";
+  tier: number;
+  description?: string;
+  logoUrl?: string;
+}

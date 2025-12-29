@@ -12,7 +12,8 @@ import type {
   Match,
   Standing,
   Fixture,
-  LeagueCategory
+  LeagueCategory,
+  ContinentalCup
 } from "./types";
 
 // Mock data for initial development
@@ -96,10 +97,68 @@ const MOCK_MATCHES: Match[] = [
     id: "m-1",
     leagueId: "l-pl",
     homeTeamId: "t-mci",
-    awayTeamId: "t-liv", // Assuming exists in mock
+    awayTeamId: "t-liv",
     kickoffTime: new Date(Date.now() + 86400000).toISOString(),
     status: "SCHEDULED",
   },
+];
+
+const MOCK_CONTINENTAL_CUPS: ContinentalCup[] = [
+  // Europe - Club Competitions
+  { id: "cup-ucl", name: "UEFA Champions League", shortName: "UCL", slug: "champions-league", continentId: "cont-eu", type: "club", tier: 1, description: "Europe's premier club competition" },
+  { id: "cup-uel", name: "UEFA Europa League", shortName: "UEL", slug: "europa-league", continentId: "cont-eu", type: "club", tier: 2, description: "Europe's second-tier club competition" },
+  { id: "cup-uecl", name: "UEFA Europa Conference League", shortName: "UECL", slug: "conference-league", continentId: "cont-eu", type: "club", tier: 3 },
+  { id: "cup-usc", name: "UEFA Super Cup", shortName: "USC", slug: "super-cup", continentId: "cont-eu", type: "club", tier: 1 },
+  { id: "cup-uwcl", name: "UEFA Women's Champions League", shortName: "UWCL", slug: "womens-champions-league", continentId: "cont-eu", type: "club", tier: 1 },
+  // Europe - National Team Competitions
+  { id: "cup-euro", name: "UEFA European Championship", shortName: "EURO", slug: "euro", continentId: "cont-eu", type: "national", tier: 1, description: "Europe's premier national team competition" },
+  { id: "cup-unl", name: "UEFA Nations League", shortName: "UNL", slug: "nations-league", continentId: "cont-eu", type: "national", tier: 2 },
+  { id: "cup-u21euro", name: "UEFA U-21 Championship", shortName: "U21 EURO", slug: "u21-euro", continentId: "cont-eu", type: "national", tier: 3 },
+  { id: "cup-weuro", name: "UEFA Women's Euro", shortName: "W EURO", slug: "womens-euro", continentId: "cont-eu", type: "national", tier: 1 },
+
+  // South America - Club Competitions
+  { id: "cup-libertadores", name: "Copa Libertadores", shortName: "Libertadores", slug: "copa-libertadores", continentId: "cont-sa", type: "club", tier: 1, description: "South America's premier club competition" },
+  { id: "cup-sudamericana", name: "Copa Sudamericana", shortName: "Sudamericana", slug: "copa-sudamericana", continentId: "cont-sa", type: "club", tier: 2 },
+  { id: "cup-recopa", name: "Recopa Sudamericana", shortName: "Recopa", slug: "recopa-sudamericana", continentId: "cont-sa", type: "club", tier: 1 },
+  { id: "cup-libfem", name: "Copa Libertadores Femenina", shortName: "Lib Fem", slug: "libertadores-femenina", continentId: "cont-sa", type: "club", tier: 1 },
+  // South America - National Team Competitions
+  { id: "cup-copaamerica", name: "Copa América", shortName: "Copa América", slug: "copa-america", continentId: "cont-sa", type: "national", tier: 1, description: "South America's premier national team competition" },
+  { id: "cup-conmebol-u20", name: "CONMEBOL U-20 Championship", shortName: "U20 SA", slug: "conmebol-u20", continentId: "cont-sa", type: "national", tier: 2 },
+
+  // North America (CONCACAF) - Club Competitions
+  { id: "cup-ccl", name: "CONCACAF Champions Cup", shortName: "CCL", slug: "concacaf-champions-cup", continentId: "cont-na", type: "club", tier: 1, description: "CONCACAF's premier club competition" },
+  { id: "cup-leaguescup", name: "Leagues Cup", shortName: "Leagues Cup", slug: "leagues-cup", continentId: "cont-na", type: "club", tier: 2, description: "MLS vs Liga MX tournament" },
+  { id: "cup-campeones", name: "Campeones Cup", shortName: "Campeones", slug: "campeones-cup", continentId: "cont-na", type: "club", tier: 2 },
+  { id: "cup-usopen", name: "U.S. Open Cup", shortName: "US Open", slug: "us-open-cup", continentId: "cont-na", type: "club", tier: 3 },
+  { id: "cup-canadachamp", name: "Canadian Championship", shortName: "Can Champ", slug: "canadian-championship", continentId: "cont-na", type: "club", tier: 3 },
+  // North America - National Team Competitions
+  { id: "cup-goldcup", name: "CONCACAF Gold Cup", shortName: "Gold Cup", slug: "gold-cup", continentId: "cont-na", type: "national", tier: 1, description: "CONCACAF's premier national team competition" },
+  { id: "cup-nationsl", name: "CONCACAF Nations League", shortName: "CNL", slug: "concacaf-nations-league", continentId: "cont-na", type: "national", tier: 2 },
+  { id: "cup-wgoldcup", name: "CONCACAF W Gold Cup", shortName: "W Gold Cup", slug: "w-gold-cup", continentId: "cont-na", type: "national", tier: 1 },
+
+  // Asia (AFC) - Club Competitions
+  { id: "cup-acl", name: "AFC Champions League Elite", shortName: "ACL", slug: "afc-champions-league", continentId: "cont-as", type: "club", tier: 1, description: "Asia's premier club competition" },
+  { id: "cup-acl2", name: "AFC Champions League Two", shortName: "ACL2", slug: "afc-champions-league-two", continentId: "cont-as", type: "club", tier: 2 },
+  { id: "cup-afccup", name: "AFC Cup", shortName: "AFC Cup", slug: "afc-cup", continentId: "cont-as", type: "club", tier: 3 },
+  // Asia - National Team Competitions
+  { id: "cup-asiancup", name: "AFC Asian Cup", shortName: "Asian Cup", slug: "asian-cup", continentId: "cont-as", type: "national", tier: 1, description: "Asia's premier national team competition" },
+  { id: "cup-wasiancup", name: "AFC Women's Asian Cup", shortName: "W Asian Cup", slug: "womens-asian-cup", continentId: "cont-as", type: "national", tier: 1 },
+  { id: "cup-u23asian", name: "AFC U-23 Asian Cup", shortName: "U23 Asian", slug: "u23-asian-cup", continentId: "cont-as", type: "national", tier: 2 },
+
+  // Africa (CAF) - Club Competitions
+  { id: "cup-cafcl", name: "CAF Champions League", shortName: "CAF CL", slug: "caf-champions-league", continentId: "cont-af", type: "club", tier: 1, description: "Africa's premier club competition" },
+  { id: "cup-cafcc", name: "CAF Confederation Cup", shortName: "CAF CC", slug: "caf-confederation-cup", continentId: "cont-af", type: "club", tier: 2 },
+  { id: "cup-cafsc", name: "CAF Super Cup", shortName: "CAF SC", slug: "caf-super-cup", continentId: "cont-af", type: "club", tier: 1 },
+  // Africa - National Team Competitions
+  { id: "cup-afcon", name: "Africa Cup of Nations", shortName: "AFCON", slug: "afcon", continentId: "cont-af", type: "national", tier: 1, description: "Africa's premier national team competition" },
+  { id: "cup-wafcon", name: "Women's Africa Cup of Nations", shortName: "W AFCON", slug: "womens-afcon", continentId: "cont-af", type: "national", tier: 1 },
+  { id: "cup-chan", name: "African Nations Championship", shortName: "CHAN", slug: "african-nations-championship", continentId: "cont-af", type: "national", tier: 2 },
+
+  // Oceania (OFC) - Club Competitions
+  { id: "cup-ofccl", name: "OFC Champions League", shortName: "OFC CL", slug: "ofc-champions-league", continentId: "cont-oc", type: "club", tier: 1, description: "Oceania's premier club competition" },
+  // Oceania - National Team Competitions
+  { id: "cup-ofcnc", name: "OFC Nations Cup", shortName: "OFC NC", slug: "ofc-nations-cup", continentId: "cont-oc", type: "national", tier: 1, description: "Oceania's premier national team competition" },
+  { id: "cup-wofcnc", name: "OFC Women's Nations Cup", shortName: "W OFC NC", slug: "womens-ofc-nations-cup", continentId: "cont-oc", type: "national", tier: 1 },
 ];
 
 export class SportsDataProvider {
@@ -165,7 +224,15 @@ export class SportsDataProvider {
     return MOCK_MATCHES.find((m) => m.id === id) || null;
   }
 
-  // ... other methods (search, players) remain similar
+  async getContinentalCups(continentId: string, type?: "club" | "national"): Promise<ContinentalCup[]> {
+    let cups = MOCK_CONTINENTAL_CUPS.filter(c => c.continentId === continentId);
+    if (type) cups = cups.filter(c => c.type === type);
+    return cups.sort((a, b) => a.tier - b.tier);
+  }
+
+  async getContinentalCup(slug: string): Promise<ContinentalCup | null> {
+    return MOCK_CONTINENTAL_CUPS.find(c => c.slug === slug) || null;
+  }
 }
 
 export const sportsDataProvider = new SportsDataProvider();
