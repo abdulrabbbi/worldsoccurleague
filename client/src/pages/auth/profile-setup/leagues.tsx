@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Search, Trophy } from "lucide-react";
 import { useProfileSetup } from "@/lib/profile-setup-context";
 import { 
   nationalTeams, 
@@ -18,10 +18,34 @@ interface LeagueFilter {
   name: string;
   shortName: string;
   teams: Team[];
+  isCup?: boolean;
 }
+
+const CONTINENTAL_CUPS: Team[] = [
+  { id: "cup-ucl", name: "UEFA Champions League", shortName: "UCL", city: "Europe", state: "", icon: "🏆" },
+  { id: "cup-uel", name: "UEFA Europa League", shortName: "Europa", city: "Europe", state: "", icon: "🏆" },
+  { id: "cup-uecl", name: "Conference League", shortName: "UECL", city: "Europe", state: "", icon: "🏆" },
+  { id: "cup-euro", name: "UEFA EURO", shortName: "EURO", city: "Europe", state: "", icon: "🇪🇺" },
+  { id: "cup-unl", name: "Nations League", shortName: "UNL", city: "Europe", state: "", icon: "🏆" },
+  { id: "cup-libertadores", name: "Copa Libertadores", shortName: "Libertadores", city: "South America", state: "", icon: "🏆" },
+  { id: "cup-sudamericana", name: "Copa Sudamericana", shortName: "Sudamericana", city: "South America", state: "", icon: "🏆" },
+  { id: "cup-copaamerica", name: "Copa América", shortName: "Copa América", city: "South America", state: "", icon: "🌎" },
+  { id: "cup-ccl", name: "CONCACAF Champions Cup", shortName: "CCL", city: "North America", state: "", icon: "🏆" },
+  { id: "cup-goldcup", name: "Gold Cup", shortName: "Gold Cup", city: "North America", state: "", icon: "🏆" },
+  { id: "cup-leaguescup", name: "Leagues Cup", shortName: "Leagues Cup", city: "North America", state: "", icon: "🏆" },
+  { id: "cup-usopen", name: "U.S. Open Cup", shortName: "US Open", city: "USA", state: "", icon: "🏆" },
+  { id: "cup-acl", name: "AFC Champions League", shortName: "ACL", city: "Asia", state: "", icon: "🏆" },
+  { id: "cup-asiancup", name: "AFC Asian Cup", shortName: "Asian Cup", city: "Asia", state: "", icon: "🌏" },
+  { id: "cup-cafcl", name: "CAF Champions League", shortName: "CAF CL", city: "Africa", state: "", icon: "🏆" },
+  { id: "cup-afcon", name: "Africa Cup of Nations", shortName: "AFCON", city: "Africa", state: "", icon: "🌍" },
+  { id: "cup-ofcnc", name: "OFC Nations Cup", shortName: "OFC", city: "Oceania", state: "", icon: "🏆" },
+  { id: "cup-worldcup", name: "FIFA World Cup", shortName: "World Cup", city: "World", state: "", icon: "🏆" },
+  { id: "cup-cwc", name: "FIFA Club World Cup", shortName: "Club WC", city: "World", state: "", icon: "🌐" },
+];
 
 const LEAGUE_FILTERS: LeagueFilter[] = [
   { id: "suggested", name: "Suggested", shortName: "Suggested", teams: [] },
+  { id: "cups", name: "Cups & Tournaments", shortName: "Cups", teams: CONTINENTAL_CUPS, isCup: true },
   { id: "national", name: "National Teams", shortName: "National", teams: [...nationalTeams.men, ...nationalTeams.women] },
   { id: "mls", name: "Major League Soccer", shortName: "MLS", teams: mlsTeams },
   { id: "nwsl", name: "National Women's Soccer League", shortName: "NWSL", teams: nwslTeams },
@@ -74,7 +98,7 @@ function TeamCard({
 export default function LeaguesSetup() {
   const [, setLocation] = useLocation();
   const { state, updateState } = useProfileSetup();
-  const [activeLeague, setActiveLeague] = useState("mls");
+  const [activeLeague, setActiveLeague] = useState("cups");
   const [searchQuery, setSearchQuery] = useState("");
 
   const selectedTeams = state.selectedTeams;
@@ -95,6 +119,7 @@ export default function LeaguesSetup() {
   const displayTeams = useMemo(() => {
     if (activeLeague === "suggested") {
       const popularTeams = [
+        ...CONTINENTAL_CUPS.filter(t => ["cup-ucl", "cup-worldcup", "cup-goldcup", "cup-copaamerica"].includes(t.id)),
         ...mlsTeams.filter(t => ["inter-miami", "la-galaxy", "lafc", "atl-utd", "ny-red-bulls", "sea-sounders"].includes(t.id)),
         ...nwslTeams.filter(t => ["ang-city", "por-thorns", "chi-red-stars"].includes(t.id)),
       ];
@@ -117,7 +142,6 @@ export default function LeaguesSetup() {
 
   return (
     <div className="min-h-screen bg-[#121212] flex flex-col">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
         <button
           onClick={() => setLocation("/auth/profile-setup/continent")}
@@ -126,7 +150,7 @@ export default function LeaguesSetup() {
         >
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-white font-semibold text-lg">Tap your favorite teams</h1>
+        <h1 className="text-white font-semibold text-lg">Tap your favorites</h1>
         <button
           onClick={handleFinish}
           className="text-[#4a9eff] font-semibold text-sm"
@@ -136,13 +160,12 @@ export default function LeaguesSetup() {
         </button>
       </div>
 
-      {/* Search Bar */}
       <div className="px-4 py-3">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
           <input
             type="text"
-            placeholder="Search for teams"
+            placeholder="Search for teams or cups"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-3 rounded-full bg-slate-800 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] text-sm"
@@ -151,9 +174,7 @@ export default function LeaguesSetup() {
         </div>
       </div>
 
-      {/* Main Content - Sidebar + Grid */}
       <div className="flex flex-1 overflow-hidden">
-        {/* League Sidebar */}
         <div className="w-24 flex-shrink-0 border-r border-slate-800 overflow-y-auto">
           {LEAGUE_FILTERS.map((league) => {
             const isActive = activeLeague === league.id;
@@ -173,7 +194,8 @@ export default function LeaguesSetup() {
                 {isActive && (
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-white" />
                 )}
-                <span className="text-xs font-medium leading-tight block">
+                <span className="text-xs font-medium leading-tight block flex items-center gap-1">
+                  {league.isCup && <Trophy className="w-3 h-3" />}
                   {league.shortName}
                 </span>
                 {selectedInLeague > 0 && (
@@ -186,7 +208,6 @@ export default function LeaguesSetup() {
           })}
         </div>
 
-        {/* Teams Grid */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid grid-cols-2 gap-3">
             {displayTeams.map((team) => (
@@ -215,11 +236,10 @@ export default function LeaguesSetup() {
         </div>
       </div>
 
-      {/* Selected Count Footer */}
       {selectedTeams.length > 0 && (
         <div className="px-4 py-3 border-t border-slate-800 bg-[#121212]">
           <p className="text-center text-sm text-slate-400">
-            <span className="font-bold text-white">{selectedTeams.length}</span> teams selected
+            <span className="font-bold text-white">{selectedTeams.length}</span> favorites selected
           </p>
         </div>
       )}
