@@ -203,6 +203,75 @@ const MOCK_LEAGUES: League[] = [
   { id: "l-tur-cup", name: "Turkish Cup", slug: "turkish-cup", countryId: "c-tur", category: "Domestic Cups", tier: 1 },
   { id: "l-tur-super-cup", name: "Turkish Super Cup", slug: "turkish-super-cup", countryId: "c-tur", category: "Domestic Cups", tier: 2 },
 
+  // ============ AUSTRIA ============
+  { id: "l-aut-buli", name: "Austrian Bundesliga", slug: "austrian-bundesliga", countryId: "c-aut", category: "Professional Leagues", tier: 1 },
+  { id: "l-aut-2liga", name: "2. Liga", slug: "austrian-2-liga", countryId: "c-aut", category: "Professional Leagues", tier: 2 },
+  { id: "l-aut-regl", name: "Regionalliga", slug: "austrian-regionalliga", countryId: "c-aut", category: "Professional Leagues", tier: 3 },
+  { id: "l-aut-cup", name: "ÖFB-Cup", slug: "oefb-cup", countryId: "c-aut", category: "Domestic Cups", tier: 1 },
+  { id: "l-aut-super", name: "Austrian Super Cup", slug: "austrian-super-cup", countryId: "c-aut", category: "Domestic Cups", tier: 2 },
+
+  // ============ SWITZERLAND ============
+  { id: "l-sui-super", name: "Swiss Super League", slug: "swiss-super-league", countryId: "c-sui", category: "Professional Leagues", tier: 1 },
+  { id: "l-sui-chal", name: "Swiss Challenge League", slug: "swiss-challenge-league", countryId: "c-sui", category: "Professional Leagues", tier: 2 },
+  { id: "l-sui-prom", name: "Promotion League", slug: "swiss-promotion-league", countryId: "c-sui", category: "Professional Leagues", tier: 3 },
+  { id: "l-sui-cup", name: "Swiss Cup", slug: "swiss-cup", countryId: "c-sui", category: "Domestic Cups", tier: 1 },
+
+  // ============ GREECE ============
+  { id: "l-gre-super", name: "Super League Greece", slug: "super-league-greece", countryId: "c-gre", category: "Professional Leagues", tier: 1 },
+  { id: "l-gre-super2", name: "Super League 2", slug: "super-league-2", countryId: "c-gre", category: "Professional Leagues", tier: 2 },
+  { id: "l-gre-cup", name: "Greek Cup", slug: "greek-cup", countryId: "c-gre", category: "Domestic Cups", tier: 1 },
+  { id: "l-gre-super-cup", name: "Greek Super Cup", slug: "greek-super-cup", countryId: "c-gre", category: "Domestic Cups", tier: 2 },
+
+  // ============ POLAND ============
+  { id: "l-pol-ekstra", name: "Ekstraklasa", slug: "ekstraklasa", countryId: "c-pol", category: "Professional Leagues", tier: 1 },
+  { id: "l-pol-1liga", name: "I Liga", slug: "i-liga", countryId: "c-pol", category: "Professional Leagues", tier: 2 },
+  { id: "l-pol-2liga", name: "II Liga", slug: "ii-liga", countryId: "c-pol", category: "Professional Leagues", tier: 3 },
+  { id: "l-pol-cup", name: "Polish Cup", slug: "polish-cup", countryId: "c-pol", category: "Domestic Cups", tier: 1 },
+  { id: "l-pol-super", name: "Polish Super Cup", slug: "polish-super-cup", countryId: "c-pol", category: "Domestic Cups", tier: 2 },
+
+  // ============ CZECH REPUBLIC ============
+  { id: "l-cze-1liga", name: "Czech First League", slug: "czech-first-league", countryId: "c-cze", category: "Professional Leagues", tier: 1 },
+  { id: "l-cze-fnl", name: "Czech National League", slug: "czech-national-league", countryId: "c-cze", category: "Professional Leagues", tier: 2 },
+  { id: "l-cze-cup", name: "Czech Cup", slug: "czech-cup", countryId: "c-cze", category: "Domestic Cups", tier: 1 },
+
+  // ============ DENMARK ============
+  { id: "l-den-super", name: "Danish Superliga", slug: "danish-superliga", countryId: "c-den", category: "Professional Leagues", tier: 1 },
+  { id: "l-den-1div", name: "1. Division", slug: "danish-1-division", countryId: "c-den", category: "Professional Leagues", tier: 2 },
+  { id: "l-den-cup", name: "Danish Cup", slug: "danish-cup", countryId: "c-den", category: "Domestic Cups", tier: 1 },
+
+  // ============ NORWAY ============
+  { id: "l-nor-elite", name: "Eliteserien", slug: "eliteserien", countryId: "c-nor", category: "Professional Leagues", tier: 1 },
+  { id: "l-nor-obos", name: "OBOS-ligaen", slug: "obos-ligaen", countryId: "c-nor", category: "Professional Leagues", tier: 2 },
+  { id: "l-nor-cup", name: "Norwegian Cup", slug: "norwegian-cup", countryId: "c-nor", category: "Domestic Cups", tier: 1 },
+
+  // ============ SWEDEN ============
+  { id: "l-swe-alls", name: "Allsvenskan", slug: "allsvenskan", countryId: "c-swe", category: "Professional Leagues", tier: 1 },
+  { id: "l-swe-super", name: "Superettan", slug: "superettan", countryId: "c-swe", category: "Professional Leagues", tier: 2 },
+  { id: "l-swe-cup", name: "Svenska Cupen", slug: "svenska-cupen", countryId: "c-swe", category: "Domestic Cups", tier: 1 },
+
+  // ============ RUSSIA ============
+  { id: "l-rus-premier", name: "Russian Premier League", slug: "russian-premier-league", countryId: "c-rus", category: "Professional Leagues", tier: 1 },
+  { id: "l-rus-fnl", name: "Russian FNL", slug: "russian-fnl", countryId: "c-rus", category: "Professional Leagues", tier: 2 },
+  { id: "l-rus-cup", name: "Russian Cup", slug: "russian-cup", countryId: "c-rus", category: "Domestic Cups", tier: 1 },
+  { id: "l-rus-super", name: "Russian Super Cup", slug: "russian-super-cup", countryId: "c-rus", category: "Domestic Cups", tier: 2 },
+
+  // ============ UKRAINE ============
+  { id: "l-ukr-premier", name: "Ukrainian Premier League", slug: "ukrainian-premier-league", countryId: "c-ukr", category: "Professional Leagues", tier: 1 },
+  { id: "l-ukr-first", name: "Ukrainian First League", slug: "ukrainian-first-league", countryId: "c-ukr", category: "Professional Leagues", tier: 2 },
+  { id: "l-ukr-cup", name: "Ukrainian Cup", slug: "ukrainian-cup", countryId: "c-ukr", category: "Domestic Cups", tier: 1 },
+  { id: "l-ukr-super", name: "Ukrainian Super Cup", slug: "ukrainian-super-cup", countryId: "c-ukr", category: "Domestic Cups", tier: 2 },
+
+  // ============ CROATIA ============
+  { id: "l-cro-hnl", name: "Croatian First League", slug: "croatian-first-league", countryId: "c-cro", category: "Professional Leagues", tier: 1 },
+  { id: "l-cro-2hnl", name: "Croatian Second League", slug: "croatian-second-league", countryId: "c-cro", category: "Professional Leagues", tier: 2 },
+  { id: "l-cro-cup", name: "Croatian Cup", slug: "croatian-cup", countryId: "c-cro", category: "Domestic Cups", tier: 1 },
+  { id: "l-cro-super", name: "Croatian Super Cup", slug: "croatian-super-cup", countryId: "c-cro", category: "Domestic Cups", tier: 2 },
+
+  // ============ SERBIA ============
+  { id: "l-srb-super", name: "Serbian SuperLiga", slug: "serbian-superliga", countryId: "c-srb", category: "Professional Leagues", tier: 1 },
+  { id: "l-srb-first", name: "Serbian First League", slug: "serbian-first-league", countryId: "c-srb", category: "Professional Leagues", tier: 2 },
+  { id: "l-srb-cup", name: "Serbian Cup", slug: "serbian-cup", countryId: "c-srb", category: "Domestic Cups", tier: 1 },
+
   // ============ USA ============
   { id: "l-usa-mls", name: "MLS", slug: "mls", countryId: "c-usa", category: "Professional Leagues", tier: 1 },
   { id: "l-usa-nwsl", name: "NWSL", slug: "nwsl", countryId: "c-usa", category: "Professional Leagues", tier: 1 },
