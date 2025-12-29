@@ -31,7 +31,7 @@ export interface City {
 }
 
 export type LeagueCategory = 
-  | "National Teams"
+  | "Domestic Cups"
   | "Professional Leagues"
   | "College Soccer"
   | "High School Soccer"
