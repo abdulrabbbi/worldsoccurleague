@@ -13,6 +13,21 @@ import {
   Team
 } from "@/lib/data/us-soccer-teams";
 
+interface LeagueItem {
+  id: string;
+  name: string;
+  icon: string;
+  teams?: Team[];
+}
+
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  hasLocationFilter?: boolean;
+  items: LeagueItem[];
+}
+
 interface USACup {
   id: string;
   name: string;
@@ -69,30 +84,127 @@ const US_STATES = [
   { code: "WI", name: "Wisconsin" }, { code: "WY", name: "Wyoming" }, { code: "DC", name: "Washington D.C." },
 ];
 
-interface Section {
-  id: string;
-  name: string;
-  icon: string;
-  type: "teams" | "cups" | "location-search";
-  teams?: Team[];
-  cups?: USACup[];
-  description?: string;
-}
-
-const USA_SECTIONS: Section[] = [
-  { id: "usa-national", name: "National Teams", icon: "🇺🇸", type: "teams", teams: [...nationalTeams.men, ...nationalTeams.women] },
-  { id: "usa-mls", name: "MLS", icon: "⚽", type: "teams", teams: mlsTeams },
-  { id: "usa-nwsl", name: "NWSL", icon: "⚽", type: "teams", teams: nwslTeams },
-  { id: "usa-uslc", name: "USL Championship", icon: "⚽", type: "teams", teams: uslChampionshipTeams },
-  { id: "usa-usl1", name: "USL League One", icon: "⚽", type: "teams", teams: uslLeagueOneTeams },
-  { id: "usa-usl2", name: "USL League Two", icon: "⚽", type: "teams", teams: uslLeagueTwoTeams },
-  { id: "usa-mlsnp", name: "MLS Next Pro", icon: "⚽", type: "teams", teams: mlsNextProTeams },
-  { id: "usa-college", name: "College Soccer", icon: "🎓", type: "location-search", description: "NCAA, NAIA, NJCAA programs" },
-  { id: "usa-highschool", name: "High School Soccer", icon: "🏫", type: "location-search", description: "Varsity and JV programs" },
-  { id: "usa-youth", name: "Youth Soccer", icon: "⚽", type: "location-search", description: "Club, recreational, and academy teams" },
-  { id: "usa-adult", name: "Adult Soccer", icon: "🏃", type: "location-search", description: "Amateur leagues and pickup groups" },
-  { id: "usa-fanclubs", name: "Fan Clubs", icon: "📣", type: "location-search", description: "Supporters groups and fan organizations" },
-  { id: "usa-cups", name: "USA Cups & Trophies", icon: "🏆", type: "cups", cups: USA_CUPS },
+const USA_SOCCER_HIERARCHY: Category[] = [
+  {
+    id: "national-teams",
+    name: "National Teams",
+    icon: "🇺🇸",
+    items: [
+      { id: "usmnt", name: "Men's National Team", icon: "🇺🇸", teams: nationalTeams.men },
+      { id: "uswnt", name: "Women's National Team", icon: "🇺🇸", teams: nationalTeams.women },
+    ]
+  },
+  {
+    id: "professional-leagues",
+    name: "Professional Leagues",
+    icon: "⚽",
+    items: [
+      { id: "mls", name: "MLS", icon: "⚽", teams: mlsTeams },
+      { id: "nwsl", name: "NWSL", icon: "👩", teams: nwslTeams },
+      { id: "usl-championship", name: "USL Championship", icon: "⭐", teams: uslChampionshipTeams },
+      { id: "mls-next-pro", name: "MLS Next Pro", icon: "⏭️", teams: mlsNextProTeams },
+      { id: "usl-league-one", name: "USL League One", icon: "1️⃣", teams: uslLeagueOneTeams },
+      { id: "usl-league-two", name: "USL League Two", icon: "2️⃣", teams: uslLeagueTwoTeams },
+      { id: "nisa", name: "NISA", icon: "🏆" },
+      { id: "npsl", name: "NPSL", icon: "🛡️" },
+      { id: "upsl", name: "UPSL", icon: "📍" },
+      { id: "wpsl", name: "WPSL", icon: "👟" },
+      { id: "uws", name: "UWS", icon: "🌟" },
+    ]
+  },
+  {
+    id: "college-soccer",
+    name: "College Soccer",
+    icon: "🎓",
+    hasLocationFilter: true,
+    items: [
+      { id: "ncaa-d1-men", name: "NCAA Division I Men's", icon: "🎓" },
+      { id: "ncaa-d1-women", name: "NCAA Division I Women's", icon: "🎓" },
+      { id: "ncaa-d2-men", name: "NCAA Division II Men's", icon: "📚" },
+      { id: "ncaa-d2-women", name: "NCAA Division II Women's", icon: "📚" },
+      { id: "ncaa-d3-men", name: "NCAA Division III Men's", icon: "📖" },
+      { id: "ncaa-d3-women", name: "NCAA Division III Women's", icon: "📖" },
+      { id: "naia-men", name: "NAIA Men's", icon: "🏫" },
+      { id: "naia-women", name: "NAIA Women's", icon: "🏫" },
+      { id: "njcaa", name: "NJCAA (Junior College)", icon: "📝" },
+    ]
+  },
+  {
+    id: "high-school-soccer",
+    name: "High School Soccer",
+    icon: "🏫",
+    hasLocationFilter: true,
+    items: [
+      { id: "hs-varsity-boys", name: "Varsity Boys", icon: "🏫" },
+      { id: "hs-varsity-girls", name: "Varsity Girls", icon: "🏫" },
+      { id: "hs-jv-boys", name: "JV Boys", icon: "📚" },
+      { id: "hs-jv-girls", name: "JV Girls", icon: "📚" },
+    ]
+  },
+  {
+    id: "youth-soccer",
+    name: "Youth Soccer",
+    icon: "👦",
+    hasLocationFilter: true,
+    items: [
+      { id: "mls-next", name: "MLS NEXT", icon: "⚽" },
+      { id: "ecnl-boys", name: "ECNL Boys", icon: "🔵" },
+      { id: "ecnl-girls", name: "ECNL Girls", icon: "🔵" },
+      { id: "ga-boys", name: "GA (Boys)", icon: "🟢" },
+      { id: "ga-girls", name: "GA (Girls)", icon: "🟢" },
+      { id: "usys", name: "US Youth Soccer", icon: "👦" },
+      { id: "ayso", name: "AYSO", icon: "🟡" },
+      { id: "club-soccer", name: "Club Soccer", icon: "⚽" },
+    ]
+  },
+  {
+    id: "adult-soccer",
+    name: "Adult Soccer",
+    icon: "🏃",
+    hasLocationFilter: true,
+    items: [
+      { id: "sanctioned-leagues", name: "Sanctioned Leagues", icon: "✅" },
+      { id: "adult-recreational", name: "Recreational Leagues", icon: "🌱" },
+      { id: "adult-competitive", name: "Competitive Leagues", icon: "🏆" },
+      { id: "adult-coed-leagues", name: "Co-ed Leagues", icon: "🤝" },
+      { id: "adult-mens-leagues", name: "Men's Leagues", icon: "👨" },
+      { id: "adult-womens-leagues", name: "Women's Leagues", icon: "👩" },
+      { id: "over-30-leagues", name: "Over 30 Leagues", icon: "3️⃣0️⃣" },
+      { id: "over-40-leagues", name: "Over 40 Leagues", icon: "4️⃣0️⃣" },
+      { id: "over-50-leagues", name: "Over 50 Leagues", icon: "5️⃣0️⃣" },
+    ]
+  },
+  {
+    id: "pickup-soccer",
+    name: "Pick-up Soccer",
+    icon: "🥅",
+    hasLocationFilter: true,
+    items: [
+      { id: "pickup-casual", name: "Casual Pick-up Games", icon: "⚽" },
+      { id: "pickup-indoor", name: "Indoor Soccer", icon: "🏢" },
+      { id: "pickup-futsal", name: "Futsal", icon: "🔴" },
+      { id: "pickup-beach", name: "Beach Soccer", icon: "🏖️" },
+      { id: "pickup-small-sided", name: "Small-Sided Games", icon: "🥅" },
+    ]
+  },
+  {
+    id: "fan-clubs",
+    name: "Fan Clubs",
+    icon: "📣",
+    hasLocationFilter: true,
+    items: [
+      { id: "supporters-groups", name: "Supporters Groups", icon: "📣" },
+      { id: "local-watch-parties", name: "Local Watch Parties", icon: "📺" },
+      { id: "national-team-fans", name: "National Team Fan Groups", icon: "🇺🇸" },
+      { id: "international-fans", name: "International Club Fans", icon: "🌍" },
+    ]
+  },
+  {
+    id: "usa-cups",
+    name: "USA Cups & Trophies",
+    icon: "🏆",
+    items: USA_CUPS.map(cup => ({ id: cup.id, name: cup.name, icon: cup.icon })),
+  },
 ];
 
 interface Continent {
@@ -193,170 +305,98 @@ function CupCard({
   );
 }
 
-function LocationSearchSection({
-  section,
-  isExpanded,
+function LeagueItemCard({
+  item,
+  isSelected,
   onToggle,
-  selectedState,
-  selectedCity,
-  onStateChange,
-  onCityChange,
 }: {
-  section: Section;
-  isExpanded: boolean;
+  item: LeagueItem;
+  isSelected: boolean;
   onToggle: () => void;
-  selectedState: string;
-  selectedCity: string;
-  onStateChange: (state: string) => void;
-  onCityChange: (city: string) => void;
 }) {
   return (
-    <div className="border border-slate-700 rounded-xl overflow-hidden mb-3">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 transition-colors"
-        data-testid={`section-${section.id}`}
-      >
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{section.icon}</span>
-          <div className="text-left">
-            <span className="text-white font-medium">{section.name}</span>
-            {section.description && (
-              <p className="text-slate-400 text-xs mt-0.5">{section.description}</p>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {isExpanded ? (
-            <ChevronDown className="w-5 h-5 text-slate-400" />
-          ) : (
-            <ChevronRight className="w-5 h-5 text-slate-400" />
-          )}
-        </div>
-      </button>
-      
-      {isExpanded && (
-        <div className="p-4 bg-slate-900 space-y-4">
-          <div className="flex items-center gap-2 text-slate-400 text-sm mb-3">
-            <MapPin className="w-4 h-4" />
-            <span>Search by location</span>
-          </div>
-          
-          <div className="space-y-3">
-            <div>
-              <label className="text-slate-400 text-xs mb-1 block">State</label>
-              <select
-                value={selectedState}
-                onChange={(e) => {
-                  onStateChange(e.target.value);
-                  onCityChange("");
-                }}
-                className="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4a9eff]"
-                data-testid={`select-state-${section.id}`}
-              >
-                <option value="">Select a state...</option>
-                {US_STATES.map(state => (
-                  <option key={state.code} value={state.code}>{state.name}</option>
-                ))}
-              </select>
-            </div>
-            
-            {selectedState && (
-              <div>
-                <label className="text-slate-400 text-xs mb-1 block">City</label>
-                <input
-                  type="text"
-                  value={selectedCity}
-                  onChange={(e) => onCityChange(e.target.value)}
-                  placeholder="Enter city name..."
-                  className="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] placeholder:text-slate-500"
-                  data-testid={`input-city-${section.id}`}
-                />
-              </div>
-            )}
-            
-            {selectedState && selectedCity && (
-              <div className="pt-2">
-                <p className="text-slate-400 text-sm text-center py-4">
-                  No {section.name.toLowerCase()} found in {selectedCity}, {selectedState} yet.
-                  <br />
-                  <span className="text-[#4a9eff]">Add your organization</span> to be the first!
-                </p>
-              </div>
-            )}
-            
-            {selectedState && !selectedCity && (
-              <div className="pt-2">
-                <p className="text-slate-400 text-sm text-center py-4">
-                  Enter a city to find {section.name.toLowerCase()} near you
-                </p>
-              </div>
-            )}
-          </div>
+    <button
+      onClick={onToggle}
+      className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
+        isSelected
+          ? "bg-gradient-to-r from-[#1a2d5c] to-[#0f1d3d] ring-2 ring-[#4a9eff]"
+          : "bg-slate-800 hover:bg-slate-700 border border-slate-700"
+      }`}
+      data-testid={`item-card-${item.id}`}
+    >
+      <span className="text-xl">{item.icon}</span>
+      <span className={`text-sm font-medium flex-1 text-left ${isSelected ? "text-white" : "text-slate-200"}`}>
+        {item.name}
+      </span>
+      {isSelected && (
+        <div className="w-5 h-5 bg-[#4a9eff] rounded-full flex items-center justify-center">
+          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
         </div>
       )}
-    </div>
+    </button>
   );
 }
 
-function CollapsibleSection({
-  section,
+function CategorySection({
+  category,
   isExpanded,
   onToggle,
   selectedItems,
   onItemToggle,
   searchQuery,
+  locationSelection,
+  onLocationChange,
 }: {
-  section: Section;
+  category: Category;
   isExpanded: boolean;
   onToggle: () => void;
   selectedItems: string[];
   onItemToggle: (id: string) => void;
   searchQuery: string;
+  locationSelection: { state: string; city: string };
+  onLocationChange: (field: "state" | "city", value: string) => void;
 }) {
-  const filteredTeams = useMemo(() => {
-    if (!section.teams) return [];
-    if (!searchQuery.trim()) return section.teams;
+  const filteredItems = useMemo(() => {
+    if (!searchQuery.trim()) return category.items;
     const query = searchQuery.toLowerCase();
-    return section.teams.filter(t => 
+    return category.items.filter(item => 
+      item.name.toLowerCase().includes(query)
+    );
+  }, [category.items, searchQuery]);
+
+  const allTeams = useMemo(() => {
+    return category.items.flatMap(item => item.teams || []);
+  }, [category.items]);
+
+  const filteredTeams = useMemo(() => {
+    if (!searchQuery.trim()) return allTeams;
+    const query = searchQuery.toLowerCase();
+    return allTeams.filter(t => 
       t.name.toLowerCase().includes(query) || 
       t.shortName.toLowerCase().includes(query) ||
       t.city.toLowerCase().includes(query)
     );
-  }, [section.teams, searchQuery]);
+  }, [allTeams, searchQuery]);
 
-  const filteredCups = useMemo(() => {
-    if (!section.cups) return [];
-    if (!searchQuery.trim()) return section.cups;
-    const query = searchQuery.toLowerCase();
-    return section.cups.filter(c => 
-      c.name.toLowerCase().includes(query) || 
-      c.shortName.toLowerCase().includes(query)
-    );
-  }, [section.cups, searchQuery]);
-
-  const itemCount = section.type === "teams" ? filteredTeams.length : filteredCups.length;
-  const selectedCount = section.type === "teams" 
+  const hasTeams = allTeams.length > 0;
+  const selectedCount = hasTeams 
     ? filteredTeams.filter(t => selectedItems.includes(t.id)).length
-    : filteredCups.filter(c => selectedItems.includes(c.id)).length;
+    : filteredItems.filter(item => selectedItems.includes(item.id)).length;
 
-  if (itemCount === 0) return null;
+  if (filteredItems.length === 0 && filteredTeams.length === 0) return null;
 
   return (
     <div className="border border-slate-700 rounded-xl overflow-hidden mb-3">
       <button
         onClick={onToggle}
         className="w-full flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 transition-colors"
-        data-testid={`section-${section.id}`}
+        data-testid={`category-${category.id}`}
       >
         <div className="flex items-center gap-3">
-          <span className="text-2xl">{section.icon}</span>
-          <div className="text-left">
-            <span className="text-white font-medium">{section.name}</span>
-            <span className="text-slate-400 text-sm ml-2">
-              ({itemCount} {section.type === "teams" ? "teams" : "cups"})
-            </span>
-          </div>
+          <span className="text-2xl">{category.icon}</span>
+          <span className="text-white font-medium">{category.name}</span>
         </div>
         <div className="flex items-center gap-2">
           {selectedCount > 0 && (
@@ -374,24 +414,97 @@ function CollapsibleSection({
       
       {isExpanded && (
         <div className="p-4 bg-slate-900">
-          <div className="grid grid-cols-4 gap-2">
-            {section.type === "teams" && filteredTeams.map((team) => (
-              <TeamCard
-                key={team.id}
-                team={team}
-                isSelected={selectedItems.includes(team.id)}
-                onToggle={() => onItemToggle(team.id)}
-              />
-            ))}
-            {section.type === "cups" && filteredCups.map((cup) => (
-              <CupCard
-                key={cup.id}
-                cup={cup}
-                isSelected={selectedItems.includes(cup.id)}
-                onToggle={() => onItemToggle(cup.id)}
-              />
-            ))}
-          </div>
+          {category.hasLocationFilter && (
+            <div className="mb-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+              <div className="flex items-center gap-2 text-slate-400 text-xs mb-3">
+                <MapPin className="w-4 h-4" />
+                <span>Find in your area</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={locationSelection.state}
+                  onChange={(e) => {
+                    onLocationChange("state", e.target.value);
+                    onLocationChange("city", "");
+                  }}
+                  className="p-2 rounded-lg bg-slate-700 text-white text-sm border border-slate-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff]"
+                  data-testid={`select-state-${category.id}`}
+                >
+                  <option value="">Select state...</option>
+                  {US_STATES.map(state => (
+                    <option key={state.code} value={state.code}>{state.name}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  value={locationSelection.city}
+                  onChange={(e) => onLocationChange("city", e.target.value)}
+                  placeholder="City..."
+                  disabled={!locationSelection.state}
+                  className="p-2 rounded-lg bg-slate-700 text-white text-sm border border-slate-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] placeholder:text-slate-500 disabled:opacity-50"
+                  data-testid={`input-city-${category.id}`}
+                />
+              </div>
+            </div>
+          )}
+
+          {hasTeams ? (
+            <div className="space-y-4">
+              {category.items.map((leagueItem) => {
+                if (!leagueItem.teams || leagueItem.teams.length === 0) {
+                  return (
+                    <LeagueItemCard
+                      key={leagueItem.id}
+                      item={leagueItem}
+                      isSelected={selectedItems.includes(leagueItem.id)}
+                      onToggle={() => onItemToggle(leagueItem.id)}
+                    />
+                  );
+                }
+                
+                const teamsToShow = searchQuery.trim() 
+                  ? leagueItem.teams.filter(t => 
+                      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      t.shortName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      t.city.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                  : leagueItem.teams;
+
+                if (teamsToShow.length === 0) return null;
+
+                return (
+                  <div key={leagueItem.id}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-lg">{leagueItem.icon}</span>
+                      <span className="text-slate-300 text-sm font-medium">{leagueItem.name}</span>
+                      <span className="text-slate-500 text-xs">({teamsToShow.length} teams)</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {teamsToShow.map((team) => (
+                        <TeamCard
+                          key={team.id}
+                          team={team}
+                          isSelected={selectedItems.includes(team.id)}
+                          onToggle={() => onItemToggle(team.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-2">
+              {filteredItems.map((item) => (
+                <LeagueItemCard
+                  key={item.id}
+                  item={item}
+                  isSelected={selectedItems.includes(item.id)}
+                  onToggle={() => onItemToggle(item.id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -415,7 +528,7 @@ export default function LeaguesSetup() {
   const { state, updateState } = useProfileSetup();
   const [activeContinent, setActiveContinent] = useState<ContinentId>("usa");
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["usa-national", "usa-mls"]));
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(["national-teams", "professional-leagues"]));
   const [locationSelections, setLocationSelections] = useState<Record<string, { state: string; city: string }>>({});
 
   const selectedItems = state.selectedTeams;
@@ -427,23 +540,23 @@ export default function LeaguesSetup() {
     updateState({ selectedTeams: newSelected });
   };
 
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev => {
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories(prev => {
       const next = new Set(prev);
-      if (next.has(sectionId)) {
-        next.delete(sectionId);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
       } else {
-        next.add(sectionId);
+        next.add(categoryId);
       }
       return next;
     });
   };
 
-  const updateLocationSelection = (sectionId: string, field: "state" | "city", value: string) => {
+  const updateLocationSelection = (categoryId: string, field: "state" | "city", value: string) => {
     setLocationSelections(prev => ({
       ...prev,
-      [sectionId]: {
-        ...prev[sectionId],
+      [categoryId]: {
+        ...prev[categoryId],
         [field]: value,
       },
     }));
@@ -510,34 +623,19 @@ export default function LeaguesSetup() {
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {activeContinent === "usa" && (
           <div>
-            {USA_SECTIONS.map((section) => {
-              if (section.type === "location-search") {
-                const selection = locationSelections[section.id] || { state: "", city: "" };
-                return (
-                  <LocationSearchSection
-                    key={section.id}
-                    section={section}
-                    isExpanded={expandedSections.has(section.id)}
-                    onToggle={() => toggleSection(section.id)}
-                    selectedState={selection.state}
-                    selectedCity={selection.city}
-                    onStateChange={(state) => updateLocationSelection(section.id, "state", state)}
-                    onCityChange={(city) => updateLocationSelection(section.id, "city", city)}
-                  />
-                );
-              }
-              return (
-                <CollapsibleSection
-                  key={section.id}
-                  section={section}
-                  isExpanded={expandedSections.has(section.id)}
-                  onToggle={() => toggleSection(section.id)}
-                  selectedItems={selectedItems}
-                  onItemToggle={toggleItem}
-                  searchQuery={searchQuery}
-                />
-              );
-            })}
+            {USA_SOCCER_HIERARCHY.map((category) => (
+              <CategorySection
+                key={category.id}
+                category={category}
+                isExpanded={expandedCategories.has(category.id)}
+                onToggle={() => toggleCategory(category.id)}
+                selectedItems={selectedItems}
+                onItemToggle={toggleItem}
+                searchQuery={searchQuery}
+                locationSelection={locationSelections[category.id] || { state: "", city: "" }}
+                onLocationChange={(field, value) => updateLocationSelection(category.id, field, value)}
+              />
+            ))}
           </div>
         )}
 
