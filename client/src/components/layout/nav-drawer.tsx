@@ -11,12 +11,13 @@ import {
 } from "@/lib/data/us-soccer-teams";
 
 const continents = [
-  { id: "usa", name: "USA Soccer Leagues", flag: "🇺🇸", logo: "/attached_assets/USASL_Icon_1766299234835.jpeg" },
-  { id: "euro", name: "Euro Soccer Leagues", flag: "🇪🇺" },
-  { id: "africa", name: "Africa Soccer Leagues", flag: "🌍" },
-  { id: "asia", name: "Asia Soccer Leagues", flag: "🌏" },
-  { id: "latino", name: "Latino Soccer Leagues", flag: "🌎" },
-  { id: "aussie", name: "Aussie Soccer Leagues", flag: "🇦🇺" },
+  { id: "usa", name: "USA", flag: "🇺🇸", logo: "/attached_assets/USASL_Icon_1766299234835.jpeg" },
+  { id: "europe", name: "Europe", flag: "🇪🇺" },
+  { id: "africa", name: "Africa", flag: "🌍" },
+  { id: "asia", name: "Asia", flag: "🌏" },
+  { id: "latino", name: "Latino", flag: "🌎" },
+  { id: "oceania", name: "Oceania", flag: "🇦🇺" },
+  { id: "cups", name: "Cups", flag: "🏆" },
 ];
 
 const moreSports = [
@@ -200,6 +201,32 @@ const USA_SOCCER_HIERARCHY: Category[] = [
       { id: "local-watch-parties", name: "Local Watch Parties", icon: "📺" },
       { id: "national-team-fans", name: "National Team Fan Groups", icon: "🇺🇸" },
       { id: "international-fans", name: "International Club Fans", icon: "🌍" },
+    ]
+  },
+  {
+    id: "usa-cups",
+    name: "USA Cups & Trophies",
+    items: [
+      { id: "cup-usopen", name: "U.S. Open Cup", icon: "🏆" },
+      { id: "cup-mlscup", name: "MLS Cup", icon: "🏆" },
+      { id: "cup-shields", name: "Supporters' Shield", icon: "🛡️" },
+      { id: "cup-leaguescup", name: "Leagues Cup", icon: "🏆" },
+      { id: "cup-campeonescup", name: "Campeones Cup", icon: "🏆" },
+      { id: "cup-nwslchamp", name: "NWSL Championship", icon: "🏆" },
+      { id: "cup-nwslshield", name: "NWSL Shield", icon: "🛡️" },
+    ]
+  },
+  {
+    id: "tournaments",
+    name: "Tournaments",
+    hasLocationFilter: true,
+    items: [
+      { id: "tournament-youth", name: "Youth Tournaments", icon: "👦" },
+      { id: "tournament-adult", name: "Adult Tournaments", icon: "🏃" },
+      { id: "tournament-college", name: "College Showcases", icon: "🎓" },
+      { id: "tournament-charity", name: "Charity Tournaments", icon: "❤️" },
+      { id: "tournament-corporate", name: "Corporate Tournaments", icon: "🏢" },
+      { id: "tournament-pickup", name: "Pick-up Tournaments", icon: "⚽" },
     ]
   },
 ];

@@ -205,6 +205,20 @@ const USA_SOCCER_HIERARCHY: Category[] = [
     icon: "🏆",
     items: USA_CUPS.map(cup => ({ id: cup.id, name: cup.name, icon: cup.icon })),
   },
+  {
+    id: "tournaments",
+    name: "Tournaments",
+    icon: "🏅",
+    hasLocationFilter: true,
+    items: [
+      { id: "tournament-youth", name: "Youth Tournaments", icon: "👦" },
+      { id: "tournament-adult", name: "Adult Tournaments", icon: "🏃" },
+      { id: "tournament-college", name: "College Showcases", icon: "🎓" },
+      { id: "tournament-charity", name: "Charity Tournaments", icon: "❤️" },
+      { id: "tournament-corporate", name: "Corporate Tournaments", icon: "🏢" },
+      { id: "tournament-pickup", name: "Pick-up Tournaments", icon: "⚽" },
+    ]
+  },
 ];
 
 interface Continent {
@@ -677,6 +691,7 @@ export default function LeaguesSetup() {
             </div>
           </div>
         )}
+
       </div>
 
       <div className="px-4 py-4 border-t border-slate-800 bg-[#121212]">
