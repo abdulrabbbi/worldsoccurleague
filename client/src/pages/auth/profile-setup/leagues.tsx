@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, Search, ChevronDown, ChevronRight, Trophy } from "lucide-react";
+import { ArrowLeft, Search, ChevronDown, ChevronRight, Trophy, MapPin } from "lucide-react";
 import { useProfileSetup } from "@/lib/profile-setup-context";
 import { 
   nationalTeams, 
@@ -49,13 +49,34 @@ const CONTINENTAL_CUPS: USACup[] = [
   { id: "cup-cwc", name: "FIFA Club World Cup", shortName: "Club WC", icon: "🌐" },
 ];
 
+const US_STATES = [
+  { code: "AL", name: "Alabama" }, { code: "AK", name: "Alaska" }, { code: "AZ", name: "Arizona" },
+  { code: "AR", name: "Arkansas" }, { code: "CA", name: "California" }, { code: "CO", name: "Colorado" },
+  { code: "CT", name: "Connecticut" }, { code: "DE", name: "Delaware" }, { code: "FL", name: "Florida" },
+  { code: "GA", name: "Georgia" }, { code: "HI", name: "Hawaii" }, { code: "ID", name: "Idaho" },
+  { code: "IL", name: "Illinois" }, { code: "IN", name: "Indiana" }, { code: "IA", name: "Iowa" },
+  { code: "KS", name: "Kansas" }, { code: "KY", name: "Kentucky" }, { code: "LA", name: "Louisiana" },
+  { code: "ME", name: "Maine" }, { code: "MD", name: "Maryland" }, { code: "MA", name: "Massachusetts" },
+  { code: "MI", name: "Michigan" }, { code: "MN", name: "Minnesota" }, { code: "MS", name: "Mississippi" },
+  { code: "MO", name: "Missouri" }, { code: "MT", name: "Montana" }, { code: "NE", name: "Nebraska" },
+  { code: "NV", name: "Nevada" }, { code: "NH", name: "New Hampshire" }, { code: "NJ", name: "New Jersey" },
+  { code: "NM", name: "New Mexico" }, { code: "NY", name: "New York" }, { code: "NC", name: "North Carolina" },
+  { code: "ND", name: "North Dakota" }, { code: "OH", name: "Ohio" }, { code: "OK", name: "Oklahoma" },
+  { code: "OR", name: "Oregon" }, { code: "PA", name: "Pennsylvania" }, { code: "RI", name: "Rhode Island" },
+  { code: "SC", name: "South Carolina" }, { code: "SD", name: "South Dakota" }, { code: "TN", name: "Tennessee" },
+  { code: "TX", name: "Texas" }, { code: "UT", name: "Utah" }, { code: "VT", name: "Vermont" },
+  { code: "VA", name: "Virginia" }, { code: "WA", name: "Washington" }, { code: "WV", name: "West Virginia" },
+  { code: "WI", name: "Wisconsin" }, { code: "WY", name: "Wyoming" }, { code: "DC", name: "Washington D.C." },
+];
+
 interface Section {
   id: string;
   name: string;
   icon: string;
-  type: "teams" | "cups";
+  type: "teams" | "cups" | "location-search";
   teams?: Team[];
   cups?: USACup[];
+  description?: string;
 }
 
 const USA_SECTIONS: Section[] = [
@@ -66,6 +87,11 @@ const USA_SECTIONS: Section[] = [
   { id: "usa-usl1", name: "USL League One", icon: "⚽", type: "teams", teams: uslLeagueOneTeams },
   { id: "usa-usl2", name: "USL League Two", icon: "⚽", type: "teams", teams: uslLeagueTwoTeams },
   { id: "usa-mlsnp", name: "MLS Next Pro", icon: "⚽", type: "teams", teams: mlsNextProTeams },
+  { id: "usa-college", name: "College Soccer", icon: "🎓", type: "location-search", description: "NCAA, NAIA, NJCAA programs" },
+  { id: "usa-highschool", name: "High School Soccer", icon: "🏫", type: "location-search", description: "Varsity and JV programs" },
+  { id: "usa-youth", name: "Youth Soccer", icon: "⚽", type: "location-search", description: "Club, recreational, and academy teams" },
+  { id: "usa-adult", name: "Adult Soccer", icon: "🏃", type: "location-search", description: "Amateur leagues and pickup groups" },
+  { id: "usa-fanclubs", name: "Fan Clubs", icon: "📣", type: "location-search", description: "Supporters groups and fan organizations" },
   { id: "usa-cups", name: "USA Cups & Trophies", icon: "🏆", type: "cups", cups: USA_CUPS },
 ];
 
@@ -164,6 +190,112 @@ function CupCard({
         </div>
       )}
     </button>
+  );
+}
+
+function LocationSearchSection({
+  section,
+  isExpanded,
+  onToggle,
+  selectedState,
+  selectedCity,
+  onStateChange,
+  onCityChange,
+}: {
+  section: Section;
+  isExpanded: boolean;
+  onToggle: () => void;
+  selectedState: string;
+  selectedCity: string;
+  onStateChange: (state: string) => void;
+  onCityChange: (city: string) => void;
+}) {
+  return (
+    <div className="border border-slate-700 rounded-xl overflow-hidden mb-3">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 transition-colors"
+        data-testid={`section-${section.id}`}
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">{section.icon}</span>
+          <div className="text-left">
+            <span className="text-white font-medium">{section.name}</span>
+            {section.description && (
+              <p className="text-slate-400 text-xs mt-0.5">{section.description}</p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {isExpanded ? (
+            <ChevronDown className="w-5 h-5 text-slate-400" />
+          ) : (
+            <ChevronRight className="w-5 h-5 text-slate-400" />
+          )}
+        </div>
+      </button>
+      
+      {isExpanded && (
+        <div className="p-4 bg-slate-900 space-y-4">
+          <div className="flex items-center gap-2 text-slate-400 text-sm mb-3">
+            <MapPin className="w-4 h-4" />
+            <span>Search by location</span>
+          </div>
+          
+          <div className="space-y-3">
+            <div>
+              <label className="text-slate-400 text-xs mb-1 block">State</label>
+              <select
+                value={selectedState}
+                onChange={(e) => {
+                  onStateChange(e.target.value);
+                  onCityChange("");
+                }}
+                className="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4a9eff]"
+                data-testid={`select-state-${section.id}`}
+              >
+                <option value="">Select a state...</option>
+                {US_STATES.map(state => (
+                  <option key={state.code} value={state.code}>{state.name}</option>
+                ))}
+              </select>
+            </div>
+            
+            {selectedState && (
+              <div>
+                <label className="text-slate-400 text-xs mb-1 block">City</label>
+                <input
+                  type="text"
+                  value={selectedCity}
+                  onChange={(e) => onCityChange(e.target.value)}
+                  placeholder="Enter city name..."
+                  className="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] placeholder:text-slate-500"
+                  data-testid={`input-city-${section.id}`}
+                />
+              </div>
+            )}
+            
+            {selectedState && selectedCity && (
+              <div className="pt-2">
+                <p className="text-slate-400 text-sm text-center py-4">
+                  No {section.name.toLowerCase()} found in {selectedCity}, {selectedState} yet.
+                  <br />
+                  <span className="text-[#4a9eff]">Add your organization</span> to be the first!
+                </p>
+              </div>
+            )}
+            
+            {selectedState && !selectedCity && (
+              <div className="pt-2">
+                <p className="text-slate-400 text-sm text-center py-4">
+                  Enter a city to find {section.name.toLowerCase()} near you
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -284,6 +416,7 @@ export default function LeaguesSetup() {
   const [activeContinent, setActiveContinent] = useState<ContinentId>("usa");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["usa-national", "usa-mls"]));
+  const [locationSelections, setLocationSelections] = useState<Record<string, { state: string; city: string }>>({});
 
   const selectedItems = state.selectedTeams;
 
@@ -304,6 +437,16 @@ export default function LeaguesSetup() {
       }
       return next;
     });
+  };
+
+  const updateLocationSelection = (sectionId: string, field: "state" | "city", value: string) => {
+    setLocationSelections(prev => ({
+      ...prev,
+      [sectionId]: {
+        ...prev[sectionId],
+        [field]: value,
+      },
+    }));
   };
 
   const handleFinish = () => {
@@ -367,17 +510,34 @@ export default function LeaguesSetup() {
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {activeContinent === "usa" && (
           <div>
-            {USA_SECTIONS.map((section) => (
-              <CollapsibleSection
-                key={section.id}
-                section={section}
-                isExpanded={expandedSections.has(section.id)}
-                onToggle={() => toggleSection(section.id)}
-                selectedItems={selectedItems}
-                onItemToggle={toggleItem}
-                searchQuery={searchQuery}
-              />
-            ))}
+            {USA_SECTIONS.map((section) => {
+              if (section.type === "location-search") {
+                const selection = locationSelections[section.id] || { state: "", city: "" };
+                return (
+                  <LocationSearchSection
+                    key={section.id}
+                    section={section}
+                    isExpanded={expandedSections.has(section.id)}
+                    onToggle={() => toggleSection(section.id)}
+                    selectedState={selection.state}
+                    selectedCity={selection.city}
+                    onStateChange={(state) => updateLocationSelection(section.id, "state", state)}
+                    onCityChange={(city) => updateLocationSelection(section.id, "city", city)}
+                  />
+                );
+              }
+              return (
+                <CollapsibleSection
+                  key={section.id}
+                  section={section}
+                  isExpanded={expandedSections.has(section.id)}
+                  onToggle={() => toggleSection(section.id)}
+                  selectedItems={selectedItems}
+                  onItemToggle={toggleItem}
+                  searchQuery={searchQuery}
+                />
+              );
+            })}
           </div>
         )}
 
