@@ -12,6 +12,13 @@ import {
   mlsNextProTeams,
   Team
 } from "@/lib/data/us-soccer-teams";
+import { 
+  INTERNATIONAL_TOURNAMENTS, 
+  CLUB_TOURNAMENTS,
+  type CompetitionSection,
+  type CompetitionGroup,
+  type Competition
+} from "@/lib/data/competitions";
 
 interface LeagueItem {
   id: string;
@@ -235,9 +242,11 @@ const CONTINENTS: Continent[] = [
   { id: "latino", name: "Latino", icon: "🌎" },
   { id: "oceania", name: "Oceania", icon: "🇦🇺" },
   { id: "cups", name: "Cups", icon: "🏆" },
+  { id: "international", name: "International", icon: "🌍" },
+  { id: "clubs", name: "Club Cups", icon: "🏟️" },
 ];
 
-type ContinentId = "usa" | "europe" | "africa" | "asia" | "latino" | "oceania" | "cups";
+type ContinentId = "usa" | "europe" | "africa" | "asia" | "latino" | "oceania" | "cups" | "international" | "clubs";
 
 function TeamCard({ 
   team, 
@@ -687,6 +696,130 @@ export default function LeaguesSetup() {
                   isSelected={selectedItems.includes(cup.id)}
                   onToggle={() => toggleItem(cup.id)}
                 />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeContinent === "international" && (
+          <div>
+            <h3 className="text-white font-medium mb-4 flex items-center gap-2">
+              <span className="text-2xl">🌍</span>
+              {INTERNATIONAL_TOURNAMENTS.name}
+            </h3>
+            <div className="space-y-4">
+              {INTERNATIONAL_TOURNAMENTS.groups.map((group) => (
+                <div key={group.id} className="border border-slate-700 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => toggleCategory(group.id)}
+                    className="w-full flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 transition-colors"
+                    data-testid={`group-${group.id}`}
+                  >
+                    <span className="text-white font-medium">{group.name}</span>
+                    <div className="flex items-center gap-2">
+                      {group.competitions.filter(c => selectedItems.includes(c.id)).length > 0 && (
+                        <span className="bg-[#4a9eff] text-white text-xs px-2 py-1 rounded-full">
+                          {group.competitions.filter(c => selectedItems.includes(c.id)).length}
+                        </span>
+                      )}
+                      {expandedCategories.has(group.id) ? (
+                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 text-slate-400" />
+                      )}
+                    </div>
+                  </button>
+                  {expandedCategories.has(group.id) && (
+                    <div className="p-4 bg-slate-900 grid grid-cols-1 gap-2">
+                      {group.competitions.map((comp) => (
+                        <button
+                          key={comp.id}
+                          onClick={() => toggleItem(comp.id)}
+                          className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
+                            selectedItems.includes(comp.id)
+                              ? "bg-gradient-to-r from-[#1a2d5c] to-[#0f1d3d] ring-2 ring-[#4a9eff]"
+                              : "bg-slate-800 hover:bg-slate-700 border border-slate-700"
+                          }`}
+                          data-testid={`comp-${comp.id}`}
+                        >
+                          <span className="text-xl">{comp.icon}</span>
+                          <span className={`text-sm font-medium flex-1 text-left ${selectedItems.includes(comp.id) ? "text-white" : "text-slate-200"}`}>
+                            {comp.name}
+                          </span>
+                          {selectedItems.includes(comp.id) && (
+                            <div className="w-5 h-5 bg-[#4a9eff] rounded-full flex items-center justify-center">
+                              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeContinent === "clubs" && (
+          <div>
+            <h3 className="text-white font-medium mb-4 flex items-center gap-2">
+              <span className="text-2xl">🏟️</span>
+              {CLUB_TOURNAMENTS.name}
+            </h3>
+            <div className="space-y-4">
+              {CLUB_TOURNAMENTS.groups.map((group) => (
+                <div key={group.id} className="border border-slate-700 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => toggleCategory(group.id)}
+                    className="w-full flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 transition-colors"
+                    data-testid={`group-${group.id}`}
+                  >
+                    <span className="text-white font-medium">{group.name}</span>
+                    <div className="flex items-center gap-2">
+                      {group.competitions.filter(c => selectedItems.includes(c.id)).length > 0 && (
+                        <span className="bg-[#4a9eff] text-white text-xs px-2 py-1 rounded-full">
+                          {group.competitions.filter(c => selectedItems.includes(c.id)).length}
+                        </span>
+                      )}
+                      {expandedCategories.has(group.id) ? (
+                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 text-slate-400" />
+                      )}
+                    </div>
+                  </button>
+                  {expandedCategories.has(group.id) && (
+                    <div className="p-4 bg-slate-900 grid grid-cols-1 gap-2">
+                      {group.competitions.map((comp) => (
+                        <button
+                          key={comp.id}
+                          onClick={() => toggleItem(comp.id)}
+                          className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
+                            selectedItems.includes(comp.id)
+                              ? "bg-gradient-to-r from-[#1a2d5c] to-[#0f1d3d] ring-2 ring-[#4a9eff]"
+                              : "bg-slate-800 hover:bg-slate-700 border border-slate-700"
+                          }`}
+                          data-testid={`comp-${comp.id}`}
+                        >
+                          <span className="text-xl">{comp.icon}</span>
+                          <span className={`text-sm font-medium flex-1 text-left ${selectedItems.includes(comp.id) ? "text-white" : "text-slate-200"}`}>
+                            {comp.name}
+                          </span>
+                          {selectedItems.includes(comp.id) && (
+                            <div className="w-5 h-5 bg-[#4a9eff] rounded-full flex items-center justify-center">
+                              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>

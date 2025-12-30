@@ -1,0 +1,176 @@
+REPLIT BUILD COMMAND — International + Club Competitions (Separate from Continents)
+
+Goal: Build two new “Competition” sections that are NOT inside the Continents hierarchy. These sections must appear in two places and be identical in both places:
+	1.	Favorites Setup Screen (first-time onboarding, where users choose favorites)
+	2.	Main App Browse Menu / Dropdown (for browsing after setup)
+
+These two sections must be displayed and behave the same in both places, and the favorites chosen in Setup must be the same saved favorites used throughout the app.
+
+⸻
+
+A) WHERE THESE SECTIONS MUST APPEAR (BOTH PLACES)
+
+1) Favorites Setup Screen (Onboarding)
+
+Add two new expandable dropdown sections at the same level as the existing Favorites categories.
+
+2) Main App Browse Dropdown/Menu (After Setup)
+
+Add the same two expandable dropdown sections in the Browse navigation so users can browse competitions anytime and add/remove favorites without returning to onboarding.
+
+Important:
+	•	These sections must be separate from and not nested inside “Continents & Leagues.”
+	•	“Continents & Leagues” remains the place for browsing: World → Continent → Country → League → Team/Player.
+	•	The competition sections below are “shortcut hubs” so users can favorite and browse major competitions without confusion.
+
+⸻
+
+B) TOP-LEVEL SECTION NAMES (USE EXACT LABELS)
+
+Create these two top-level sections (exact text):
+	1.	International Tournaments (National Teams)
+	2.	Club Tournaments (Continental + Global)
+
+These must appear exactly with the same text in both the Favorites Setup screen AND the main Browse dropdown/menu.
+
+⸻
+
+C) EXACT MENU CONTENT + HIERARCHY (USE THIS EXACT STRUCTURE)
+
+1) International Tournaments (National Teams)
+
+This section is for national teams only (countries), including final tournaments + qualifying.
+
+Inside this section, build these groups (as subheadings/expandable groups):
+
+Group 1: FIFA (National Teams)
+	•	FIFA World Cup
+	•	World Cup Qualifying
+	•	AFC (Asia) Qualifying
+	•	CAF (Africa) Qualifying
+	•	CONCACAF (North/Central America & Caribbean) Qualifying
+	•	CONMEBOL (South America) Qualifying
+	•	OFC (Oceania) Qualifying
+	•	UEFA (Europe) Qualifying
+	•	Intercontinental Playoffs (optional toggle; include as an item even if data is added later)
+
+Group 2: Continental Championships (National Teams)
+	•	UEFA European Championship (EURO)
+	•	EURO Qualifying
+	•	CAF Africa Cup of Nations (AFCON)
+	•	AFCON Qualifying
+	•	AFC Asian Cup
+	•	Asian Cup Qualifying
+	•	CONCACAF Gold Cup
+	•	Gold Cup Qualifying / Prelims
+	•	CONMEBOL Copa América
+	•	OFC Nations Cup
+	•	Nations Cup Qualifying
+
+Group 3: Other National Team Competitions (Optional Now, Ready Later)
+(Include these as selectable placeholders even if not populated immediately)
+	•	UEFA Nations League
+	•	CONCACAF Nations League
+
+⸻
+
+2) Club Tournaments (Continental + Global)
+
+This section is for club competitions only (teams/club tournaments), including global tournaments and continental champions-league equivalents.
+
+Inside this section, build these groups (as subheadings/expandable groups):
+
+Group 1: Global (FIFA) — Clubs
+	•	FIFA Club World Cup
+	•	FIFA Intercontinental Cup (optional; include as an item placeholder)
+
+Group 2: Europe (UEFA) — Clubs
+	•	UEFA Champions League
+	•	UEFA Europa League
+	•	UEFA Conference League
+
+Group 3: South America (CONMEBOL) — Clubs
+	•	Copa Libertadores
+	•	Copa Sudamericana
+	•	Recopa Sudamericana (optional placeholder)
+
+Group 4: North/Central America & Caribbean (CONCACAF) — Clubs
+	•	CONCACAF Champions Cup
+
+Group 5: Africa (CAF) — Clubs
+	•	CAF Champions League
+	•	CAF Confederation Cup
+	•	CAF Super Cup (optional placeholder)
+
+Group 6: Asia (AFC) — Clubs
+	•	AFC Champions League Elite
+	•	AFC Champions League Two
+	•	AFC Challenge League (optional placeholder)
+
+Group 7: Oceania (OFC) — Clubs
+	•	OFC Champions League
+
+⸻
+
+D) FAVORITES BEHAVIOR (CRITICAL)
+
+1) Selection UI (in BOTH places)
+	•	Each competition item must have a favorite toggle (star/heart/checkbox).
+	•	Users can favorite:
+	•	the main tournament (e.g., “FIFA World Cup”)
+	•	the qualifying category (e.g., “UEFA (Europe) Qualifying”)
+	•	the continental tournaments (e.g., “UEFA Champions League”, “Copa Libertadores”, “AFCON”)
+
+2) One Saved Source of Truth
+	•	A favorite selected in Favorites Setup must immediately appear as favorited in:
+	•	the main Browse dropdown/menu
+	•	the user profile favorites
+	•	the user feed/filter logic later
+	•	A favorite added/removed in Browse must also update the user’s favorites (same database record).
+
+⸻
+
+E) DATA MODEL REQUIREMENTS (SO BACKEND + FUTURE API WORKS)
+
+Store each selectable item as a generic “CompetitionFavoriteEntity” with these fields (minimum):
+	•	entity_id (unique stable ID)
+	•	entity_type (enum):
+	•	national_tournament
+	•	national_qualifying
+	•	club_tournament
+	•	global_club_tournament
+	•	organizer (enum/string):
+	•	FIFA, UEFA, AFC, CAF, CONCACAF, CONMEBOL, OFC
+	•	competition_name (exact display text shown in UI)
+	•	category_group (the group label inside the section, e.g. “FIFA (National Teams)” or “Europe (UEFA) — Clubs”)
+	•	section_name (must be either):
+	•	“International Tournaments (National Teams)”
+	•	“Club Tournaments (Continental + Global)”
+	•	Optional but recommended fields (create now for future expansion):
+	•	gender (Men/Women)
+	•	age_group (Senior/U-23/U-20/U-17)
+	•	season_year (string or int)
+	•	api_mapping_key (for later mapping to SportMonks/other API IDs)
+
+Important Implementation Rule:
+Even if fixtures/standings are not wired today, these items must still be created as selectable + storable favorites now, and later can be mapped to live API competitions without changing the UI structure.
+
+⸻
+
+F) UI RULES (TO AVOID CONFUSION)
+	•	Do NOT place these competitions under the Continents hierarchy.
+	•	Keep the Continents hierarchy clean for browsing leagues/teams/players.
+	•	These two sections are “quick access competition hubs” for:
+	•	World Cup + qualifiers
+	•	EURO/AFCON/Asian Cup/Gold Cup etc.
+	•	Champions League equivalents per confederation
+	•	FIFA Club World Cup (and optional Intercontinental Cup)
+
+⸻
+
+G) FINAL CHECKLIST (MUST PASS)
+	1.	Both new sections appear in Favorites Setup AND Main Browse dropdown.
+	2.	Labels match exactly in both places.
+	3.	Hierarchy matches exactly in both places.
+	4.	Favoriting works in both places and updates the same saved favorites list.
+	5.	Continents hierarchy remains separate and unchanged.

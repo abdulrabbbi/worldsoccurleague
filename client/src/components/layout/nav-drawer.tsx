@@ -9,6 +9,10 @@ import {
   uslLeagueTwoTeams, 
   mlsNextProTeams
 } from "@/lib/data/us-soccer-teams";
+import { 
+  INTERNATIONAL_TOURNAMENTS, 
+  CLUB_TOURNAMENTS
+} from "@/lib/data/competitions";
 
 const continents = [
   { id: "usa", name: "USA", flag: "🇺🇸", logo: "/attached_assets/USASL_Icon_1766299234835.jpeg" },
@@ -18,6 +22,8 @@ const continents = [
   { id: "latino", name: "Latino", flag: "🌎" },
   { id: "oceania", name: "Oceania", flag: "🇦🇺" },
   { id: "cups", name: "Cups", flag: "🏆" },
+  { id: "international", name: "International", flag: "🌍" },
+  { id: "clubs", name: "Club Cups", flag: "🏟️" },
 ];
 
 const moreSports = [
@@ -597,6 +603,94 @@ export function NavDrawer({ isOpen, onClose }: NavDrawerProps) {
                             </div>
                           );
                         })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* International Tournaments Section */}
+          {selectedContinent.id === "international" && expandedSection === "usa-hierarchy" && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold text-slate-900 tracking-wide mb-3">{INTERNATIONAL_TOURNAMENTS.name}</h3>
+              
+              {INTERNATIONAL_TOURNAMENTS.groups.map((group) => {
+                const isExpanded = expandedCategories.includes(group.id);
+                
+                return (
+                  <div key={group.id} className="border border-slate-200 rounded-2xl overflow-hidden">
+                    <button
+                      onClick={() => toggleCategory(group.id)}
+                      className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors"
+                      data-testid={`nav-group-${group.id}`}
+                    >
+                      <span className="font-semibold text-[#1a2d5c] text-sm">{group.name}</span>
+                      {isExpanded ? (
+                        <ChevronUp className="w-5 h-5 text-slate-500" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-slate-500" />
+                      )}
+                    </button>
+
+                    {isExpanded && (
+                      <div className="border-t border-slate-200 divide-y divide-slate-100">
+                        {group.competitions.map((comp) => (
+                          <button
+                            key={comp.id}
+                            onClick={onClose}
+                            className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 transition-colors"
+                            data-testid={`nav-comp-${comp.id}`}
+                          >
+                            <span className="text-xl">{comp.icon}</span>
+                            <span className="font-medium text-slate-800 text-sm">{comp.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Club Tournaments Section */}
+          {selectedContinent.id === "clubs" && expandedSection === "usa-hierarchy" && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold text-slate-900 tracking-wide mb-3">{CLUB_TOURNAMENTS.name}</h3>
+              
+              {CLUB_TOURNAMENTS.groups.map((group) => {
+                const isExpanded = expandedCategories.includes(group.id);
+                
+                return (
+                  <div key={group.id} className="border border-slate-200 rounded-2xl overflow-hidden">
+                    <button
+                      onClick={() => toggleCategory(group.id)}
+                      className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors"
+                      data-testid={`nav-group-${group.id}`}
+                    >
+                      <span className="font-semibold text-[#1a2d5c] text-sm">{group.name}</span>
+                      {isExpanded ? (
+                        <ChevronUp className="w-5 h-5 text-slate-500" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-slate-500" />
+                      )}
+                    </button>
+
+                    {isExpanded && (
+                      <div className="border-t border-slate-200 divide-y divide-slate-100">
+                        {group.competitions.map((comp) => (
+                          <button
+                            key={comp.id}
+                            onClick={onClose}
+                            className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 transition-colors"
+                            data-testid={`nav-comp-${comp.id}`}
+                          >
+                            <span className="text-xl">{comp.icon}</span>
+                            <span className="font-medium text-slate-800 text-sm">{comp.name}</span>
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
