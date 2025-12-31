@@ -14,6 +14,32 @@ import {
   CLUB_TOURNAMENTS
 } from "@/lib/data/competitions";
 
+interface Cup {
+  id: string;
+  name: string;
+  shortName: string;
+  icon: string;
+}
+
+const CONTINENTAL_CUPS: Cup[] = [
+  { id: "cup-ucl", name: "UEFA Champions League", shortName: "UCL", icon: "🏆" },
+  { id: "cup-uel", name: "UEFA Europa League", shortName: "Europa", icon: "🏆" },
+  { id: "cup-uecl", name: "Conference League", shortName: "UECL", icon: "🏆" },
+  { id: "cup-euro", name: "UEFA EURO", shortName: "EURO", icon: "🇪🇺" },
+  { id: "cup-unl", name: "Nations League", shortName: "UNL", icon: "🏆" },
+  { id: "cup-libertadores", name: "Copa Libertadores", shortName: "Libertadores", icon: "🏆" },
+  { id: "cup-sudamericana", name: "Copa Sudamericana", shortName: "Sudamericana", icon: "🏆" },
+  { id: "cup-copaamerica", name: "Copa América", shortName: "Copa América", icon: "🌎" },
+  { id: "cup-ccl", name: "CONCACAF Champions Cup", shortName: "CCL", icon: "🏆" },
+  { id: "cup-goldcup", name: "Gold Cup", shortName: "Gold Cup", icon: "🏆" },
+  { id: "cup-acl", name: "AFC Champions League", shortName: "ACL", icon: "🏆" },
+  { id: "cup-asiancup", name: "AFC Asian Cup", shortName: "Asian Cup", icon: "🌏" },
+  { id: "cup-cafcl", name: "CAF Champions League", shortName: "CAF CL", icon: "🏆" },
+  { id: "cup-afcon", name: "Africa Cup of Nations", shortName: "AFCON", icon: "🌍" },
+  { id: "cup-worldcup", name: "FIFA World Cup", shortName: "World Cup", icon: "🏆" },
+  { id: "cup-cwc", name: "FIFA Club World Cup", shortName: "Club WC", icon: "🌐" },
+];
+
 const continents = [
   { id: "usa", name: "USA", flag: "🇺🇸", logo: "/attached_assets/USASL_Icon_1766299234835.jpeg" },
   { id: "europe", name: "Europe", flag: "🇪🇺" },
@@ -608,6 +634,29 @@ export function NavDrawer({ isOpen, onClose }: NavDrawerProps) {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Cups Section - Continental & International Cups Grid */}
+          {selectedContinent.id === "cups" && expandedSection === "usa-hierarchy" && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold text-slate-900 tracking-wide mb-3 flex items-center gap-2">
+                <span className="text-lg">🏆</span>
+                Continental & International Cups
+              </h3>
+              <div className="grid grid-cols-4 gap-2">
+                {CONTINENTAL_CUPS.map((cup) => (
+                  <button
+                    key={cup.id}
+                    onClick={onClose}
+                    className="flex flex-col items-center justify-center p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200"
+                    data-testid={`nav-cup-${cup.id}`}
+                  >
+                    <span className="text-2xl mb-1">{cup.icon}</span>
+                    <span className="text-xs font-medium text-slate-700 text-center leading-tight">{cup.shortName}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
