@@ -124,8 +124,8 @@ export const CLUB_TOURNAMENTS: CompetitionSection = {
       ]
     },
     {
-      id: "oceania-ofc-clubs",
-      name: "Oceania (OFC) — Clubs",
+      id: "aussie-ofc-clubs",
+      name: "Aussie (OFC) — Clubs",
       competitions: [
         { id: "ofc-champions-league", name: "OFC Champions League", icon: "🇦🇺", entityType: "club_tournament", organizer: "OFC" },
       ]

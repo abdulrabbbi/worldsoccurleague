@@ -20,7 +20,7 @@ const continents = [
   { id: "africa", name: "Africa", flag: "🌍" },
   { id: "asia", name: "Asia", flag: "🌏" },
   { id: "latino", name: "Latino", flag: "🌎" },
-  { id: "oceania", name: "Oceania", flag: "🇦🇺" },
+  { id: "aussie", name: "Aussie", flag: "🇦🇺" },
   { id: "cups", name: "Cups", flag: "🏆" },
   { id: "international", name: "International", flag: "🌍" },
   { id: "clubs", name: "Club Cups", flag: "🏟️" },

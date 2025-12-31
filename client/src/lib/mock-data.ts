@@ -78,7 +78,7 @@ const CONTINENTS: Continent[] = [
   { id: "cont-na", name: "North America" },
   { id: "cont-as", name: "Asia" },
   { id: "cont-af", name: "Africa" },
-  { id: "cont-oc", name: "Oceania" },
+  { id: "cont-oc", name: "Aussie" },
 ];
 
 const CONTINENTAL_CUPS: ContinentalCup[] = [

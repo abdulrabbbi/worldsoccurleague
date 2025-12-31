@@ -240,13 +240,13 @@ const CONTINENTS: Continent[] = [
   { id: "africa", name: "Africa", icon: "🌍" },
   { id: "asia", name: "Asia", icon: "🌏" },
   { id: "latino", name: "Latino", icon: "🌎" },
-  { id: "oceania", name: "Oceania", icon: "🇦🇺" },
+  { id: "aussie", name: "Aussie", icon: "🇦🇺" },
   { id: "cups", name: "Cups", icon: "🏆" },
   { id: "international", name: "International", icon: "🌍" },
   { id: "clubs", name: "Club Cups", icon: "🏟️" },
 ];
 
-type ContinentId = "usa" | "europe" | "africa" | "asia" | "latino" | "oceania" | "cups" | "international" | "clubs";
+type ContinentId = "usa" | "europe" | "africa" | "asia" | "latino" | "aussie" | "cups" | "international" | "clubs";
 
 function TeamCard({ 
   team, 
@@ -678,8 +678,8 @@ export default function LeaguesSetup() {
           <ContinentPlaceholder continent={CONTINENTS.find(c => c.id === "latino")!} />
         )}
 
-        {activeContinent === "oceania" && (
-          <ContinentPlaceholder continent={CONTINENTS.find(c => c.id === "oceania")!} />
+        {activeContinent === "aussie" && (
+          <ContinentPlaceholder continent={CONTINENTS.find(c => c.id === "aussie")!} />
         )}
 
         {activeContinent === "cups" && (

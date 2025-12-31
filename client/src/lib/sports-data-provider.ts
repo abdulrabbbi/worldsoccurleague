@@ -23,7 +23,7 @@ const MOCK_CONTINENTS: Continent[] = [
   { id: "cont-na", name: "North America", slug: "north-america" },
   { id: "cont-as", name: "Asia", slug: "asia" },
   { id: "cont-af", name: "Africa", slug: "africa" },
-  { id: "cont-oc", name: "Oceania", slug: "oceania" },
+  { id: "cont-oc", name: "Aussie", slug: "aussie" },
 ];
 
 const MOCK_COUNTRIES: Country[] = [
