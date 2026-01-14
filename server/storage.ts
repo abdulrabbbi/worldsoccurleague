@@ -1067,16 +1067,6 @@ export class DatabaseStorage implements IStorage {
       });
     }
 
-    if (planTier === "partner") {
-      const existingOrgs = await this.getOrganizationsForUser(userId);
-      for (const org of existingOrgs) {
-        const member = await this.getOrganizationMember(org.id, userId);
-        if (member && member.role === "viewer") {
-          await this.updateOrganizationMemberRole(member.id, "admin");
-        }
-      }
-    }
-
     return { user: user[0], subscription };
   }
 }

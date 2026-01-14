@@ -629,6 +629,50 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/partner/organizations/:orgId", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const org = await storage.getOrganization(req.params.orgId);
+      if (!org) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+      
+      const members = await storage.getOrganizationMembers(req.params.orgId);
+      const isMember = members.some(m => m.userId === user.id);
+      
+      if (!isMember && !canVerifyPartners(req)) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      res.json(org);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch organization" });
+    }
+  });
+
+  app.get("/api/partner/organizations/:orgId/audit-logs", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const members = await storage.getOrganizationMembers(req.params.orgId);
+      const userMember = members.find(m => m.userId === user.id);
+      
+      if (!userMember && !canVerifyPartners(req)) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const allLogs = await storage.getAuditLogs();
+      const orgLogs = allLogs.filter(log => 
+        (log.entityType === "organization" && log.entityId === req.params.orgId) ||
+        (log.entityType === "organization_member" && (log.newData as Record<string, unknown>)?.organizationId === req.params.orgId) ||
+        (log.entityType === "api_key" && (log.newData as Record<string, unknown>)?.organizationId === req.params.orgId)
+      );
+      
+      res.json({ logs: orgLogs });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch audit logs" });
+    }
+  });
+
   app.post("/api/partner/organizations", requireAuth, async (req, res) => {
     try {
       const user = req.ctx!.user!;

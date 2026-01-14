@@ -44,6 +44,8 @@ import SportTeam from "@/pages/sport-team";
 
 // Partner pages
 import PartnerDashboard from "@/pages/partner/index";
+import OrganizationDetail from "@/pages/partner/organization";
+import NewOrganization from "@/pages/partner/organization-new";
 import SubmitLeague from "@/pages/partner/submit-league";
 import SubmitTeam from "@/pages/partner/submit-team";
 import SubmitVenue from "@/pages/partner/submit-venue";
@@ -107,6 +109,8 @@ function Router() {
       
       {/* Partner Routes */}
       <Route path="/partner" component={PartnerDashboard} />
+      <Route path="/partner/organization/new" component={NewOrganization} />
+      <Route path="/partner/organization/:orgId" component={OrganizationDetail} />
       <Route path="/partner/submit/league" component={SubmitLeague} />
       <Route path="/partner/submit/team" component={SubmitTeam} />
       <Route path="/partner/submit/venue" component={SubmitVenue} />
