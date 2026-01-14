@@ -69,6 +69,17 @@ Routes follow a hierarchy pattern with ID + slug combinations for SEO and API-re
 - **UI Components:** Full shadcn/ui component library with Radix UI primitives
 - **Page Components:** Each hierarchy level has its own page component with loading states and data fetching
 
+### Admin Panel Architecture
+- **Layout:** AdminLayout with collapsible sidebar, sport selector header bar
+- **Sport Context:** AdminSportContext provides selectedSportSlug to child pages via `useAdminSport()` hook
+- **Sport Selector:** Persistent header bar with Soccer first/default, then NFL/NBA/MLB/NHL icons, plus "All Sports" button
+- **Persistence:** Selected sport stored in localStorage with key `wsl_admin_sport`
+- **Admin API Endpoints:**
+  - `GET /api/admin/leagues?sport=:slug` - Fetches leagues filtered by sport with team counts
+  - `PATCH /api/admin/leagues/:id` - Enable/disable league with audit logging
+  - `GET /api/admin/audit-logs` - Fetch audit trail for admin actions
+  - `GET /api/admin/stats?sport=:slug` - Dashboard stats filtered by sport
+
 ## External Dependencies
 
 ### Database

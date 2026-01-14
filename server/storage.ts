@@ -24,6 +24,8 @@ import {
   type Country,
   type Sport,
   type InsertSport,
+  type AuditLog,
+  type InsertAuditLog,
   users,
   userPreferences,
   userSubscriptions,
@@ -36,7 +38,8 @@ import {
   divisions,
   venues,
   countries,
-  sports
+  sports,
+  auditLogs
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -92,6 +95,12 @@ export interface IStorage {
   getTeam(id: string): Promise<Team | undefined>;
   getTeamsByLeague(leagueId: string): Promise<Team[]>;
   getLeague(id: string): Promise<League | undefined>;
+  
+  updateLeague(id: string, updates: Partial<League>): Promise<League | undefined>;
+  getAdminLeagues(sportSlug?: string): Promise<(League & { sportCode?: string; teamCount?: number })[]>;
+  
+  createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogs(filters?: { entityType?: string; sportId?: string; limit?: number }): Promise<AuditLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -540,6 +549,70 @@ export class DatabaseStorage implements IStorage {
   async getLeague(id: string): Promise<League | undefined> {
     const result = await db.select().from(leagues).where(eq(leagues.id, id));
     return result[0];
+  }
+
+  async updateLeague(id: string, updates: Partial<League>): Promise<League | undefined> {
+    const result = await db.update(leagues)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(leagues.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async getAdminLeagues(sportSlug?: string): Promise<(League & { sportCode?: string; teamCount?: number })[]> {
+    let leagueList: League[];
+    
+    if (sportSlug && sportSlug !== "all") {
+      if (sportSlug === "soccer") {
+        const soccerSport = await this.getSportBySlug("soccer");
+        const allLeagues = await db.select().from(leagues);
+        leagueList = allLeagues.filter(l => 
+          l.sportId === null || (soccerSport && l.sportId === soccerSport.id)
+        );
+      } else {
+        const sport = await this.getSportBySlug(sportSlug);
+        if (sport) {
+          leagueList = await db.select().from(leagues).where(eq(leagues.sportId, sport.id));
+        } else {
+          leagueList = [];
+        }
+      }
+    } else {
+      leagueList = await db.select().from(leagues);
+    }
+
+    const result = await Promise.all(leagueList.map(async (league) => {
+      const teamList = await db.select().from(teams).where(eq(teams.leagueId, league.id));
+      let sportCode: string | undefined;
+      if (league.sportId) {
+        const sport = await this.getSport(league.sportId);
+        sportCode = sport?.code;
+      } else {
+        sportCode = "soccer";
+      }
+      return {
+        ...league,
+        sportCode,
+        teamCount: teamList.length,
+      };
+    }));
+    
+    return result;
+  }
+
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const result = await db.insert(auditLogs).values(log).returning();
+    return result[0];
+  }
+
+  async getAuditLogs(filters?: { entityType?: string; sportId?: string; limit?: number }): Promise<AuditLog[]> {
+    let query = db.select().from(auditLogs).orderBy(desc(auditLogs.createdAt));
+    
+    if (filters?.limit) {
+      query = query.limit(filters.limit) as any;
+    }
+    
+    return await query;
   }
 }
 

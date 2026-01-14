@@ -679,6 +679,77 @@ export async function registerRoutes(
     }
   });
 
+  // Admin API endpoints
+  app.get("/api/admin/leagues", requireAuth, async (req, res) => {
+    try {
+      const sportSlug = req.query.sport as string | undefined;
+      const leagueList = await storage.getAdminLeagues(sportSlug);
+      res.json(leagueList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch admin leagues" });
+    }
+  });
+
+  app.patch("/api/admin/leagues/:id", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const leagueId = req.params.id;
+      const { isActive } = req.body;
+      
+      const existingLeague = await storage.getLeague(leagueId);
+      if (!existingLeague) {
+        return res.status(404).json({ error: "League not found" });
+      }
+      
+      const updatedLeague = await storage.updateLeague(leagueId, { isActive });
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: isActive ? "activate" : "deactivate",
+        entityType: "league",
+        entityId: leagueId,
+        entityName: existingLeague.name,
+        previousData: { isActive: existingLeague.isActive },
+        newData: { isActive },
+        ipAddress: req.ip,
+        userAgent: req.headers["user-agent"],
+      });
+      
+      res.json(updatedLeague);
+    } catch (error) {
+      console.error("Failed to update league:", error);
+      res.status(500).json({ error: "Failed to update league" });
+    }
+  });
+
+  app.get("/api/admin/audit-logs", requireAuth, async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 100;
+      const logs = await storage.getAuditLogs({ limit });
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch audit logs" });
+    }
+  });
+
+  app.get("/api/admin/stats", requireAuth, async (req, res) => {
+    try {
+      const sportSlug = req.query.sport as string | undefined;
+      const allLeagues = await storage.getAdminLeagues(sportSlug);
+      const allCountries = await storage.getCountries();
+      const allSports = await storage.getSports();
+      
+      res.json({
+        leagues: allLeagues.length,
+        teams: allLeagues.reduce((sum, l) => sum + (l.teamCount || 0), 0),
+        countries: allCountries.length,
+        sports: allSports.length,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch admin stats" });
+    }
+  });
+
   app.post("/api/grassroots/bulk/teams", requireAuth, requireGrassrootsAccess, async (req, res) => {
     try {
       const user = req.ctx!.user!;
