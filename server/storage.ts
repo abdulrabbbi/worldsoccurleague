@@ -22,6 +22,8 @@ import {
   type Venue,
   type InsertVenue,
   type Country,
+  type Sport,
+  type InsertSport,
   users,
   userPreferences,
   userSubscriptions,
@@ -33,7 +35,8 @@ import {
   teams,
   divisions,
   venues,
-  countries
+  countries,
+  sports
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -78,6 +81,13 @@ export interface IStorage {
   approveGrassrootsSubmission(id: string, reviewerId: string, notes?: string): Promise<GrassrootsSubmission | undefined>;
   rejectGrassrootsSubmission(id: string, reviewerId: string, reason: string): Promise<GrassrootsSubmission | undefined>;
   promoteGrassrootsSubmission(id: string): Promise<{ submission: GrassrootsSubmission; promotedEntity: League | Team | Division | Venue } | undefined>;
+  
+  getSports(): Promise<Sport[]>;
+  getSport(id: string): Promise<Sport | undefined>;
+  getSportBySlug(slug: string): Promise<Sport | undefined>;
+  createSport(sport: InsertSport): Promise<Sport>;
+  getLeaguesBySport(sportId: string): Promise<League[]>;
+  getLeaguesBySportSlug(sportSlug: string): Promise<League[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -483,6 +493,35 @@ export class DatabaseStorage implements IStorage {
       if (org) orgs.push(org);
     }
     return orgs;
+  }
+
+  async getSports(): Promise<Sport[]> {
+    return await db.select().from(sports).orderBy(sports.sortOrder);
+  }
+
+  async getSport(id: string): Promise<Sport | undefined> {
+    const result = await db.select().from(sports).where(eq(sports.id, id));
+    return result[0];
+  }
+
+  async getSportBySlug(slug: string): Promise<Sport | undefined> {
+    const result = await db.select().from(sports).where(eq(sports.slug, slug));
+    return result[0];
+  }
+
+  async createSport(sport: InsertSport): Promise<Sport> {
+    const result = await db.insert(sports).values(sport).returning();
+    return result[0];
+  }
+
+  async getLeaguesBySport(sportId: string): Promise<League[]> {
+    return await db.select().from(leagues).where(eq(leagues.sportId, sportId));
+  }
+
+  async getLeaguesBySportSlug(sportSlug: string): Promise<League[]> {
+    const sport = await this.getSportBySlug(sportSlug);
+    if (!sport) return [];
+    return await this.getLeaguesBySport(sport.id);
   }
 }
 

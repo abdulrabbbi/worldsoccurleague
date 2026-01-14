@@ -584,6 +584,68 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/sports", async (_req, res) => {
+    try {
+      const sportsList = await storage.getSports();
+      res.json(sportsList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch sports" });
+    }
+  });
+
+  app.get("/api/sports/:slug", async (req, res) => {
+    try {
+      const sport = await storage.getSportBySlug(req.params.slug);
+      if (!sport) {
+        return res.status(404).json({ error: "Sport not found" });
+      }
+      res.json(sport);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch sport" });
+    }
+  });
+
+  app.get("/api/sports/:slug/leagues", async (req, res) => {
+    try {
+      const sport = await storage.getSportBySlug(req.params.slug);
+      if (!sport) {
+        return res.status(404).json({ error: "Sport not found" });
+      }
+      const leagueList = await storage.getLeaguesBySport(sport.id);
+      res.json({ sport, leagues: leagueList });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch sport leagues" });
+    }
+  });
+
+  app.post("/api/sports/seed", async (_req, res) => {
+    try {
+      const existingSports = await storage.getSports();
+      if (existingSports.length > 0) {
+        return res.json({ message: "Sports already seeded", sports: existingSports });
+      }
+
+      const sportsToSeed = [
+        { code: "soccer", name: "Soccer", slug: "soccer", icon: "⚽", sortOrder: 0 },
+        { code: "nfl", name: "NFL Football", slug: "nfl", icon: "🏈", sortOrder: 1 },
+        { code: "nba", name: "NBA Basketball", slug: "nba", icon: "🏀", sortOrder: 2 },
+        { code: "mlb", name: "MLB Baseball", slug: "mlb", icon: "⚾", sortOrder: 3 },
+        { code: "nhl", name: "NHL Hockey", slug: "nhl", icon: "🏒", sortOrder: 4 },
+      ];
+
+      const createdSports = [];
+      for (const sportData of sportsToSeed) {
+        const sport = await storage.createSport(sportData);
+        createdSports.push(sport);
+      }
+
+      res.json({ message: "Sports seeded successfully", sports: createdSports });
+    } catch (error) {
+      console.error("Failed to seed sports:", error);
+      res.status(500).json({ error: "Failed to seed sports" });
+    }
+  });
+
   app.post("/api/grassroots/bulk/teams", requireAuth, requireGrassrootsAccess, async (req, res) => {
     try {
       const user = req.ctx!.user!;
