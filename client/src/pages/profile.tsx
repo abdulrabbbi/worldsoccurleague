@@ -1,8 +1,18 @@
 import { useLocation } from "wouter";
-import { LogOut, Heart, Settings } from "lucide-react";
+import { LogOut, Heart, Settings, Shield } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 export default function ProfilePage() {
   const [, setLocation] = useLocation();
+  const { user, setUser } = useAuth();
+
+  const isAdmin = user?.platformRole === "platform_admin" || user?.platformRole === "platform_moderator";
+
+  const handleLogout = () => {
+    localStorage.removeItem("wsl_user");
+    setUser(null);
+    setLocation("/auth/login");
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -14,8 +24,14 @@ export default function ProfilePage() {
               👤
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">John Doe</h1>
-              <p className="text-sm text-muted-foreground">john@example.com</p>
+              <h1 className="text-2xl font-bold text-foreground">{user?.name || "Guest"}</h1>
+              <p className="text-sm text-muted-foreground">{user?.email || "Not logged in"}</p>
+              {isAdmin && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 mt-1 text-xs bg-[#1a2d5c] text-white rounded-full">
+                  <Shield size={10} />
+                  Admin
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -23,6 +39,20 @@ export default function ProfilePage() {
 
       {/* Menu */}
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-3">
+        {isAdmin && (
+          <button
+            onClick={() => setLocation("/admin/grassroots")}
+            className="w-full flex items-center gap-4 p-4 rounded-lg bg-[#1a2d5c]/5 border border-[#1a2d5c]/20 hover:border-[#1a2d5c] transition-colors text-left"
+            data-testid="button-admin"
+          >
+            <Shield className="w-5 h-5 text-[#1a2d5c]" />
+            <div>
+              <p className="font-semibold text-[#1a2d5c]">Admin Panel</p>
+              <p className="text-xs text-muted-foreground">Manage submissions, mappings & more</p>
+            </div>
+          </button>
+        )}
+
         <button
           onClick={() => setLocation("/favorites")}
           className="w-full flex items-center gap-4 p-4 rounded-lg bg-card border border-border hover:border-primary transition-colors text-left"
@@ -47,7 +77,7 @@ export default function ProfilePage() {
         </button>
 
         <button
-          onClick={() => setLocation("/auth/login")}
+          onClick={handleLogout}
           className="w-full flex items-center gap-4 p-4 rounded-lg bg-card border border-border hover:border-destructive transition-colors text-left"
           data-testid="button-logout"
         >
