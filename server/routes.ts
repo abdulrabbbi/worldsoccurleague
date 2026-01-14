@@ -750,6 +750,184 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/admin/provider-mappings", requireAuth, async (req, res) => {
+    try {
+      const { provider, entityType, sport } = req.query;
+      const mappings = await storage.getProviderMappings({
+        providerName: provider as string,
+        entityType: entityType as string,
+        sportSlug: sport as string,
+      });
+      res.json(mappings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch provider mappings" });
+    }
+  });
+
+  app.post("/api/admin/provider-mappings", requireAuth, async (req, res) => {
+    try {
+      const { providerName, providerEntityType, providerEntityId, internalEntityId, providerEntityName, rawPayload } = req.body;
+      
+      if (!providerName || !providerEntityType || !providerEntityId || !internalEntityId) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const conflict = await storage.checkMappingConflict(providerName, providerEntityType, providerEntityId, internalEntityId);
+      if (conflict) {
+        return res.status(409).json({
+          error: conflict.type === 'provider_conflict' 
+            ? `Provider ID "${providerEntityId}" is already mapped to another entity`
+            : `This entity already has a different mapping from ${providerName}`,
+          conflictType: conflict.type,
+          existingMapping: conflict.existingMapping,
+        });
+      }
+
+      const mapping = await storage.createProviderMapping({
+        providerName,
+        providerEntityType,
+        providerEntityId,
+        internalEntityId,
+        providerEntityName,
+        rawPayload,
+      });
+
+      const user = req.ctx?.user;
+      await storage.createAuditLog({
+        action: "create",
+        entityType: "provider_mapping",
+        entityId: mapping.id,
+        entityName: `${providerName}:${providerEntityId} -> ${internalEntityId}`,
+        userId: user?.id || "system",
+        newData: { mapping },
+      });
+
+      res.status(201).json(mapping);
+    } catch (error) {
+      console.error("Failed to create provider mapping:", error);
+      res.status(500).json({ error: "Failed to create provider mapping" });
+    }
+  });
+
+  app.patch("/api/admin/provider-mappings/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { providerName, providerEntityType, providerEntityId, providerEntityName, rawPayload } = req.body;
+      
+      const existing = await storage.getProviderMapping(id);
+      if (!existing) {
+        return res.status(404).json({ error: "Mapping not found" });
+      }
+
+      if (providerEntityId && providerEntityId !== existing.providerEntityId) {
+        const conflict = await storage.checkMappingConflict(
+          providerName || existing.providerName,
+          providerEntityType || existing.providerEntityType,
+          providerEntityId,
+          existing.internalEntityId,
+          id
+        );
+        if (conflict) {
+          return res.status(409).json({
+            error: conflict.type === 'provider_conflict'
+              ? `Provider ID "${providerEntityId}" is already mapped to another entity`
+              : `This entity already has a different mapping from ${providerName || existing.providerName}`,
+            conflictType: conflict.type,
+            existingMapping: conflict.existingMapping,
+          });
+        }
+      }
+
+      const mapping = await storage.updateProviderMapping(id, {
+        providerName,
+        providerEntityType,
+        providerEntityId,
+        providerEntityName,
+        rawPayload,
+      });
+
+      res.json(mapping);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update provider mapping" });
+    }
+  });
+
+  app.delete("/api/admin/provider-mappings/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteProviderMapping(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Mapping not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete provider mapping" });
+    }
+  });
+
+  app.get("/api/admin/coverage", requireAuth, async (req, res) => {
+    try {
+      const sportSlug = req.query.sport as string | undefined;
+      const stats = await storage.getCoverageStats(sportSlug);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch coverage stats" });
+    }
+  });
+
+  app.get("/api/admin/unmapped", requireAuth, async (req, res) => {
+    try {
+      const { entityType, sport, limit } = req.query;
+      
+      if (!entityType || (entityType !== 'league' && entityType !== 'team')) {
+        return res.status(400).json({ error: "entityType must be 'league' or 'team'" });
+      }
+
+      const unmapped = await storage.getUnmappedEntities(
+        entityType as 'league' | 'team',
+        sport as string,
+        limit ? parseInt(limit as string) : undefined
+      );
+      res.json(unmapped);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch unmapped entities" });
+    }
+  });
+
+  app.get("/api/admin/internal-entities", requireAuth, async (req, res) => {
+    try {
+      const { entityType, sport, search } = req.query;
+      
+      if (entityType === 'league') {
+        let results = await storage.getAdminLeagues(sport as string);
+        if (search) {
+          const searchLower = (search as string).toLowerCase();
+          results = results.filter(l => l.name.toLowerCase().includes(searchLower));
+        }
+        res.json(results.slice(0, 50));
+      } else if (entityType === 'team') {
+        const sportSlug = sport as string;
+        let teamResults = await storage.getAllTeams();
+        
+        if (sportSlug && sportSlug !== "all") {
+          const leagueList = await storage.getAdminLeagues(sportSlug);
+          const leagueIds = new Set(leagueList.map(l => l.id));
+          teamResults = teamResults.filter(t => t.leagueId && leagueIds.has(t.leagueId));
+        }
+        
+        if (search) {
+          const searchLower = (search as string).toLowerCase();
+          teamResults = teamResults.filter(t => t.name.toLowerCase().includes(searchLower));
+        }
+        res.json(teamResults.slice(0, 50));
+      } else {
+        res.status(400).json({ error: "entityType must be 'league' or 'team'" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch internal entities" });
+    }
+  });
+
   app.post("/api/grassroots/bulk/teams", requireAuth, requireGrassrootsAccess, async (req, res) => {
     try {
       const user = req.ctx!.user!;

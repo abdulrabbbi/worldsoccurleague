@@ -638,6 +638,22 @@ export class DatabaseStorage implements IStorage {
       result = result.filter(m => m.providerEntityType === filters.entityType);
     }
     
+    if (filters?.sportSlug && filters.sportSlug !== "all") {
+      const leagueList = await this.getAdminLeagues(filters.sportSlug);
+      const leagueIds = new Set(leagueList.map(l => l.id));
+      const allTeams = await db.select().from(teams);
+      const teamIds = new Set(allTeams.filter(t => t.leagueId && leagueIds.has(t.leagueId)).map(t => t.id));
+      
+      result = result.filter(m => {
+        if (m.providerEntityType === "league") {
+          return leagueIds.has(m.internalEntityId);
+        } else if (m.providerEntityType === "team") {
+          return teamIds.has(m.internalEntityId);
+        }
+        return true;
+      });
+    }
+    
     return result;
   }
 

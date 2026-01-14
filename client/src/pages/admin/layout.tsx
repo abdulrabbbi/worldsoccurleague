@@ -201,7 +201,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     window.history.pushState({}, "", url.pathname + url.search);
   };
 
-  const selectedSport = sports.find(s => s.slug === selectedSportSlug);
+  const selectedSport = sports.find(s => s.slug === selectedSportSlug) || null;
 
   const logout = () => {
     setUser(null);

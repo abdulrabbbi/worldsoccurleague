@@ -1,23 +1,50 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Search, 
   Plus,
   Edit,
   Trash2,
-  Eye,
   RefreshCw,
   ChevronDown,
-  ChevronUp,
+  ChevronRight,
   Link as LinkIcon,
   X,
-  Check,
-  Code,
+  AlertTriangle,
   Database,
   ExternalLink,
-  Copy,
-  CheckCheck
+  BarChart3,
+  Layers
 } from "lucide-react";
-import AdminLayout from "./layout";
+import AdminLayout, { useAdminSport } from "./layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface ProviderMapping {
   id: string;
@@ -25,551 +52,736 @@ interface ProviderMapping {
   providerEntityType: string;
   providerEntityId: string;
   internalEntityId: string;
-  providerEntityName: string;
+  providerEntityName: string | null;
   rawPayload: any;
   lastSyncedAt: string | null;
-  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-const mockProviders = [
-  { id: "sportmonks", name: "SportMonks", color: "bg-blue-100 text-blue-700" },
-  { id: "api_football", name: "API-Football", color: "bg-green-100 text-green-700" },
-  { id: "football_data", name: "Football-Data.org", color: "bg-purple-100 text-purple-700" },
+interface CoverageStat {
+  entityType: string;
+  total: number;
+  mapped: number;
+  percentage: number;
+}
+
+interface UnmappedEntity {
+  id: string;
+  name: string;
+  entityType: string;
+  sportCode?: string;
+}
+
+interface InternalEntity {
+  id: string;
+  name: string;
+  sportCode?: string;
+}
+
+interface ConflictError {
+  error: string;
+  conflictType: 'provider_conflict' | 'internal_conflict';
+  existingMapping: ProviderMapping;
+}
+
+const providers = [
+  { id: "sportmonks", name: "SportMonks", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+  { id: "api_football", name: "API-Football", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+  { id: "football_data", name: "Football-Data.org", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" },
 ];
 
 const entityTypes = [
-  { id: "continent", label: "Continent" },
-  { id: "country", label: "Country" },
   { id: "league", label: "League" },
   { id: "team", label: "Team" },
-  { id: "season", label: "Season" },
-  { id: "player", label: "Player" },
-  { id: "fixture", label: "Fixture" },
 ];
 
-const mockMappings: ProviderMapping[] = [
-  {
-    id: "1",
-    providerName: "sportmonks",
-    providerEntityType: "league",
-    providerEntityId: "8",
-    internalEntityId: "league-premier-league",
-    providerEntityName: "Premier League",
-    rawPayload: {
-      id: 8,
-      sport_id: 1,
-      country_id: 462,
-      name: "Premier League",
-      active: true,
-      short_code: "UK PL",
-      image_path: "https://cdn.sportmonks.com/images/soccer/leagues/8/8.png",
-      type: "league",
-      sub_type: "domestic",
-      has_jerseys: false
+function CoverageDashboard({ sportSlug }: { sportSlug: string }) {
+  const { data: stats, isLoading } = useQuery<CoverageStat[]>({
+    queryKey: ["/api/admin/coverage", sportSlug],
+    queryFn: async () => {
+      const params = sportSlug && sportSlug !== "all" ? `?sport=${sportSlug}` : "";
+      const res = await fetch(`/api/admin/coverage${params}`);
+      if (!res.ok) throw new Error("Failed to fetch coverage");
+      return res.json();
     },
-    lastSyncedAt: "2026-01-14T10:30:00Z",
-    isActive: true
-  },
-  {
-    id: "2",
-    providerName: "sportmonks",
-    providerEntityType: "team",
-    providerEntityId: "19",
-    internalEntityId: "team-arsenal",
-    providerEntityName: "Arsenal",
-    rawPayload: {
-      id: 19,
-      sport_id: 1,
-      country_id: 462,
-      venue_id: 204,
-      gender: "male",
-      name: "Arsenal",
-      short_code: "ARS",
-      image_path: "https://cdn.sportmonks.com/images/soccer/teams/19/19.png",
-      founded: 1886,
-      type: "domestic",
-      last_played_at: "2026-01-12 17:30:00"
-    },
-    lastSyncedAt: "2026-01-14T09:15:00Z",
-    isActive: true
-  },
-  {
-    id: "3",
-    providerName: "sportmonks",
-    providerEntityType: "country",
-    providerEntityId: "462",
-    internalEntityId: "country-england",
-    providerEntityName: "England",
-    rawPayload: {
-      id: 462,
-      continent_id: 1,
-      name: "England",
-      official_name: "England",
-      fifa_name: "ENG",
-      iso2: "EN",
-      iso3: "ENG",
-      latitude: "52.3555177",
-      longitude: "-1.1743197",
-      borders: ["WLS", "SCT"],
-      image_path: "https://cdn.sportmonks.com/images/countries/png/short/en.png"
-    },
-    lastSyncedAt: "2026-01-13T15:00:00Z",
-    isActive: true
-  },
-  {
-    id: "4",
-    providerName: "api_football",
-    providerEntityType: "league",
-    providerEntityId: "39",
-    internalEntityId: "league-premier-league",
-    providerEntityName: "Premier League",
-    rawPayload: {
-      league: {
-        id: 39,
-        name: "Premier League",
-        type: "League",
-        logo: "https://media.api-sports.io/football/leagues/39.png"
-      },
-      country: {
-        name: "England",
-        code: "GB",
-        flag: "https://media.api-sports.io/flags/gb.svg"
-      },
-      seasons: [
-        { year: 2025, start: "2025-08-16", end: "2026-05-25", current: true }
-      ]
-    },
-    lastSyncedAt: "2026-01-14T08:00:00Z",
-    isActive: true
-  },
-  {
-    id: "5",
-    providerName: "sportmonks",
-    providerEntityType: "season",
-    providerEntityId: "23614",
-    internalEntityId: "season-epl-2025-26",
-    providerEntityName: "2025/2026",
-    rawPayload: {
-      id: 23614,
-      sport_id: 1,
-      league_id: 8,
-      tie_breaker_rule_id: 1536,
-      name: "2025/2026",
-      finished: false,
-      pending: false,
-      is_current: true,
-      starting_at: "2025-08-16",
-      ending_at: "2026-05-25",
-      standings_recalculated_at: "2026-01-14 00:00:01"
-    },
-    lastSyncedAt: "2026-01-14T06:00:00Z",
-    isActive: true
-  },
-];
+  });
 
-const internalEntities = {
-  continent: [
-    { id: "continent-europe", name: "Europe" },
-    { id: "continent-north-america", name: "North America" },
-    { id: "continent-south-america", name: "South America" },
-    { id: "continent-asia", name: "Asia" },
-    { id: "continent-africa", name: "Africa" },
-    { id: "continent-oceania", name: "Oceania" },
-  ],
-  country: [
-    { id: "country-england", name: "England" },
-    { id: "country-spain", name: "Spain" },
-    { id: "country-germany", name: "Germany" },
-    { id: "country-usa", name: "United States" },
-    { id: "country-france", name: "France" },
-    { id: "country-italy", name: "Italy" },
-  ],
-  league: [
-    { id: "league-premier-league", name: "Premier League" },
-    { id: "league-la-liga", name: "La Liga" },
-    { id: "league-bundesliga", name: "Bundesliga" },
-    { id: "league-mls", name: "MLS" },
-    { id: "league-serie-a", name: "Serie A" },
-  ],
-  team: [
-    { id: "team-arsenal", name: "Arsenal" },
-    { id: "team-liverpool", name: "Liverpool" },
-    { id: "team-man-united", name: "Manchester United" },
-    { id: "team-real-madrid", name: "Real Madrid" },
-    { id: "team-barcelona", name: "Barcelona" },
-  ],
-  season: [
-    { id: "season-epl-2025-26", name: "EPL 2025/26" },
-    { id: "season-laliga-2025-26", name: "La Liga 2025/26" },
-    { id: "season-mls-2026", name: "MLS 2026" },
-  ],
-  player: [
-    { id: "player-salah", name: "Mohamed Salah" },
-    { id: "player-haaland", name: "Erling Haaland" },
-    { id: "player-messi", name: "Lionel Messi" },
-  ],
-  fixture: [
-    { id: "fixture-1", name: "Arsenal vs Liverpool" },
-    { id: "fixture-2", name: "Man City vs Chelsea" },
-  ],
-};
-
-function JsonPreviewModal({ 
-  mapping, 
-  onClose 
-}: { 
-  mapping: ProviderMapping; 
-  onClose: () => void;
-}) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(JSON.stringify(mapping.rawPayload, null, 2));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const provider = mockProviders.find(p => p.id === mapping.providerName);
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[1, 2].map((i) => (
+          <Card key={i} className="animate-pulse">
+            <CardHeader className="pb-2">
+              <div className="h-4 bg-muted rounded w-20" />
+            </CardHeader>
+            <CardContent>
+              <div className="h-6 bg-muted rounded w-32 mb-2" />
+              <div className="h-2 bg-muted rounded w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl w-full max-w-3xl mx-4 overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Code size={20} className="text-gray-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Raw API Payload</h2>
-                <p className="text-sm text-gray-500">
-                  <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium mr-2 ${provider?.color}`}>
-                    {provider?.name}
-                  </span>
-                  {mapping.providerEntityName}
-                </p>
-              </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {stats?.map((stat) => (
+        <Card key={stat.entityType} data-testid={`coverage-card-${stat.entityType}`}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium capitalize flex items-center gap-2">
+              {stat.entityType === "league" ? <Layers className="h-4 w-4" /> : <Database className="h-4 w-4" />}
+              {stat.entityType}s
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-2xl font-bold">{stat.mapped}</span>
+              <span className="text-muted-foreground">/ {stat.total} mapped</span>
+              <Badge 
+                variant={stat.percentage >= 80 ? "default" : stat.percentage >= 50 ? "secondary" : "destructive"}
+                className="ml-auto"
+              >
+                {stat.percentage}%
+              </Badge>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg" data-testid="button-close-modal">
-              <X size={20} />
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-auto p-6">
-          <div className="mb-4 grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 rounded-lg p-3">
-              <label className="text-xs font-medium text-gray-500 uppercase">Provider Entity ID</label>
-              <p className="text-gray-900 font-mono">{mapping.providerEntityId}</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <label className="text-xs font-medium text-gray-500 uppercase">Internal Entity ID</label>
-              <p className="text-gray-900 font-mono">{mapping.internalEntityId}</p>
-            </div>
-          </div>
-
-          <div className="relative">
-            <button
-              onClick={handleCopy}
-              className="absolute top-3 right-3 p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 text-gray-600"
-              data-testid="button-copy-json"
-            >
-              {copied ? <CheckCheck size={16} className="text-green-600" /> : <Copy size={16} />}
-            </button>
-            <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-auto text-sm font-mono max-h-[400px]">
-              {JSON.stringify(mapping.rawPayload, null, 2)}
-            </pre>
-          </div>
-
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
-            <h4 className="font-medium text-blue-900 mb-2">Field Mapping Notes</h4>
-            <div className="text-sm text-blue-700 space-y-1">
-              <p><strong>id:</strong> Maps to <code className="bg-blue-100 px-1 rounded">providerEntityId</code></p>
-              <p><strong>name:</strong> Maps to <code className="bg-blue-100 px-1 rounded">providerEntityName</code></p>
-              {mapping.providerEntityType === "team" && (
-                <p><strong>country_id:</strong> Use provider_mappings to resolve to internal country</p>
-              )}
-              {mapping.providerEntityType === "league" && (
-                <p><strong>country_id:</strong> Use provider_mappings to resolve to internal country</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4 border-t border-gray-100 bg-gray-50">
-          <button
-            onClick={onClose}
-            className="w-full px-4 py-2.5 bg-[#1a2d5c] text-white rounded-lg hover:bg-[#0f1d3d]"
-            data-testid="button-close"
-          >
-            Close
-          </button>
-        </div>
-      </div>
+            <Progress value={stat.percentage} className="h-2" />
+            <p className="text-xs text-muted-foreground mt-2">
+              {stat.total - stat.mapped} unmapped {stat.entityType}s remaining
+            </p>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
 
-function MappingFormModal({ 
-  mapping, 
-  onClose, 
-  onSave 
+function UnmappedEntitiesList({ 
+  sportSlug, 
+  onMapEntity 
 }: { 
-  mapping: ProviderMapping | null; 
-  onClose: () => void;
-  onSave: (data: Partial<ProviderMapping>) => void;
+  sportSlug: string;
+  onMapEntity: (entity: UnmappedEntity) => void;
 }) {
-  const [formData, setFormData] = useState({
-    providerName: mapping?.providerName || "",
-    providerEntityType: mapping?.providerEntityType || "",
-    providerEntityId: mapping?.providerEntityId || "",
-    internalEntityId: mapping?.internalEntityId || "",
-    providerEntityName: mapping?.providerEntityName || "",
-    rawPayload: mapping?.rawPayload ? JSON.stringify(mapping.rawPayload, null, 2) : "",
-    isActive: mapping?.isActive ?? true,
+  const [entityType, setEntityType] = useState<'league' | 'team'>('league');
+  
+  const { data: unmapped, isLoading } = useQuery<UnmappedEntity[]>({
+    queryKey: ["/api/admin/unmapped", entityType, sportSlug],
+    queryFn: async () => {
+      const params = new URLSearchParams({ entityType });
+      if (sportSlug && sportSlug !== "all") params.set("sport", sportSlug);
+      params.set("limit", "20");
+      const res = await fetch(`/api/admin/unmapped?${params}`);
+      if (!res.ok) throw new Error("Failed to fetch unmapped");
+      return res.json();
+    },
   });
 
-  const [jsonError, setJsonError] = useState<string | null>(null);
+  return (
+    <Card data-testid="unmapped-entities-card">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-yellow-500" />
+            Coverage Gaps
+          </CardTitle>
+          <Select value={entityType} onValueChange={(v) => setEntityType(v as 'league' | 'team')}>
+            <SelectTrigger className="w-32" data-testid="entity-type-select">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="league">Leagues</SelectItem>
+              <SelectItem value="team">Teams</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+            ))}
+          </div>
+        ) : unmapped?.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            All {entityType}s are mapped!
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {unmapped?.map((entity) => (
+              <div 
+                key={entity.id} 
+                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50"
+                data-testid={`unmapped-entity-${entity.id}`}
+              >
+                <div>
+                  <p className="font-medium">{entity.name}</p>
+                  <p className="text-xs text-muted-foreground">ID: {entity.id}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {entity.sportCode && (
+                    <Badge variant="outline" className="text-xs">{entity.sportCode}</Badge>
+                  )}
+                  <Button 
+                    size="sm" 
+                    onClick={() => onMapEntity(entity)}
+                    data-testid={`map-button-${entity.id}`}
+                  >
+                    <LinkIcon className="h-3 w-3 mr-1" />
+                    Map
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    let parsedPayload = null;
-    if (formData.rawPayload.trim()) {
-      try {
-        parsedPayload = JSON.parse(formData.rawPayload);
-        setJsonError(null);
-      } catch (err) {
-        setJsonError("Invalid JSON format");
-        return;
+function MappingModal({
+  open,
+  onOpenChange,
+  prefillEntity,
+  editMapping,
+  onSuccess,
+  sportSlug,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  prefillEntity?: UnmappedEntity | null;
+  editMapping?: ProviderMapping | null;
+  onSuccess: () => void;
+  sportSlug?: string;
+}) {
+  const queryClient = useQueryClient();
+  const [providerName, setProviderName] = useState("");
+  const [entityType, setEntityType] = useState<string>("league");
+  const [providerEntityId, setProviderEntityId] = useState("");
+  const [providerEntityName, setProviderEntityName] = useState("");
+  const [internalEntityId, setInternalEntityId] = useState("");
+  const [internalSearch, setInternalSearch] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [conflict, setConflict] = useState<ConflictError | null>(null);
+
+  const { data: internalEntities } = useQuery<InternalEntity[]>({
+    queryKey: ["/api/admin/internal-entities", entityType, internalSearch, sportSlug],
+    queryFn: async () => {
+      const params = new URLSearchParams({ entityType });
+      if (internalSearch) params.set("search", internalSearch);
+      if (sportSlug && sportSlug !== "all") params.set("sport", sportSlug);
+      const res = await fetch(`/api/admin/internal-entities?${params}`);
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: open && !!entityType && internalSearch.length >= 2,
+  });
+
+  useEffect(() => {
+    if (prefillEntity && open) {
+      setEntityType(prefillEntity.entityType);
+      setInternalEntityId(prefillEntity.id);
+      setInternalSearch(prefillEntity.name);
+    }
+    if (editMapping && open) {
+      setProviderName(editMapping.providerName);
+      setEntityType(editMapping.providerEntityType);
+      setProviderEntityId(editMapping.providerEntityId);
+      setProviderEntityName(editMapping.providerEntityName || "");
+      setInternalEntityId(editMapping.internalEntityId);
+      setShowAdvanced(true);
+    }
+    if (!open) {
+      setProviderName("");
+      setEntityType("league");
+      setProviderEntityId("");
+      setProviderEntityName("");
+      setInternalEntityId("");
+      setInternalSearch("");
+      setShowAdvanced(false);
+      setError(null);
+      setConflict(null);
+    }
+  }, [prefillEntity, editMapping, open]);
+
+  const createMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await fetch("/api/admin/provider-mappings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        if (res.status === 409) {
+          throw { isConflict: true, ...err };
+        }
+        throw new Error(err.error || "Failed to create mapping");
       }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/provider-mappings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/coverage"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/unmapped"] });
+      onSuccess();
+      onOpenChange(false);
+    },
+    onError: (err: any) => {
+      if (err.isConflict) {
+        setConflict(err as ConflictError);
+      } else {
+        setError(err.message);
+      }
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await fetch(`/api/admin/provider-mappings/${editMapping?.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        if (res.status === 409) {
+          throw { isConflict: true, ...err };
+        }
+        throw new Error(err.error || "Failed to update mapping");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/provider-mappings"] });
+      onSuccess();
+      onOpenChange(false);
+    },
+    onError: (err: any) => {
+      if (err.isConflict) {
+        setConflict(err as ConflictError);
+      } else {
+        setError(err.message);
+      }
+    },
+  });
+
+  const handleSubmit = () => {
+    setError(null);
+    setConflict(null);
+
+    if (!providerName || !entityType || !providerEntityId || !internalEntityId) {
+      setError("Please fill in all required fields");
+      return;
     }
 
-    onSave({
-      ...formData,
-      rawPayload: parsedPayload,
-    });
+    const data = {
+      providerName,
+      providerEntityType: entityType,
+      providerEntityId,
+      internalEntityId,
+      providerEntityName: providerEntityName || null,
+    };
+
+    if (editMapping) {
+      updateMutation.mutate(data);
+    } else {
+      createMutation.mutate(data);
+    }
   };
 
-  const availableEntities = formData.providerEntityType 
-    ? internalEntities[formData.providerEntityType as keyof typeof internalEntities] || []
-    : [];
+  const handleResolveConflict = async () => {
+    if (!conflict) return;
+    
+    await fetch(`/api/admin/provider-mappings/${conflict.existingMapping.id}`, {
+      method: "DELETE",
+    });
+    
+    setConflict(null);
+    handleSubmit();
+  };
+
+  const provider = providers.find(p => p.id === providerName);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl w-full max-w-lg mx-4 overflow-hidden max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">
-              {mapping ? "Edit Mapping" : "Add Provider Mapping"}
-            </h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg" data-testid="button-close-modal">
-              <X size={20} />
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg" data-testid="mapping-modal">
+        <DialogHeader>
+          <DialogTitle>{editMapping ? "Edit" : "Create"} Provider Mapping</DialogTitle>
+          <DialogDescription>
+            Link an external provider entity to an internal entity
+          </DialogDescription>
+        </DialogHeader>
+
+        {conflict && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4" data-testid="conflict-alert">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
+              <div className="flex-1">
+                <p className="font-medium text-destructive">Mapping Conflict</p>
+                <p className="text-sm text-muted-foreground mt-1">{conflict.error}</p>
+                <div className="mt-2 p-2 bg-muted/50 rounded text-xs">
+                  <p>Existing mapping:</p>
+                  <p className="font-mono">
+                    {conflict.existingMapping.providerName}:{conflict.existingMapping.providerEntityId} 
+                    → {conflict.existingMapping.internalEntityId}
+                  </p>
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <Button 
+                    size="sm" 
+                    variant="destructive" 
+                    onClick={handleResolveConflict}
+                    data-testid="resolve-conflict-button"
+                  >
+                    Replace Existing
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => setConflict(null)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {error && !conflict && (
+          <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium">Provider</label>
+            <Select value={providerName} onValueChange={setProviderName}>
+              <SelectTrigger data-testid="provider-select">
+                <SelectValue placeholder="Select provider..." />
+              </SelectTrigger>
+              <SelectContent>
+                {providers.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    <span className={`px-2 py-0.5 rounded text-xs ${p.color}`}>{p.name}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Entity Type</label>
+            <Select value={entityType} onValueChange={setEntityType}>
+              <SelectTrigger data-testid="entity-type-modal-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {entityTypes.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Internal Entity</label>
+            {prefillEntity ? (
+              <div className="p-3 border rounded-lg bg-muted/30">
+                <p className="font-medium">{prefillEntity.name}</p>
+                <p className="text-xs text-muted-foreground">ID: {prefillEntity.id}</p>
+              </div>
+            ) : (
+              <>
+                <Input
+                  placeholder="Search by name..."
+                  value={internalSearch}
+                  onChange={(e) => setInternalSearch(e.target.value)}
+                  data-testid="internal-search-input"
+                />
+                {internalEntities && internalEntities.length > 0 && internalSearch.length >= 2 && (
+                  <div className="mt-2 max-h-40 overflow-y-auto border rounded-lg">
+                    {internalEntities.map((entity) => (
+                      <button
+                        key={entity.id}
+                        className={`w-full text-left p-2 hover:bg-muted text-sm ${
+                          internalEntityId === entity.id ? "bg-primary/10" : ""
+                        }`}
+                        onClick={() => {
+                          setInternalEntityId(entity.id);
+                          setInternalSearch(entity.name);
+                        }}
+                        data-testid={`internal-entity-option-${entity.id}`}
+                      >
+                        <p className="font-medium">{entity.name}</p>
+                        <p className="text-xs text-muted-foreground">{entity.id}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          <div>
+            <button 
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+            >
+              {showAdvanced ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              Advanced / Manual Entry
             </button>
+            
+            {showAdvanced && (
+              <div className="mt-3 space-y-3 pl-4 border-l-2">
+                <div>
+                  <label className="text-sm font-medium">Provider Entity ID</label>
+                  <Input
+                    placeholder="e.g., 8"
+                    value={providerEntityId}
+                    onChange={(e) => setProviderEntityId(e.target.value)}
+                    data-testid="provider-id-input"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    The ID used by {provider?.name || "the provider"} for this entity
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Provider Entity Name (optional)</label>
+                  <Input
+                    placeholder="e.g., Premier League"
+                    value={providerEntityName}
+                    onChange={(e) => setProviderEntityName(e.target.value)}
+                    data-testid="provider-name-input"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Provider <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.providerName}
-                onChange={(e) => setFormData(prev => ({ ...prev, providerName: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a2d5c]"
-                required
-                data-testid="select-provider"
-              >
-                <option value="">Select provider</option>
-                {mockProviders.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Entity Type <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.providerEntityType}
-                onChange={(e) => setFormData(prev => ({ 
-                  ...prev, 
-                  providerEntityType: e.target.value,
-                  internalEntityId: "" 
-                }))}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a2d5c]"
-                required
-                data-testid="select-entity-type"
-              >
-                <option value="">Select type</option>
-                {entityTypes.map(t => (
-                  <option key={t.id} value={t.id}>{t.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+        <div className="flex justify-end gap-2 mt-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={createMutation.isPending || updateMutation.isPending}
+            data-testid="submit-mapping-button"
+          >
+            {createMutation.isPending || updateMutation.isPending ? (
+              <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+            ) : null}
+            {editMapping ? "Update" : "Create"} Mapping
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Provider Entity ID <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.providerEntityId}
-                onChange={(e) => setFormData(prev => ({ ...prev, providerEntityId: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a2d5c] font-mono"
-                placeholder="8"
-                required
-                data-testid="input-provider-entity-id"
+function AllMappingsTable({ sportSlug }: { sportSlug: string }) {
+  const queryClient = useQueryClient();
+  const [search, setSearch] = useState("");
+  const [providerFilter, setProviderFilter] = useState<string>("all");
+  const [entityTypeFilter, setEntityTypeFilter] = useState<string>("all");
+  const [editMapping, setEditMapping] = useState<ProviderMapping | null>(null);
+
+  const { data: mappings, isLoading } = useQuery<ProviderMapping[]>({
+    queryKey: ["/api/admin/provider-mappings", providerFilter, entityTypeFilter, sportSlug],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (providerFilter !== "all") params.set("provider", providerFilter);
+      if (entityTypeFilter !== "all") params.set("entityType", entityTypeFilter);
+      if (sportSlug && sportSlug !== "all") params.set("sport", sportSlug);
+      const res = await fetch(`/api/admin/provider-mappings?${params}`);
+      if (!res.ok) throw new Error("Failed to fetch mappings");
+      return res.json();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/admin/provider-mappings/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/provider-mappings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/coverage"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/unmapped"] });
+    },
+  });
+
+  const filteredMappings = mappings?.filter((m) => {
+    if (!search) return true;
+    const searchLower = search.toLowerCase();
+    return (
+      m.providerEntityId.toLowerCase().includes(searchLower) ||
+      m.internalEntityId.toLowerCase().includes(searchLower) ||
+      m.providerEntityName?.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const getProviderBadge = (providerName: string) => {
+    const provider = providers.find(p => p.id === providerName);
+    return provider ? (
+      <Badge className={provider.color}>{provider.name}</Badge>
+    ) : (
+      <Badge variant="outline">{providerName}</Badge>
+    );
+  };
+
+  return (
+    <Card data-testid="all-mappings-card">
+      <CardHeader>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <CardTitle className="flex items-center gap-2">
+            <Database className="h-5 w-5" />
+            All Mappings
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search mappings..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 w-48"
+                data-testid="search-mappings-input"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Internal Entity <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.internalEntityId}
-                onChange={(e) => setFormData(prev => ({ ...prev, internalEntityId: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a2d5c]"
-                required
-                disabled={!formData.providerEntityType}
-                data-testid="select-internal-entity"
-              >
-                <option value="">Select entity</option>
-                {availableEntities.map(e => (
-                  <option key={e.id} value={e.id}>{e.name}</option>
+            <Select value={providerFilter} onValueChange={setProviderFilter}>
+              <SelectTrigger className="w-36" data-testid="provider-filter-select">
+                <SelectValue placeholder="Provider" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Providers</SelectItem>
+                {providers.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                 ))}
-              </select>
-            </div>
+              </SelectContent>
+            </Select>
+            <Select value={entityTypeFilter} onValueChange={setEntityTypeFilter}>
+              <SelectTrigger className="w-28" data-testid="entity-filter-select">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {entityTypes.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-muted rounded animate-pulse" />
+            ))}
+          </div>
+        ) : filteredMappings?.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <Database className="h-12 w-12 mx-auto mb-4 opacity-30" />
+            <p>No mappings found</p>
+            <p className="text-sm">Create your first mapping using the Coverage Gaps section</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Provider</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Provider ID</TableHead>
+                  <TableHead>Internal ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead className="w-24">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredMappings?.map((mapping) => (
+                  <TableRow key={mapping.id} data-testid={`mapping-row-${mapping.id}`}>
+                    <TableCell>{getProviderBadge(mapping.providerName)}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="capitalize">
+                        {mapping.providerEntityType}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {mapping.providerEntityId}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm max-w-40 truncate">
+                      {mapping.internalEntityId}
+                    </TableCell>
+                    <TableCell>{mapping.providerEntityName || "-"}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setEditMapping(mapping)}
+                          data-testid={`edit-mapping-${mapping.id}`}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            if (confirm("Delete this mapping?")) {
+                              deleteMutation.mutate(mapping.id);
+                            }
+                          }}
+                          data-testid={`delete-mapping-${mapping.id}`}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Provider Entity Name
-            </label>
-            <input
-              type="text"
-              value={formData.providerEntityName}
-              onChange={(e) => setFormData(prev => ({ ...prev, providerEntityName: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a2d5c]"
-              placeholder="Premier League"
-              data-testid="input-provider-entity-name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Raw API Payload (JSON)
-            </label>
-            <textarea
-              value={formData.rawPayload}
-              onChange={(e) => {
-                setFormData(prev => ({ ...prev, rawPayload: e.target.value }));
-                setJsonError(null);
-              }}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 font-mono text-sm min-h-[120px] ${
-                jsonError ? "border-red-300 focus:ring-red-500" : "border-gray-200 focus:ring-[#1a2d5c]"
-              }`}
-              placeholder='{"id": 8, "name": "Premier League", ...}'
-              data-testid="input-raw-payload"
-            />
-            {jsonError && (
-              <p className="text-xs text-red-500 mt-1" data-testid="error-json">{jsonError}</p>
-            )}
-            <p className="text-xs text-gray-500 mt-1">Paste the raw JSON response from the API</p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setFormData(prev => ({ ...prev, isActive: !prev.isActive }))}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                formData.isActive ? "bg-green-500" : "bg-gray-300"
-              }`}
-              data-testid="toggle-active"
-            >
-              <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                formData.isActive ? "translate-x-7" : "translate-x-1"
-              }`} />
-            </button>
-            <span className="text-sm text-gray-700">Active</span>
-          </div>
-
-          <div className="flex gap-3 pt-4 border-t border-gray-100">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
-              data-testid="button-cancel"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2.5 bg-[#1a2d5c] text-white rounded-lg hover:bg-[#0f1d3d] flex items-center justify-center gap-2"
-              data-testid="button-save"
-            >
-              <Check size={18} />
-              {mapping ? "Update" : "Create"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <MappingModal
+        open={!!editMapping}
+        onOpenChange={(open) => !open && setEditMapping(null)}
+        editMapping={editMapping}
+        onSuccess={() => setEditMapping(null)}
+        sportSlug={sportSlug}
+      />
+    </Card>
   );
 }
 
 export default function ApiMappingPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterProvider, setFilterProvider] = useState<string>("all");
-  const [filterEntityType, setFilterEntityType] = useState<string>("all");
-  const [showForm, setShowForm] = useState(false);
-  const [editingMapping, setEditingMapping] = useState<ProviderMapping | null>(null);
-  const [viewingMapping, setViewingMapping] = useState<ProviderMapping | null>(null);
+  const { selectedSportSlug } = useAdminSport();
+  const [mappingModalOpen, setMappingModalOpen] = useState(false);
+  const [prefillEntity, setPrefillEntity] = useState<UnmappedEntity | null>(null);
+  const queryClient = useQueryClient();
 
-  const filteredMappings = mockMappings.filter(m => {
-    const matchesSearch = m.providerEntityName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          m.providerEntityId.includes(searchQuery) ||
-                          m.internalEntityId.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesProvider = filterProvider === "all" || m.providerName === filterProvider;
-    const matchesEntityType = filterEntityType === "all" || m.providerEntityType === filterEntityType;
-    return matchesSearch && matchesProvider && matchesEntityType;
-  });
-
-  const handleSave = (data: Partial<ProviderMapping>) => {
-    console.log("Saving mapping:", data);
-    setShowForm(false);
-    setEditingMapping(null);
+  const handleMapEntity = (entity: UnmappedEntity) => {
+    setPrefillEntity(entity);
+    setMappingModalOpen(true);
   };
 
-  const handleEdit = (mapping: ProviderMapping) => {
-    setEditingMapping(mapping);
-    setShowForm(true);
-  };
-
-  const handleViewPayload = (mapping: ProviderMapping) => {
-    setViewingMapping(mapping);
-  };
-
-  const getProviderBadge = (providerName: string) => {
-    const provider = mockProviders.find(p => p.id === providerName);
-    return provider ? (
-      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${provider.color}`}>
-        {provider.name}
-      </span>
-    ) : null;
-  };
-
-  const getEntityTypeBadge = (entityType: string) => {
-    const type = entityTypes.find(t => t.id === entityType);
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium capitalize">
-        {type?.label || entityType}
-      </span>
-    );
+  const handleMappingSuccess = () => {
+    setPrefillEntity(null);
   };
 
   return (
@@ -577,221 +789,53 @@ export default function ApiMappingPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">API Mapping</h1>
-            <p className="text-gray-500 mt-1">Map external provider IDs to internal hierarchy entities</p>
+            <h1 className="text-2xl font-bold font-display">Provider Mappings</h1>
+            <p className="text-muted-foreground">
+              Map external API entities to internal database records
+            </p>
           </div>
-          <div className="flex gap-2">
-            <button
-              className="px-4 py-2.5 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
-              data-testid="button-sync-all"
-            >
-              <RefreshCw size={18} />
-              Sync All
-            </button>
-            <button
-              onClick={() => { setEditingMapping(null); setShowForm(true); }}
-              className="px-4 py-2.5 bg-[#1a2d5c] text-white rounded-lg hover:bg-[#0f1d3d] flex items-center gap-2"
-              data-testid="button-add-mapping"
-            >
-              <Plus size={18} />
-              Add Mapping
-            </button>
-          </div>
+          <Button 
+            onClick={() => setMappingModalOpen(true)}
+            data-testid="create-mapping-button"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Mapping
+          </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center">
-                <Database size={20} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{mockMappings.length}</p>
-                <p className="text-sm text-gray-500">Total Mappings</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 text-green-700 rounded-lg flex items-center justify-center">
-                <LinkIcon size={20} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{mockProviders.length}</p>
-                <p className="text-sm text-gray-500">Connected Providers</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 text-purple-700 rounded-lg flex items-center justify-center">
-                <Code size={20} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{entityTypes.length}</p>
-                <p className="text-sm text-gray-500">Entity Types</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="dashboard" data-testid="tab-dashboard">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Coverage Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="mappings" data-testid="tab-mappings">
+              <Database className="h-4 w-4 mr-2" />
+              All Mappings
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-4 border-b border-gray-100">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search mappings..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a2d5c]"
-                  data-testid="input-search"
-                />
-              </div>
-              <div className="flex gap-2">
-                <select
-                  value={filterProvider}
-                  onChange={(e) => setFilterProvider(e.target.value)}
-                  className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a2d5c]"
-                  data-testid="select-provider-filter"
-                >
-                  <option value="all">All Providers</option>
-                  {mockProviders.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-                <select
-                  value={filterEntityType}
-                  onChange={(e) => setFilterEntityType(e.target.value)}
-                  className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a2d5c]"
-                  data-testid="select-entity-type-filter"
-                >
-                  <option value="all">All Types</option>
-                  {entityTypes.map(t => (
-                    <option key={t.id} value={t.id}>{t.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+          <TabsContent value="dashboard" className="space-y-6">
+            <CoverageDashboard sportSlug={selectedSportSlug} />
+            <UnmappedEntitiesList 
+              sportSlug={selectedSportSlug} 
+              onMapEntity={handleMapEntity}
+            />
+          </TabsContent>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Provider
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Entity Type
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Provider ID → Internal ID
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Last Synced
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredMappings.map((mapping) => (
-                  <tr 
-                    key={mapping.id} 
-                    className="hover:bg-gray-50 transition-colors"
-                    data-testid={`row-mapping-${mapping.id}`}
-                  >
-                    <td className="px-4 py-3">
-                      {getProviderBadge(mapping.providerName)}
-                    </td>
-                    <td className="px-4 py-3">
-                      {getEntityTypeBadge(mapping.providerEntityType)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2 font-mono text-sm">
-                        <span className="px-2 py-0.5 bg-orange-50 text-orange-700 rounded">
-                          {mapping.providerEntityId}
-                        </span>
-                        <span className="text-gray-400">→</span>
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">
-                          {mapping.internalEntityId}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-gray-900">
-                      {mapping.providerEntityName}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {mapping.lastSyncedAt 
-                        ? new Date(mapping.lastSyncedAt).toLocaleString()
-                        : "Never"
-                      }
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => handleViewPayload(mapping)}
-                          className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 hover:text-gray-900"
-                          title="View Raw Payload"
-                          data-testid={`view-payload-${mapping.id}`}
-                        >
-                          <Code size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleEdit(mapping)}
-                          className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 hover:text-gray-900"
-                          title="Edit Mapping"
-                          data-testid={`edit-${mapping.id}`}
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          className="p-2 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-600"
-                          title="Delete Mapping"
-                          data-testid={`delete-${mapping.id}`}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TabsContent value="mappings">
+            <AllMappingsTable sportSlug={selectedSportSlug} />
+          </TabsContent>
+        </Tabs>
 
-          {filteredMappings.length === 0 && (
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Database className="text-gray-400" size={32} />
-              </div>
-              <h3 className="font-medium text-gray-900">No mappings found</h3>
-              <p className="text-sm text-gray-500 mt-1">Try adjusting your search or filters</p>
-            </div>
-          )}
-        </div>
+        <MappingModal
+          open={mappingModalOpen}
+          onOpenChange={setMappingModalOpen}
+          prefillEntity={prefillEntity}
+          onSuccess={handleMappingSuccess}
+          sportSlug={selectedSportSlug}
+        />
       </div>
-
-      {showForm && (
-        <MappingFormModal
-          mapping={editingMapping}
-          onClose={() => { setShowForm(false); setEditingMapping(null); }}
-          onSave={handleSave}
-        />
-      )}
-
-      {viewingMapping && (
-        <JsonPreviewModal
-          mapping={viewingMapping}
-          onClose={() => setViewingMapping(null)}
-        />
-      )}
     </AdminLayout>
   );
 }
