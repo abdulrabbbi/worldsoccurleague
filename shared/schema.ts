@@ -130,6 +130,18 @@ export const partnerVerifications = pgTable("partner_verifications", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const sports = pgTable("sports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: varchar("code", { length: 20 }).notNull().unique(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  icon: text("icon"),
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const continents = pgTable("continents", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   code: varchar("code", { length: 10 }).notNull().unique(),
@@ -159,6 +171,7 @@ export const countries = pgTable("countries", {
 
 export const leagues = pgTable("leagues", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sportId: varchar("sport_id").references(() => sports.id),
   countryId: varchar("country_id").notNull().references(() => countries.id),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
