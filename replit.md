@@ -38,7 +38,14 @@ Routes follow a hierarchy pattern with ID + slug combinations for SEO and API-re
 
 ### Data Layer
 - **Sports Data Provider:** Abstraction layer (`sports-data-provider.ts`) that wraps API calls, currently using mock data but designed to swap in SportMonks or custom Grassroots API
-- **Schema:** Drizzle schema defines users, userPreferences, organizations, organizationMembers, userSubscriptions, and partnerVerifications tables with Zod validation via drizzle-zod
+- **Schema:** Drizzle schema defines users, userPreferences, organizations, organizationMembers, userSubscriptions, partnerVerifications, sports, continents, countries, leagues (with sportId), teams, seasons, fixtures, standings, venues, players, divisions, grassrootsSubmissions, providerMappings, and auditLogs tables with Zod validation via drizzle-zod
+
+### Multi-Sport Architecture
+- **Sports Lookup Table:** Root-level `sports` table (soccer, nfl, nba, mlb, nhl) enables multi-sport support
+- **Sport Context:** `leagues.sportId` (nullable FK) links leagues to sports; null defaults to soccer for backward compatibility
+- **Shared Tables:** All sports use the same canonical tables (leagues, teams, fixtures, standings) - no sport-specific tables
+- **Sport Hub Routing:** `/sport/:slug` pattern enables reusable Sport Hub template for non-soccer sports
+- **Soccer Priority:** Soccer remains the primary sport with dedicated hierarchy routes (/world, /continent, /country, /league)
 
 ### Subscription Tiers
 - **Free (Fan Access):** $0 - Follow teams and leagues, live scores, community access
