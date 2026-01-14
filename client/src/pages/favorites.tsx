@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { Link } from "wouter";
 import { ChevronLeft, Heart } from "lucide-react";
 
 export default function FavoritesPage() {
-  const [, setLocation] = useLocation();
   const [favorites] = useState<any[]>([]);
 
   return (
@@ -11,13 +10,14 @@ export default function FavoritesPage() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-card border-b border-border">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
-          <button
-            onClick={() => window.history.back()}
-            className="p-2 hover:bg-muted rounded-lg transition-colors"
-            data-testid="button-back"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+          <Link href="/home">
+            <a
+              className="p-2 hover:bg-muted rounded-lg transition-colors"
+              data-testid="button-back"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </a>
+          </Link>
           <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">Favorites</h1>
             <p className="text-xs text-muted-foreground">{favorites.length} saved</p>
