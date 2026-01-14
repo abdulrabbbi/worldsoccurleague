@@ -1,0 +1,44 @@
+Phase 2 Close-Out Requirements (Proof + Guardrails + UX Tweaks)
+
+Excellent — Phase 2 summary matches what we need (approval gate, promotion, duplicate detection, link-to-existing, audit logging, demo submissions).
+
+Before I mark Phase 2 as fully approved and frozen, please provide the proof artifacts and confirmations below:
+
+1) Demo Proof (screenshots or a 2–5 min screen recording)
+
+Please show one full example of each path:
+
+A. Promote to Official (creates new canonical entity)
+	•	Draft submission → submit to Pending → move to Review → Approve → Promote
+	•	Show the new canonical entity created in the main table
+	•	Show it appears in the correct hierarchy category in the app/admin
+	•	Show a mapping record is created with source = grassroots
+
+B. Link to Existing (duplicate resolution)
+	•	Start from an Approved submission that triggers duplicate candidates
+	•	Select “Link to Existing”
+	•	Show the submission becomes linked (no duplicate entity created)
+	•	Show the mapping record created with source = grassroots
+
+C. Rejection path
+	•	Pending/Review → Reject with feedback
+	•	Confirm submitter can view feedback and edit/resubmit
+
+2) Guardrails / Rules Confirmation
+
+Please confirm these rules are enforced:
+	•	Only Approved submissions can be Promoted or Linked
+	•	Promoted/Linked submissions become read-only for the submitter
+	•	A submission cannot be promoted more than once
+	•	Duplicate detection runs only at promotion time (or clearly defined) and results are visible
+	•	Audit logs include who / when / what (with before/after where applicable)
+
+3) Duplicate Scoring UX Tweaks (small improvement)
+
+Please add:
+	•	A visible confidence score (%) for each duplicate candidate
+	•	A short “Why matched” explanation (e.g., name match + country match)
+
+This will help non-technical admins make fast, confident decisions.
+
+Once I receive the demo artifacts and confirmations, I’ll approve Phase 2 as complete and we’ll move directly into Phase 3: Subscriptions + org roles + automated access so permissions are no longer manual.
