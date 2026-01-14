@@ -21,6 +21,7 @@ import {
   type InsertDivision,
   type Venue,
   type InsertVenue,
+  type Country,
   users,
   userPreferences,
   userSubscriptions,
@@ -31,7 +32,8 @@ import {
   leagues,
   teams,
   divisions,
-  venues
+  venues,
+  countries
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -374,6 +376,21 @@ export class DatabaseStorage implements IStorage {
 
     switch (submission.entityType) {
       case "league": {
+        const canonicalTypes = new Set(["professional", "college", "youth", "amateur", "pickup"]);
+        const grassrootsToCanonical: Record<string, string> = {
+          "high_school": "youth",
+          "adult_amateur": "amateur",
+        };
+        
+        let canonicalType: string;
+        if (canonicalTypes.has(submission.type)) {
+          canonicalType = submission.type;
+        } else if (grassrootsToCanonical[submission.type]) {
+          canonicalType = grassrootsToCanonical[submission.type];
+        } else {
+          canonicalType = "amateur";
+        }
+        
         const [newLeague] = await db.insert(leagues).values({
           countryId: submission.countryId!,
           name: submission.entityName,
@@ -381,7 +398,7 @@ export class DatabaseStorage implements IStorage {
           shortName: submission.shortName,
           logo: submission.logo,
           tier: submission.tier,
-          type: submission.type,
+          type: canonicalType,
           isActive: true,
         }).returning();
         promotedEntity = newLeague;
@@ -418,9 +435,14 @@ export class DatabaseStorage implements IStorage {
         const [newVenue] = await db.insert(venues).values({
           name: submission.entityName,
           slug: submission.slug,
+          address: submission.address,
           city: submission.city,
           stateCode: submission.stateCode,
           countryId: submission.countryId,
+          capacity: submission.capacity,
+          surface: submission.surface,
+          latitude: submission.latitude,
+          longitude: submission.longitude,
           isActive: true,
         }).returning();
         promotedEntity = newVenue;
@@ -439,6 +461,28 @@ export class DatabaseStorage implements IStorage {
       submission: updatedSubmission!,
       promotedEntity,
     };
+  }
+
+  async getCountries(): Promise<Country[]> {
+    return await db.select().from(countries);
+  }
+
+  async getLeagues(): Promise<League[]> {
+    return await db.select().from(leagues);
+  }
+
+  async getOrganizationsForUser(userId: string): Promise<Organization[]> {
+    const memberships = await db.select().from(organizationMembers).where(eq(organizationMembers.userId, userId));
+    const orgIds = memberships.map(m => m.organizationId);
+    
+    if (orgIds.length === 0) return [];
+    
+    const orgs = [];
+    for (const orgId of orgIds) {
+      const org = await this.getOrganization(orgId);
+      if (org) orgs.push(org);
+    }
+    return orgs;
   }
 }
 

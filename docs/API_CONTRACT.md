@@ -379,8 +379,29 @@ When a submission is promoted, fields map 1:1:
 | `city` | `city` |
 | `venue` | `venue` |
 | `tier` | `tier` |
+| `address` | `address` (venues) |
+| `capacity` | `capacity` (venues) |
+| `surface` | `surface` (venues) |
+| `latitude` | `latitude` (venues) |
+| `longitude` | `longitude` (venues) |
 
 The `promotedEntityId` field in submissions stores the newly created official entity's ID for audit trail.
+
+---
+
+## Type Mapping: Grassroots → Canonical
+
+Grassroots submission types are mapped to canonical league types during promotion:
+
+| Grassroots Type | Canonical Type |
+|-----------------|----------------|
+| `college` | `college` |
+| `high_school` | `youth` |
+| `youth` | `youth` |
+| `adult_amateur` | `amateur` |
+| `pickup` | `pickup` |
+
+**Canonical League Types:** `professional`, `college`, `youth`, `amateur`, `pickup`
 
 ---
 

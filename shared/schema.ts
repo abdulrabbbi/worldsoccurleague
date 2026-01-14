@@ -296,6 +296,12 @@ export const grassrootsSubmissions = pgTable("grassroots_submissions", {
   ageGroup: text("age_group"),
   gender: text("gender"),
   
+  address: text("address"),
+  capacity: integer("capacity"),
+  surface: text("surface"),
+  latitude: text("latitude"),
+  longitude: text("longitude"),
+  
   entityData: jsonb("entity_data"),
   
   promotedEntityId: varchar("promoted_entity_id"),

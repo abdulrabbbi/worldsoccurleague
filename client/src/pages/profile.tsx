@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { LogOut, Heart, Settings, Shield, ArrowLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { LogOut, Heart, Settings, Shield, ArrowLeft, ChevronRight, RefreshCw, Building2 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useState } from "react";
 
@@ -95,6 +95,29 @@ export default function ProfilePage() {
                   <div className="text-left">
                     <p className="font-semibold">Admin Dashboard</p>
                     <p className="text-xs text-white/70">Manage leagues, teams, users & more</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Partner Section */}
+        {(user?.planTier === "pro" || user?.planTier === "partner") && (
+          <div className="mb-6">
+            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide mb-3">Partner Tools</h3>
+            <div className="space-y-2">
+              <button
+                onClick={() => setLocation("/partner")}
+                className="w-full flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 transition-colors"
+                data-testid="button-partner-portal"
+              >
+                <div className="flex items-center gap-3">
+                  <Building2 className="w-5 h-5" />
+                  <div className="text-left">
+                    <p className="font-semibold">Partner Portal</p>
+                    <p className="text-xs text-white/70">Submit leagues, teams & venues</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5" />

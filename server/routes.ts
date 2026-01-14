@@ -528,5 +528,114 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/partner/organizations", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const orgs = await storage.getOrganizationsForUser(user.id);
+      res.json(orgs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch organizations" });
+    }
+  });
+
+  app.post("/api/partner/organizations", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      if (user.planTier !== "partner") {
+        return res.status(403).json({ error: "Partner tier required" });
+      }
+      
+      const data = insertOrganizationSchema.parse({
+        ...req.body,
+        createdById: user.id,
+      });
+      
+      const org = await storage.createOrganization(data);
+      await storage.addOrganizationMember({
+        organizationId: org.id,
+        userId: user.id,
+        role: "owner",
+      });
+      
+      res.json({ organization: org });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create organization" });
+    }
+  });
+
+  app.get("/api/countries", async (_req, res) => {
+    try {
+      const countries = await storage.getCountries();
+      res.json(countries);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch countries" });
+    }
+  });
+
+  app.get("/api/leagues", async (_req, res) => {
+    try {
+      const leagues = await storage.getLeagues();
+      res.json(leagues);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch leagues" });
+    }
+  });
+
+  app.post("/api/grassroots/bulk/teams", requireAuth, requireGrassrootsAccess, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const { teams } = req.body;
+      
+      if (!Array.isArray(teams) || teams.length === 0) {
+        return res.status(400).json({ error: "Teams array required" });
+      }
+      
+      const submissions = [];
+      for (const team of teams) {
+        const data = insertGrassrootsSubmissionSchema.parse({
+          ...team,
+          entityType: "team",
+          submittedById: user.id,
+        });
+        const submission = await storage.createGrassrootsSubmission(data);
+        submissions.push(submission);
+      }
+      
+      res.json({ submissions, count: submissions.length });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create bulk submissions" });
+    }
+  });
+
+  app.post("/api/grassroots/bulk/fixtures", requireAuth, requireGrassrootsAccess, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const { fixtures } = req.body;
+      
+      if (!Array.isArray(fixtures) || fixtures.length === 0) {
+        return res.status(400).json({ error: "Fixtures array required" });
+      }
+      
+      const results = [];
+      for (const fixture of fixtures) {
+        results.push({
+          ...fixture,
+          submittedById: user.id,
+          status: "pending",
+        });
+      }
+      
+      res.json({ fixtures: results, count: results.length });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create bulk fixtures" });
+    }
+  });
+
   return httpServer;
 }

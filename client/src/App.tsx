@@ -39,6 +39,12 @@ import Favorites from "@/pages/favorites";
 import Shop from "@/pages/shop";
 import Marketplace from "@/pages/marketplace";
 
+// Partner pages
+import PartnerDashboard from "@/pages/partner/index";
+import SubmitLeague from "@/pages/partner/submit-league";
+import SubmitTeam from "@/pages/partner/submit-team";
+import SubmitVenue from "@/pages/partner/submit-venue";
+
 // Admin pages
 import AdminDashboard from "@/pages/admin/index";
 import AdminContinents from "@/pages/admin/continents";
@@ -91,6 +97,12 @@ function Router() {
       <Route path="/player/:id-:slug" component={Player} />
       <Route path="/match/:id" component={Match} />
       
+      {/* Partner Routes */}
+      <Route path="/partner" component={PartnerDashboard} />
+      <Route path="/partner/submit/league" component={SubmitLeague} />
+      <Route path="/partner/submit/team" component={SubmitTeam} />
+      <Route path="/partner/submit/venue" component={SubmitVenue} />
+
       {/* Admin Routes */}
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/continents" component={AdminContinents} />
