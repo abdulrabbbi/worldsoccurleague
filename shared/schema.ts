@@ -426,6 +426,12 @@ export const insertPartnerVerificationSchema = createInsertSchema(partnerVerific
   updatedAt: true,
 });
 
+export const insertSportSchema = createInsertSchema(sports).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertContinentSchema = createInsertSchema(continents).omit({
   id: true,
   createdAt: true,
@@ -518,6 +524,8 @@ export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type InsertSport = z.infer<typeof insertSportSchema>;
+export type Sport = typeof sports.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganizationMember = z.infer<typeof insertOrganizationMemberSchema>;
