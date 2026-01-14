@@ -29,8 +29,11 @@ export const grassrootsTypeEnum = pgEnum("grassroots_type", [
 ]);
 
 export const grassrootsStatusEnum = pgEnum("grassroots_status", [
-  "pending", 
-  "approved", 
+  "draft",
+  "pending",
+  "review", 
+  "approved",
+  "promoted", 
   "rejected"
 ]);
 
@@ -41,7 +44,10 @@ export const auditActionEnum = pgEnum("audit_action", [
   "approve", 
   "reject",
   "activate",
-  "deactivate"
+  "deactivate",
+  "submit_for_review",
+  "promote",
+  "link_existing"
 ]);
 export const billingCycleEnum = pgEnum("billing_cycle", ["monthly", "yearly"]);
 export const subscriptionStatusEnum = pgEnum("subscription_status", ["active", "canceled", "past_due", "trialing"]);
