@@ -1,10 +1,19 @@
 import { AppShell } from "@/components/layout/app-shell";
-import { MessageSquare, Users } from "lucide-react";
+import { MessageSquare, Users, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Community() {
   return (
     <AppShell title="Community">
-      <div className="p-8 flex flex-col items-center justify-center text-center space-y-4">
+      <div className="p-4">
+        <Link href="/" data-testid="link-back-home">
+          <a className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft size={16} />
+            Back to Home
+          </a>
+        </Link>
+      </div>
+      <div className="p-8 pt-4 flex flex-col items-center justify-center text-center space-y-4">
         <div className="w-16 h-16 bg-accent/10 text-accent rounded-full flex items-center justify-center mb-2">
           <Users size={32} />
         </div>

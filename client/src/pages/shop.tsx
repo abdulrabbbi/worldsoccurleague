@@ -1,10 +1,17 @@
 import { AppShell } from "@/components/layout/app-shell";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Shop() {
   return (
     <AppShell>
       <div className="p-4 space-y-6">
+        <Link href="/" data-testid="link-back-home">
+          <a className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft size={16} />
+            Back to Home
+          </a>
+        </Link>
         <div className="text-center py-12">
           <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
             <ShoppingBag size={32} className="text-gray-400" />
