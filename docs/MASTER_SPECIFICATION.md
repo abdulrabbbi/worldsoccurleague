@@ -1040,6 +1040,29 @@ The Home page "More Sports" section displays:
 | mlb | MLB Baseball | mlb | ⚾ | 3 |
 | nhl | NHL Hockey | nhl | 🏒 | 4 |
 
+### Schema Freeze - Multi-Sport Foundation
+
+**Validated: January 2026**
+
+The following checklist items have been validated and the multi-sport foundation is frozen:
+
+| # | Validation Item | Status | Notes |
+|---|-----------------|--------|-------|
+| 1 | `/sport/nfl` Sport Hub renders correctly using API-driven data | ✓ Validated | API returns sport + leagues correctly |
+| 2 | League → Team → Fixtures/Standings navigation works under `/sport/nfl` | ✓ Validated | Routes and API endpoints functional |
+| 3 | Existing soccer routes (`/world`, `/favorites`, hierarchy) are unaffected | ✓ Validated | Null `sportId` defaults to soccer |
+| 4 | All non-soccer sports reuse canonical tables (no sport-specific tables) | ✓ Validated | Single set of tables for all sports |
+| 5 | API responses consistently resolve sport context via `sportId`/`sportCode` | ✓ Validated | All responses include sport context |
+
+**Frozen Components:**
+- `sports` table schema
+- `leagues.sportId` nullable FK pattern
+- Sport Hub routing (`/sport/:slug`, `/sport/:slug/league/:id-:slug`, `/sport/:slug/team/:id-:slug`)
+- API endpoints (`/api/sports`, `/api/sports/:slug`, `/api/sports/:slug/leagues`)
+- "More Sports" section on Home page
+
+**Change Control:** Future modifications to multi-sport architecture require proposal + approval per Section 6 change control process.
+
 ---
 
 ## Deliverables Checklist

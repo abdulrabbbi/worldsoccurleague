@@ -3,6 +3,15 @@ import { MatchCard } from "@/components/ui/match-card";
 import { api } from "@/lib/mock-data";
 import { Link } from "wouter";
 import { Trophy, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
+
+interface Sport {
+  id: string;
+  code: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+}
 
 const POPULAR_CUPS = [
   { id: "cup-ucl", name: "Champions League", shortName: "UCL", icon: "🏆", region: "Europe" },
@@ -17,6 +26,23 @@ export default function Home() {
   const matches = api.getMatches();
   const liveMatches = matches.filter(m => m.status === "LIVE");
   const upcomingMatches = matches.filter(m => m.status !== "LIVE");
+  
+  const [otherSports, setOtherSports] = useState<Sport[]>([]);
+
+  useEffect(() => {
+    const loadSports = async () => {
+      try {
+        const response = await fetch("/api/sports");
+        if (response.ok) {
+          const sports = await response.json();
+          setOtherSports(sports.filter((s: Sport) => s.code !== "soccer"));
+        }
+      } catch (error) {
+        console.error("Failed to load sports:", error);
+      }
+    };
+    loadSports();
+  }, []);
 
   return (
     <AppShell>
@@ -108,6 +134,25 @@ export default function Home() {
             </Link>
           </div>
         </section>
+
+        {otherSports.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-lg font-bold text-foreground">More Sports</h2>
+            <div className="grid grid-cols-4 gap-2">
+              {otherSports.map(sport => (
+                <Link key={sport.id} href={`/sport/${sport.slug}`}>
+                  <div 
+                    className="p-3 bg-card border border-border rounded-xl cursor-pointer hover:border-primary transition-colors text-center"
+                    data-testid={`sport-card-${sport.code}`}
+                  >
+                    <span className="text-2xl block mb-1">{sport.icon || "🏆"}</span>
+                    <span className="text-xs font-semibold block text-foreground">{sport.code.toUpperCase()}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
       </div>
     </AppShell>
