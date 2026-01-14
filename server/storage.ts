@@ -26,6 +26,8 @@ import {
   type InsertSport,
   type AuditLog,
   type InsertAuditLog,
+  type ProviderMapping,
+  type InsertProviderMapping,
   users,
   userPreferences,
   userSubscriptions,
@@ -39,10 +41,11 @@ import {
   venues,
   countries,
   sports,
-  auditLogs
+  auditLogs,
+  providerMappings
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, or, sql, count } from "drizzle-orm";
 import type { PlanTier } from "@shared/plans";
 
 export interface IStorage {
@@ -101,6 +104,16 @@ export interface IStorage {
   
   createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
   getAuditLogs(filters?: { entityType?: string; sportId?: string; limit?: number }): Promise<AuditLog[]>;
+
+  getProviderMappings(filters?: { providerName?: string; entityType?: string; sportSlug?: string }): Promise<ProviderMapping[]>;
+  getProviderMapping(id: string): Promise<ProviderMapping | undefined>;
+  createProviderMapping(mapping: InsertProviderMapping): Promise<ProviderMapping>;
+  updateProviderMapping(id: string, updates: Partial<ProviderMapping>): Promise<ProviderMapping | undefined>;
+  deleteProviderMapping(id: string): Promise<boolean>;
+  checkMappingConflict(providerName: string, providerEntityType: string, providerEntityId: string, internalEntityId: string, excludeId?: string): Promise<{ type: 'provider_conflict' | 'internal_conflict'; existingMapping: ProviderMapping } | null>;
+  getCoverageStats(sportSlug?: string): Promise<{ entityType: string; total: number; mapped: number; percentage: number }[]>;
+  getUnmappedEntities(entityType: 'league' | 'team', sportSlug?: string, limit?: number): Promise<{ id: string; name: string; entityType: string; sportCode?: string }[]>;
+  getAllTeams(): Promise<Team[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -613,6 +626,143 @@ export class DatabaseStorage implements IStorage {
     }
     
     return await query;
+  }
+
+  async getProviderMappings(filters?: { providerName?: string; entityType?: string; sportSlug?: string }): Promise<ProviderMapping[]> {
+    let result = await db.select().from(providerMappings).orderBy(desc(providerMappings.createdAt));
+    
+    if (filters?.providerName) {
+      result = result.filter(m => m.providerName === filters.providerName);
+    }
+    if (filters?.entityType) {
+      result = result.filter(m => m.providerEntityType === filters.entityType);
+    }
+    
+    return result;
+  }
+
+  async getProviderMapping(id: string): Promise<ProviderMapping | undefined> {
+    const result = await db.select().from(providerMappings).where(eq(providerMappings.id, id));
+    return result[0];
+  }
+
+  async createProviderMapping(mapping: InsertProviderMapping): Promise<ProviderMapping> {
+    const result = await db.insert(providerMappings).values(mapping).returning();
+    return result[0];
+  }
+
+  async updateProviderMapping(id: string, updates: Partial<ProviderMapping>): Promise<ProviderMapping | undefined> {
+    const result = await db.update(providerMappings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(providerMappings.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteProviderMapping(id: string): Promise<boolean> {
+    const result = await db.delete(providerMappings).where(eq(providerMappings.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async checkMappingConflict(
+    providerName: string, 
+    providerEntityType: string, 
+    providerEntityId: string, 
+    internalEntityId: string,
+    excludeId?: string
+  ): Promise<{ type: 'provider_conflict' | 'internal_conflict'; existingMapping: ProviderMapping } | null> {
+    const allMappings = await db.select().from(providerMappings);
+    
+    for (const mapping of allMappings) {
+      if (excludeId && mapping.id === excludeId) continue;
+      
+      if (mapping.providerName === providerName && 
+          mapping.providerEntityType === providerEntityType && 
+          mapping.providerEntityId === providerEntityId &&
+          mapping.internalEntityId !== internalEntityId) {
+        return { type: 'provider_conflict', existingMapping: mapping };
+      }
+      
+      if (mapping.providerName === providerName &&
+          mapping.providerEntityType === providerEntityType &&
+          mapping.internalEntityId === internalEntityId &&
+          mapping.providerEntityId !== providerEntityId) {
+        return { type: 'internal_conflict', existingMapping: mapping };
+      }
+    }
+    
+    return null;
+  }
+
+  async getCoverageStats(sportSlug?: string): Promise<{ entityType: string; total: number; mapped: number; percentage: number }[]> {
+    const leagueList = await this.getAdminLeagues(sportSlug);
+    const allTeams = await db.select().from(teams);
+    const allMappings = await db.select().from(providerMappings);
+    
+    let relevantTeams = allTeams;
+    if (sportSlug && sportSlug !== "all") {
+      const leagueIds = new Set(leagueList.map(l => l.id));
+      relevantTeams = allTeams.filter(t => t.leagueId && leagueIds.has(t.leagueId));
+    }
+    
+    const leagueMappings = allMappings.filter(m => m.providerEntityType === "league");
+    const teamMappings = allMappings.filter(m => m.providerEntityType === "team");
+    
+    const mappedLeagueIds = new Set(leagueMappings.map(m => m.internalEntityId));
+    const mappedTeamIds = new Set(teamMappings.map(m => m.internalEntityId));
+    
+    const mappedLeaguesCount = leagueList.filter(l => mappedLeagueIds.has(l.id)).length;
+    const mappedTeamsCount = relevantTeams.filter(t => mappedTeamIds.has(t.id)).length;
+    
+    return [
+      {
+        entityType: "league",
+        total: leagueList.length,
+        mapped: mappedLeaguesCount,
+        percentage: leagueList.length > 0 ? Math.round((mappedLeaguesCount / leagueList.length) * 100) : 0,
+      },
+      {
+        entityType: "team",
+        total: relevantTeams.length,
+        mapped: mappedTeamsCount,
+        percentage: relevantTeams.length > 0 ? Math.round((mappedTeamsCount / relevantTeams.length) * 100) : 0,
+      },
+    ];
+  }
+
+  async getUnmappedEntities(entityType: 'league' | 'team', sportSlug?: string, limit?: number): Promise<{ id: string; name: string; entityType: string; sportCode?: string }[]> {
+    const allMappings = await db.select().from(providerMappings);
+    const mappedIds = new Set(allMappings.filter(m => m.providerEntityType === entityType).map(m => m.internalEntityId));
+    
+    if (entityType === "league") {
+      const leagueList = await this.getAdminLeagues(sportSlug);
+      let unmapped = leagueList
+        .filter(l => !mappedIds.has(l.id))
+        .map(l => ({ id: l.id, name: l.name, entityType: "league", sportCode: l.sportCode }));
+      if (limit) unmapped = unmapped.slice(0, limit);
+      return unmapped;
+    } else {
+      const leagueList = await this.getAdminLeagues(sportSlug);
+      const leagueIds = new Set(leagueList.map(l => l.id));
+      const allTeams = await db.select().from(teams);
+      
+      let relevantTeams = sportSlug && sportSlug !== "all" 
+        ? allTeams.filter(t => t.leagueId && leagueIds.has(t.leagueId))
+        : allTeams;
+      
+      let unmapped = relevantTeams
+        .filter(t => !mappedIds.has(t.id))
+        .map(t => {
+          const league = leagueList.find(l => l.id === t.leagueId);
+          return { id: t.id, name: t.name, entityType: "team", sportCode: league?.sportCode };
+        });
+      if (limit) unmapped = unmapped.slice(0, limit);
+      return unmapped;
+    }
+  }
+
+  async getAllTeams(): Promise<Team[]> {
+    return await db.select().from(teams);
   }
 }
 
