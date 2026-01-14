@@ -1,0 +1,142 @@
+USA Soccer Leagues
+
+Admin Panel, API & Data Architecture Alignment – Master Specification Request
+
+Purpose
+
+Before continuing UI expansion or integrations, we want to proactively lock down the foundational data architecture so the App UI, Admin Panel, Grassroots submissions, and external providers (e.g. SportMonks) all remain fully aligned, scalable, and future-proof.
+
+This document outlines the deliverables and confirmations we are requesting.
+
+⸻
+
+1. Canonical Data Contract (Source of Truth)
+
+Please provide a Canonical Data Contract that defines the authoritative schema used across:
+	•	App (Home navigation, favourites, pages)
+	•	Admin Panel
+	•	Grassroots submissions
+	•	External API integrations (SportMonks, partners)
+
+For each entity, include:
+	•	Entity name
+	•	Field names (exact spelling)
+	•	Required vs optional fields
+	•	Parent/child relationships (IDs)
+	•	Example JSON payloads
+
+Core entities should include (at minimum):
+	•	Continent
+	•	Country
+	•	State
+	•	City
+	•	Organization
+	•	League
+	•	Team
+	•	Competition (Season / Cup / Tournament)
+	•	Venue
+
+This contract will serve as the non-negotiable reference for all systems.
+
+⸻
+
+2. UI → Data Mapping (Navigation Contract)
+
+The Home / Navigation hierarchy is a UX grouping layer, not a database structure.
+
+Please provide a UI-to-Data Mapping Table that shows how each navigation section maps to canonical data fields.
+
+Example format:
+	•	Professional Leagues → league_type = "professional"
+	•	College Soccer → league_type = "college", governing_body = "NCAA"
+	•	Youth Soccer → league_type = "youth"
+	•	Adult Soccer → league_type = "adult"
+	•	Pick-up Soccer → activity_type = "pickup"
+	•	Fan Clubs → organization_type = "fan_club"
+	•	Cups & Trophies → competition_type = "cup"
+	•	Tournaments → competition_type = "tournament"
+
+This confirms that navigation sections are filters/views, not separate tables.
+
+⸻
+
+3. Grassroots Submission & Promotion Rules
+
+Please document the full Grassroots lifecycle clearly.
+
+Include:
+	•	Required fields for submission (League, Team, Venue, Match, Organization)
+	•	Submission states (Draft → Review → Verified / Rejected)
+	•	Promotion logic:
+	•	What official entity is created upon approval
+	•	How IDs are assigned and preserved
+	•	How duplicates are detected/prevented
+	•	Confirmation that Grassroots submissions write into the same canonical tables as Admin-created data
+
+Goal:
+No re-entry of data. No parallel systems.
+
+⸻
+
+4. Provider Mapping Specification (SportMonks-Ready)
+
+Please provide a Provider Mapping Specification showing how external provider data maps into our canonical model.
+
+Include:
+	•	provider_name
+	•	provider_entity_type
+	•	provider_entity_id
+	•	internal_entity_id
+
+Provide at least one concrete example for:
+	•	A league (e.g. MLS)
+	•	A team
+	•	A competition/season
+
+This ensures external data populates the correct place in the hierarchy (e.g. USA → Professional → MLS → Teams).
+
+⸻
+
+5. End-to-End Validation Scenarios
+
+Please confirm the system supports the following real-world scenarios:
+	1.	Admin creates a League and Team → it appears correctly under the Home navigation and favourites flow
+	2.	Partner submits a grassroots league → admin approves → it becomes browseable via “Find in your area”
+	3.	External provider data (mock SportMonks) maps to an existing league/team and populates correctly without duplication
+
+These scenarios confirm full alignment across UI, Admin, API, and data.
+
+⸻
+
+6. Schema Freeze Confirmation
+
+Once the Canonical Data Contract is approved, please confirm that:
+	•	Entity structure
+	•	Field names
+	•	Relationships
+
+are considered frozen, and future changes require explicit review to prevent breaking integrations.
+
+⸻
+
+7. Deliverables Summary
+
+Please deliver the following:
+	1.	Canonical Data Contract (schema + example JSON)
+	2.	UI → Data Mapping table
+	3.	Grassroots submission & promotion documentation
+	4.	Provider Mapping specification
+	5.	Confirmation of end-to-end test scenarios
+	6.	Schema freeze acknowledgment
+
+⸻
+
+Final Goal
+
+To ensure that:
+	•	The Admin Panel
+	•	Grassroots API
+	•	App UI (Home, favourites, browsing)
+	•	External providers (SportMonks, partners)
+
+all operate on one shared data language, allowing the platform to scale cleanly and support a Kicker-style experience without rework or data drift.
