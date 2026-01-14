@@ -139,6 +139,34 @@ export const partnerVerifications = pgTable("partner_verifications", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const apiKeys = pgTable("api_keys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull().references(() => organizations.id),
+  name: text("name").notNull(),
+  keyHash: text("key_hash").notNull(),
+  keyPrefix: text("key_prefix").notNull(),
+  scopes: text("scopes").array().default([]),
+  rateLimitPerMinute: integer("rate_limit_per_minute").default(60).notNull(),
+  rateLimitPerDay: integer("rate_limit_per_day").default(10000).notNull(),
+  lastUsedAt: timestamp("last_used_at"),
+  expiresAt: timestamp("expires_at"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdById: varchar("created_by_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  revokedAt: timestamp("revoked_at"),
+});
+
+export const apiKeyUsage = pgTable("api_key_usage", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  apiKeyId: varchar("api_key_id").notNull().references(() => apiKeys.id),
+  endpoint: text("endpoint").notNull(),
+  method: text("method").notNull(),
+  statusCode: integer("status_code"),
+  responseTimeMs: integer("response_time_ms"),
+  ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const sports = pgTable("sports", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   code: varchar("code", { length: 20 }).notNull().unique(),
@@ -437,6 +465,18 @@ export const insertPartnerVerificationSchema = createInsertSchema(partnerVerific
   updatedAt: true,
 });
 
+export const insertApiKeySchema = createInsertSchema(apiKeys).omit({
+  id: true,
+  createdAt: true,
+  revokedAt: true,
+  lastUsedAt: true,
+});
+
+export const insertApiKeyUsageSchema = createInsertSchema(apiKeyUsage).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertSportSchema = createInsertSchema(sports).omit({
   id: true,
   createdAt: true,
@@ -543,6 +583,10 @@ export type InsertOrganizationMember = z.infer<typeof insertOrganizationMemberSc
 export type OrganizationMember = typeof organizationMembers.$inferSelect;
 export type InsertPartnerVerification = z.infer<typeof insertPartnerVerificationSchema>;
 export type PartnerVerification = typeof partnerVerifications.$inferSelect;
+export type InsertApiKey = z.infer<typeof insertApiKeySchema>;
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type InsertApiKeyUsage = z.infer<typeof insertApiKeyUsageSchema>;
+export type ApiKeyUsage = typeof apiKeyUsage.$inferSelect;
 export type InsertContinent = z.infer<typeof insertContinentSchema>;
 export type Continent = typeof continents.$inferSelect;
 export type InsertCountry = z.infer<typeof insertCountrySchema>;

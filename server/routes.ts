@@ -648,12 +648,299 @@ export async function registerRoutes(
         role: "owner",
       });
       
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "create",
+        entityType: "organization",
+        entityId: org.id,
+        entityName: org.name,
+        newData: { type: org.type, slug: org.slug },
+      });
+      
       res.json({ organization: org });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.errors });
       }
       res.status(500).json({ error: "Failed to create organization" });
+    }
+  });
+
+  app.get("/api/partner/organizations/:orgId/members", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const members = await storage.getOrganizationMembers(req.params.orgId);
+      const userMember = members.find(m => m.userId === user.id);
+      
+      if (!userMember && !canVerifyPartners(req)) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      res.json({ members });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch members" });
+    }
+  });
+
+  app.post("/api/partner/organizations/:orgId/members", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const members = await storage.getOrganizationMembers(req.params.orgId);
+      const userMember = members.find(m => m.userId === user.id);
+      
+      if (!userMember || !["owner", "admin"].includes(userMember.role)) {
+        return res.status(403).json({ error: "Only owners and admins can add members" });
+      }
+      
+      const { userId, role } = req.body;
+      if (!userId || !role) {
+        return res.status(400).json({ error: "userId and role are required" });
+      }
+      
+      const newMember = await storage.addOrganizationMember({
+        organizationId: req.params.orgId,
+        userId,
+        role,
+        invitedById: user.id,
+      });
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "create",
+        entityType: "organization_member",
+        entityId: newMember.id,
+        entityName: `Member ${userId}`,
+        newData: { organizationId: req.params.orgId, role },
+      });
+      
+      res.json({ member: newMember });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to add member" });
+    }
+  });
+
+  app.patch("/api/partner/organizations/:orgId/members/:memberId", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const members = await storage.getOrganizationMembers(req.params.orgId);
+      const userMember = members.find(m => m.userId === user.id);
+      const targetMember = members.find(m => m.id === req.params.memberId);
+      
+      if (!userMember || userMember.role !== "owner") {
+        return res.status(403).json({ error: "Only owners can change member roles" });
+      }
+      
+      if (!targetMember) {
+        return res.status(404).json({ error: "Member not found" });
+      }
+      
+      const { role } = req.body;
+      const previousRole = targetMember.role;
+      const updated = await storage.updateOrganizationMemberRole(req.params.memberId, role);
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "update",
+        entityType: "organization_member",
+        entityId: req.params.memberId,
+        entityName: `Member role change`,
+        previousData: { role: previousRole },
+        newData: { role },
+      });
+      
+      res.json({ member: updated });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update member role" });
+    }
+  });
+
+  app.delete("/api/partner/organizations/:orgId/members/:memberId", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const members = await storage.getOrganizationMembers(req.params.orgId);
+      const userMember = members.find(m => m.userId === user.id);
+      const targetMember = members.find(m => m.id === req.params.memberId);
+      
+      if (!targetMember) {
+        return res.status(404).json({ error: "Member not found" });
+      }
+      
+      const canRemove = userMember?.role === "owner" || 
+                        (userMember?.role === "admin" && targetMember.role !== "owner") ||
+                        targetMember.userId === user.id;
+      
+      if (!canRemove) {
+        return res.status(403).json({ error: "Permission denied" });
+      }
+      
+      await storage.removeOrganizationMember(req.params.memberId);
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "delete",
+        entityType: "organization_member",
+        entityId: req.params.memberId,
+        entityName: `Member removed`,
+        previousData: { role: targetMember.role },
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to remove member" });
+    }
+  });
+
+  app.get("/api/partner/organizations/:orgId/api-keys", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const members = await storage.getOrganizationMembers(req.params.orgId);
+      const userMember = members.find(m => m.userId === user.id);
+      
+      if (!userMember || !["owner", "admin"].includes(userMember.role)) {
+        return res.status(403).json({ error: "Only owners and admins can view API keys" });
+      }
+      
+      const keys = await storage.getApiKeys(req.params.orgId);
+      const safeKeys = keys.map(k => ({
+        id: k.id,
+        name: k.name,
+        keyPrefix: k.keyPrefix,
+        scopes: k.scopes,
+        rateLimitPerMinute: k.rateLimitPerMinute,
+        rateLimitPerDay: k.rateLimitPerDay,
+        lastUsedAt: k.lastUsedAt,
+        isActive: k.isActive,
+        createdAt: k.createdAt,
+      }));
+      
+      res.json({ apiKeys: safeKeys });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch API keys" });
+    }
+  });
+
+  app.post("/api/partner/organizations/:orgId/api-keys", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const org = await storage.getOrganization(req.params.orgId);
+      
+      if (!org || org.verificationStatus !== "verified") {
+        return res.status(403).json({ error: "Organization must be verified to create API keys" });
+      }
+      
+      const members = await storage.getOrganizationMembers(req.params.orgId);
+      const userMember = members.find(m => m.userId === user.id);
+      
+      if (!userMember || userMember.role !== "owner") {
+        return res.status(403).json({ error: "Only owners can create API keys" });
+      }
+      
+      const { name, scopes } = req.body;
+      const rawKey = `wsl_${crypto.randomUUID().replace(/-/g, '')}`;
+      const keyPrefix = rawKey.substring(0, 12);
+      const keyHash = rawKey;
+      
+      const apiKey = await storage.createApiKey({
+        organizationId: req.params.orgId,
+        name: name || "API Key",
+        keyHash,
+        keyPrefix,
+        scopes: scopes || ["read"],
+        createdById: user.id,
+      });
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "create",
+        entityType: "api_key",
+        entityId: apiKey.id,
+        entityName: name || "API Key",
+        newData: { scopes, organizationId: req.params.orgId },
+      });
+      
+      res.json({ 
+        apiKey: {
+          id: apiKey.id,
+          name: apiKey.name,
+          key: rawKey,
+          keyPrefix: apiKey.keyPrefix,
+          scopes: apiKey.scopes,
+        },
+        message: "Save this key securely - it will not be shown again"
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create API key" });
+    }
+  });
+
+  app.delete("/api/partner/organizations/:orgId/api-keys/:keyId", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const members = await storage.getOrganizationMembers(req.params.orgId);
+      const userMember = members.find(m => m.userId === user.id);
+      
+      if (!userMember || userMember.role !== "owner") {
+        return res.status(403).json({ error: "Only owners can revoke API keys" });
+      }
+      
+      await storage.revokeApiKey(req.params.keyId);
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "delete",
+        entityType: "api_key",
+        entityId: req.params.keyId,
+        entityName: "API Key revoked",
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to revoke API key" });
+    }
+  });
+
+  app.post("/api/subscriptions/upgrade", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const { planTier, billingCycle } = req.body;
+      
+      if (!["pro", "partner"].includes(planTier)) {
+        return res.status(400).json({ error: "Invalid plan tier" });
+      }
+      
+      if (!["monthly", "yearly"].includes(billingCycle)) {
+        return res.status(400).json({ error: "Invalid billing cycle" });
+      }
+      
+      const result = await storage.upgradeUserToPlan(user.id, planTier, billingCycle);
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "update",
+        entityType: "subscription",
+        entityId: result.subscription.id,
+        entityName: `Plan upgrade to ${planTier}`,
+        previousData: { planTier: user.planTier },
+        newData: { planTier, billingCycle },
+      });
+      
+      res.json({ 
+        user: result.user, 
+        subscription: result.subscription,
+        message: `Successfully upgraded to ${planTier}`
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to upgrade subscription" });
+    }
+  });
+
+  app.get("/api/subscriptions/current", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const subscription = await storage.getUserSubscription(user.id);
+      res.json({ subscription, planTier: user.planTier });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch subscription" });
     }
   });
 

@@ -28,6 +28,8 @@ import {
   type InsertAuditLog,
   type ProviderMapping,
   type InsertProviderMapping,
+  type ApiKey,
+  type ApiKeyUsage,
   users,
   userPreferences,
   userSubscriptions,
@@ -43,7 +45,9 @@ import {
   sports,
   seasons,
   auditLogs,
-  providerMappings
+  providerMappings,
+  apiKeys,
+  apiKeyUsage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, or, sql, count } from "drizzle-orm";
@@ -119,6 +123,15 @@ export interface IStorage {
   getUnmappedEntities(entityType: 'league' | 'team' | 'season', sportSlug?: string, limit?: number): Promise<{ id: string; name: string; entityType: string; sportCode?: string }[]>;
   getAllTeams(): Promise<Team[]>;
   getAllSeasons(sportSlug?: string): Promise<{ id: string; name: string; leagueId: string }[]>;
+  
+  createApiKey(data: { organizationId: string; name: string; keyHash: string; keyPrefix: string; scopes?: string[]; createdById: string }): Promise<ApiKey>;
+  getApiKeys(organizationId: string): Promise<ApiKey[]>;
+  getApiKeyByPrefix(prefix: string): Promise<ApiKey | undefined>;
+  revokeApiKey(id: string): Promise<boolean>;
+  updateApiKeyLastUsed(id: string): Promise<void>;
+  logApiKeyUsage(usage: { apiKeyId: string; endpoint: string; method: string; statusCode?: number; responseTimeMs?: number; ipAddress?: string }): Promise<void>;
+  
+  upgradeUserToPlan(userId: string, planTier: PlanTier, billingCycle: 'monthly' | 'yearly', stripeSubscriptionId?: string): Promise<{ user: User; subscription: UserSubscription }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -974,6 +987,97 @@ export class DatabaseStorage implements IStorage {
     }
     
     return allSeasons;
+  }
+
+  async createApiKey(data: { organizationId: string; name: string; keyHash: string; keyPrefix: string; scopes?: string[]; createdById: string }): Promise<ApiKey> {
+    const result = await db.insert(apiKeys).values({
+      organizationId: data.organizationId,
+      name: data.name,
+      keyHash: data.keyHash,
+      keyPrefix: data.keyPrefix,
+      scopes: data.scopes || [],
+      createdById: data.createdById,
+    }).returning();
+    return result[0];
+  }
+
+  async getApiKeys(organizationId: string): Promise<ApiKey[]> {
+    return await db.select().from(apiKeys).where(eq(apiKeys.organizationId, organizationId));
+  }
+
+  async getApiKeyByPrefix(prefix: string): Promise<ApiKey | undefined> {
+    const result = await db.select().from(apiKeys).where(eq(apiKeys.keyPrefix, prefix));
+    return result[0];
+  }
+
+  async revokeApiKey(id: string): Promise<boolean> {
+    const result = await db.update(apiKeys)
+      .set({ isActive: false, revokedAt: new Date() })
+      .where(eq(apiKeys.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async updateApiKeyLastUsed(id: string): Promise<void> {
+    await db.update(apiKeys)
+      .set({ lastUsedAt: new Date() })
+      .where(eq(apiKeys.id, id));
+  }
+
+  async logApiKeyUsage(usage: { apiKeyId: string; endpoint: string; method: string; statusCode?: number; responseTimeMs?: number; ipAddress?: string }): Promise<void> {
+    await db.insert(apiKeyUsage).values({
+      apiKeyId: usage.apiKeyId,
+      endpoint: usage.endpoint,
+      method: usage.method,
+      statusCode: usage.statusCode,
+      responseTimeMs: usage.responseTimeMs,
+      ipAddress: usage.ipAddress,
+    });
+  }
+
+  async upgradeUserToPlan(userId: string, planTier: PlanTier, billingCycle: 'monthly' | 'yearly', stripeSubscriptionId?: string): Promise<{ user: User; subscription: UserSubscription }> {
+    const user = await db.update(users)
+      .set({ planTier })
+      .where(eq(users.id, userId))
+      .returning();
+
+    const existingSub = await this.getUserSubscription(userId);
+    let subscription: UserSubscription;
+    
+    if (existingSub) {
+      subscription = (await db.update(userSubscriptions)
+        .set({ 
+          planTier, 
+          billingCycle,
+          stripeSubscriptionId,
+          status: "active",
+          currentPeriodStart: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(userSubscriptions.id, existingSub.id))
+        .returning())[0];
+    } else {
+      subscription = await this.createSubscription({
+        userId,
+        planTier,
+        billingCycle,
+        status: "active",
+        currentPeriodStart: new Date(),
+        stripeSubscriptionId,
+      });
+    }
+
+    if (planTier === "partner") {
+      const existingOrgs = await this.getOrganizationsForUser(userId);
+      for (const org of existingOrgs) {
+        const member = await this.getOrganizationMember(org.id, userId);
+        if (member && member.role === "viewer") {
+          await this.updateOrganizationMemberRole(member.id, "admin");
+        }
+      }
+    }
+
+    return { user: user[0], subscription };
   }
 }
 
