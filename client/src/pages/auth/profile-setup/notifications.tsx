@@ -61,73 +61,78 @@ export default function NotificationsSetup() {
   };
 
   return (
-    <div className="min-h-screen bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm fixed inset-0 z-50 overflow-y-auto">
-      <div className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 space-y-6 animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
+    <div className="min-h-screen bg-gradient-to-b from-[#1a2d5c] to-[#0f1d3d] flex flex-col">
+      <div className="flex-1 flex flex-col justify-center px-6 py-8">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-[#1a2d5c] mb-2 font-display">Notifications</h1>
-          <p className="text-sm text-slate-500">Choose which notifications you'd like to receive.</p>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white mb-2 font-display">Notifications</h1>
+          <p className="text-sm text-white/70">Choose which notifications you'd like to receive.</p>
         </div>
 
         {/* Preferences */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
-            <div>
-              <p className="font-semibold text-slate-900 text-sm">New Matches near me</p>
-            </div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-white/10 border border-white/20">
+            <p className="font-semibold text-white text-sm">New Matches near me</p>
             <div 
               onClick={() => setPrefs((p) => ({ ...p, matchesNearMe: !p.matchesNearMe }))}
-              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${prefs.matchesNearMe ? 'bg-[#1a2d5c]' : 'bg-slate-300'}`}
+              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${prefs.matchesNearMe ? 'bg-green-500' : 'bg-white/30'}`}
+              data-testid="toggle-matches"
             >
               <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all shadow-sm ${prefs.matchesNearMe ? 'left-[26px]' : 'left-0.5'}`} />
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
-            <div>
-              <p className="font-semibold text-slate-900 text-sm">Score updates for my teams</p>
-            </div>
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-white/10 border border-white/20">
+            <p className="font-semibold text-white text-sm">Score updates for my teams</p>
             <div 
               onClick={() => setPrefs((p) => ({ ...p, scoreUpdates: !p.scoreUpdates }))}
-              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${prefs.scoreUpdates ? 'bg-[#1a2d5c]' : 'bg-slate-300'}`}
+              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${prefs.scoreUpdates ? 'bg-green-500' : 'bg-white/30'}`}
+              data-testid="toggle-scores"
             >
               <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all shadow-sm ${prefs.scoreUpdates ? 'left-[26px]' : 'left-0.5'}`} />
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
-            <div>
-              <p className="font-semibold text-slate-900 text-sm">Community polls & fan events</p>
-            </div>
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-white/10 border border-white/20">
+            <p className="font-semibold text-white text-sm">Community polls & events</p>
             <div 
               onClick={() => setPrefs((p) => ({ ...p, communityPolls: !p.communityPolls }))}
-              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${prefs.communityPolls ? 'bg-[#1a2d5c]' : 'bg-slate-300'}`}
+              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${prefs.communityPolls ? 'bg-green-500' : 'bg-white/30'}`}
+              data-testid="toggle-community"
             >
               <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all shadow-sm ${prefs.communityPolls ? 'left-[26px]' : 'left-0.5'}`} />
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
-            <div>
-              <p className="font-semibold text-slate-900 text-sm">Weekly Digest</p>
-            </div>
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-white/10 border border-white/20">
+            <p className="font-semibold text-white text-sm">Weekly Digest</p>
             <div 
               onClick={() => setPrefs((p) => ({ ...p, weeklyDigest: !p.weeklyDigest }))}
-              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${prefs.weeklyDigest ? 'bg-[#1a2d5c]' : 'bg-slate-300'}`}
+              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${prefs.weeklyDigest ? 'bg-green-500' : 'bg-white/30'}`}
+              data-testid="toggle-digest"
             >
               <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all shadow-sm ${prefs.weeklyDigest ? 'left-[26px]' : 'left-0.5'}`} />
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Confirm Button */}
+      {/* Buttons at bottom */}
+      <div className="px-6 pb-8 space-y-3">
         <button
           onClick={handleComplete}
           disabled={loading}
-          className="w-full py-4 bg-[#1a2d5c] hover:bg-[#152347] text-white font-bold rounded-full transition-all duration-200 text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-4 bg-white text-[#1a2d5c] font-bold rounded-full transition-all duration-200 text-sm shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           data-testid="button-complete"
         >
-          {loading ? "Saving..." : "Confirm"}
+          {loading ? "Saving..." : "Continue to App"}
+        </button>
+        <button
+          onClick={() => setLocation("/home")}
+          className="w-full py-3 text-white/70 font-medium text-sm hover:text-white transition-colors"
+          data-testid="button-skip"
+        >
+          Skip for now
         </button>
       </div>
     </div>
