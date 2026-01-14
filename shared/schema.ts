@@ -285,6 +285,50 @@ export const auditLogs = pgTable("audit_logs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const providerEntityTypeEnum = pgEnum("provider_entity_type", [
+  "continent",
+  "country", 
+  "league",
+  "team",
+  "season",
+  "player",
+  "fixture"
+]);
+
+export const providerMappings = pgTable("provider_mappings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  providerName: text("provider_name").notNull(),
+  providerEntityType: providerEntityTypeEnum("provider_entity_type").notNull(),
+  providerEntityId: text("provider_entity_id").notNull(),
+  internalEntityId: varchar("internal_entity_id").notNull(),
+  providerEntityName: text("provider_entity_name"),
+  rawPayload: jsonb("raw_payload"),
+  lastSyncedAt: timestamp("last_synced_at"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const players = pgTable("players", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").references(() => teams.id),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  nationality: text("nationality"),
+  position: text("position"),
+  jerseyNumber: integer("jersey_number"),
+  birthDate: timestamp("birth_date"),
+  height: integer("height"),
+  weight: integer("weight"),
+  photo: text("photo"),
+  isActive: boolean("is_active").default(true).notNull(),
+  extApiIds: text("ext_api_ids").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   password: true,
@@ -384,6 +428,18 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
   createdAt: true,
 });
 
+export const insertProviderMappingSchema = createInsertSchema(providerMappings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPlayerSchema = createInsertSchema(players).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
@@ -416,3 +472,7 @@ export type InsertGrassrootsSubmission = z.infer<typeof insertGrassrootsSubmissi
 export type GrassrootsSubmission = typeof grassrootsSubmissions.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertProviderMapping = z.infer<typeof insertProviderMappingSchema>;
+export type ProviderMapping = typeof providerMappings.$inferSelect;
+export type InsertPlayer = z.infer<typeof insertPlayerSchema>;
+export type Player = typeof players.$inferSelect;
