@@ -41,6 +41,9 @@ import Marketplace from "@/pages/marketplace";
 // Admin pages
 import AdminDashboard from "@/pages/admin/index";
 import AdminContinents from "@/pages/admin/continents";
+import AdminCountries from "@/pages/admin/countries";
+import AdminLeagues from "@/pages/admin/leagues";
+import AdminTeams from "@/pages/admin/teams";
 import AdminGrassroots from "@/pages/admin/grassroots";
 import AdminAuditLogs from "@/pages/admin/audit-logs";
 
@@ -88,6 +91,9 @@ function Router() {
       {/* Admin Routes */}
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/continents" component={AdminContinents} />
+      <Route path="/admin/countries" component={AdminCountries} />
+      <Route path="/admin/leagues" component={AdminLeagues} />
+      <Route path="/admin/teams" component={AdminTeams} />
       <Route path="/admin/grassroots" component={AdminGrassroots} />
       <Route path="/admin/audit-logs" component={AdminAuditLogs} />
       

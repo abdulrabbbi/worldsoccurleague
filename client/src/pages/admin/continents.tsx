@@ -261,7 +261,7 @@ export default function ContinentsPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {continents.map((continent) => (
-                <tr key={continent.id} className="hover:bg-gray-50">
+                <tr key={continent.id} className="hover:bg-gray-50" data-testid={`row-continent-${continent.id}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{continent.flag}</span>
@@ -277,17 +277,17 @@ export default function ContinentsPage() {
                     /{continent.slug}
                   </td>
                   <td className="px-6 py-4">
-                    {continent.isActive ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-sm rounded-full">
-                        <Eye size={14} />
-                        Active
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-500 text-sm rounded-full">
-                        <EyeOff size={14} />
-                        Hidden
-                      </span>
-                    )}
+                    <button 
+                      className={`inline-flex items-center gap-1 px-2 py-1 text-sm rounded-full ${
+                        continent.isActive 
+                          ? "bg-green-100 text-green-700" 
+                          : "bg-gray-100 text-gray-500"
+                      }`}
+                      data-testid={`toggle-status-${continent.id}`}
+                    >
+                      {continent.isActive ? <Eye size={14} /> : <EyeOff size={14} />}
+                      {continent.isActive ? "Active" : "Hidden"}
+                    </button>
                   </td>
                   <td className="px-6 py-4">
                     {continent.extApiIds?.map((id, i) => (

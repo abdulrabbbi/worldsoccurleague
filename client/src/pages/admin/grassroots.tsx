@@ -201,11 +201,18 @@ function ReviewModal({
               <textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                className="w-full px-3 py-2 border border-red-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 min-h-[80px]"
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 min-h-[80px] ${
+                  rejectionReason.trim() ? "border-gray-200 focus:ring-[#1a2d5c]" : "border-red-200 focus:ring-red-500"
+                }`}
                 placeholder="Explain why this submission is being rejected..."
                 required
                 data-testid="input-rejection-reason"
               />
+              {!rejectionReason.trim() && (
+                <p className="text-xs text-red-500 mt-1" data-testid="error-rejection-reason">
+                  Rejection reason is required
+                </p>
+              )}
             </div>
           )}
 
@@ -359,6 +366,7 @@ export default function GrassrootsQueuePage() {
                 <div
                   key={submission.id}
                   className="p-4 hover:bg-gray-50 transition-colors"
+                  data-testid={`row-submission-${submission.id}`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -377,17 +385,17 @@ export default function GrassrootsQueuePage() {
                     </div>
                     <div className="flex items-center gap-3">
                       {submission.status === "pending" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-sm rounded-full">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-sm rounded-full" data-testid={`status-pending-${submission.id}`}>
                           <Clock size={14} />
                           Pending
                         </span>
                       ) : submission.status === "approved" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-sm rounded-full">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-sm rounded-full" data-testid={`status-approved-${submission.id}`}>
                           <CheckCircle size={14} />
                           Approved
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-sm rounded-full">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-sm rounded-full" data-testid={`status-rejected-${submission.id}`}>
                           <XCircle size={14} />
                           Rejected
                         </span>
