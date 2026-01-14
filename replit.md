@@ -80,6 +80,29 @@ Routes follow a hierarchy pattern with ID + slug combinations for SEO and API-re
   - `GET /api/admin/audit-logs` - Fetch audit trail for admin actions
   - `GET /api/admin/stats?sport=:slug` - Dashboard stats filtered by sport
 
+### Partner Portal Architecture (Phase 3)
+- **Routes:**
+  - `/partner` - Dashboard with org list, submission stats, submit data actions
+  - `/partner/organization/new` - Create new organization (club, league, tournament, fan club, pickup)
+  - `/partner/organization/:orgId` - Organization detail with tabbed UI
+- **Organization Detail Tabs:**
+  - Settings: Name, type, slug, location, verification status, plan info
+  - Members: Add/remove members, role management (owner/admin/editor/viewer)
+  - API Keys: Create/list/revoke keys, single-view secret on creation, verification required
+  - Usage: Rate limit display (60/min, 10k/day), usage stats placeholder
+  - Audit: Org-scoped audit log with action history
+- **RBAC Enforcement:** Built into API routes - owners have full control, admins can manage members, editors can submit data, viewers read-only
+- **Payment-Agnostic:** Subscription tiers (free/pro/partner) are flags only; Stripe fields optional for future webhook integration
+- **Partner API Endpoints:**
+  - `GET /api/partner/organizations` - List user's organizations
+  - `GET /api/partner/organizations/:orgId` - Get single organization
+  - `POST /api/partner/organizations` - Create organization (Partner tier required)
+  - `GET/POST/PATCH/DELETE /api/partner/organizations/:orgId/members` - Member CRUD
+  - `GET/POST/DELETE /api/partner/organizations/:orgId/api-keys` - API key lifecycle
+  - `GET /api/partner/organizations/:orgId/audit-logs` - Org-scoped audit logs
+  - `POST /api/subscriptions/upgrade` - Upgrade plan tier (payment-agnostic placeholder)
+  - `GET /api/subscriptions/current` - Get current subscription
+
 ## External Dependencies
 
 ### Database
