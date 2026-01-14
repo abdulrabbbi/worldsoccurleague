@@ -252,21 +252,60 @@ export const standings = pgTable("standings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const venues = pgTable("venues", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  address: text("address"),
+  city: text("city"),
+  stateCode: text("state_code"),
+  countryId: varchar("country_id").references(() => countries.id),
+  capacity: integer("capacity"),
+  surface: text("surface"),
+  latitude: text("latitude"),
+  longitude: text("longitude"),
+  photo: text("photo"),
+  isActive: boolean("is_active").default(true).notNull(),
+  extApiIds: text("ext_api_ids").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const grassrootsSubmissions = pgTable("grassroots_submissions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   submittedById: varchar("submitted_by_id").notNull().references(() => users.id),
   type: grassrootsTypeEnum("type").notNull(),
-  status: grassrootsStatusEnum("status").default("pending").notNull(),
   entityType: text("entity_type").notNull(),
+  status: grassrootsStatusEnum("status").default("pending").notNull(),
+  
   entityName: text("entity_name").notNull(),
-  entityData: jsonb("entity_data"),
-  parentEntityId: varchar("parent_entity_id"),
+  slug: text("slug").notNull(),
+  shortName: text("short_name"),
+  logo: text("logo"),
+  
+  countryId: varchar("country_id").references(() => countries.id),
+  parentLeagueId: varchar("parent_league_id").references(() => leagues.id),
+  parentDivisionId: varchar("parent_division_id").references(() => divisions.id),
+  parentTeamId: varchar("parent_team_id").references(() => teams.id),
+  
   stateCode: text("state_code"),
   city: text("city"),
+  venue: text("venue"),
+  
+  tier: integer("tier").default(1),
+  ageGroup: text("age_group"),
+  gender: text("gender"),
+  
+  entityData: jsonb("entity_data"),
+  
+  promotedEntityId: varchar("promoted_entity_id"),
+  promotedAt: timestamp("promoted_at"),
+  
   reviewedById: varchar("reviewed_by_id").references(() => users.id),
   reviewedAt: timestamp("reviewed_at"),
   reviewNotes: text("review_notes"),
   rejectionReason: text("rejection_reason"),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -412,6 +451,12 @@ export const insertStandingSchema = createInsertSchema(standings).omit({
   updatedAt: true,
 });
 
+export const insertVenueSchema = createInsertSchema(venues).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertGrassrootsSubmissionSchema = createInsertSchema(grassrootsSubmissions).omit({
   id: true,
   createdAt: true,
@@ -421,6 +466,10 @@ export const insertGrassrootsSubmissionSchema = createInsertSchema(grassrootsSub
   reviewedAt: true,
   reviewNotes: true,
   rejectionReason: true,
+  promotedEntityId: true,
+  promotedAt: true,
+}).extend({
+  entityType: z.enum(["league", "division", "team", "venue", "season"]),
 });
 
 export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
@@ -468,6 +517,8 @@ export type InsertFixture = z.infer<typeof insertFixtureSchema>;
 export type Fixture = typeof fixtures.$inferSelect;
 export type InsertStanding = z.infer<typeof insertStandingSchema>;
 export type Standing = typeof standings.$inferSelect;
+export type InsertVenue = z.infer<typeof insertVenueSchema>;
+export type Venue = typeof venues.$inferSelect;
 export type InsertGrassrootsSubmission = z.infer<typeof insertGrassrootsSubmissionSchema>;
 export type GrassrootsSubmission = typeof grassrootsSubmissions.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
