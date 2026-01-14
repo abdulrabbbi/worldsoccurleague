@@ -11,7 +11,12 @@ import {
   Users,
   MapPin,
   ArrowUpRight,
-  Loader2
+  Loader2,
+  Link as LinkIcon,
+  FileEdit,
+  Send,
+  AlertTriangle,
+  Info
 } from "lucide-react";
 import AdminLayout from "./layout";
 
@@ -23,7 +28,7 @@ interface GrassrootsSubmission {
   submittedById: string;
   submittedByName: string;
   createdAt: string;
-  status: "pending" | "approved" | "rejected";
+  status: "draft" | "pending" | "review" | "approved" | "promoted" | "rejected";
   stateCode: string | null;
   city: string | null;
   slug: string;
@@ -44,6 +49,16 @@ interface GrassrootsSubmission {
   reviewedAt: string | null;
   reviewNotes: string | null;
   rejectionReason: string | null;
+}
+
+interface DuplicateCandidate {
+  id: string;
+  name: string;
+  type: string;
+  matchScore: number;
+  confidencePercent: number;
+  whyMatched: string[];
+  details?: string;
 }
 
 const typeIcons = {
@@ -78,45 +93,193 @@ const entityTypeLabels: Record<string, string> = {
   season: "Season",
 };
 
+const statusConfig = {
+  draft: { label: "Draft", color: "bg-gray-100 text-gray-700", icon: FileEdit },
+  pending: { label: "Pending", color: "bg-yellow-100 text-yellow-700", icon: Clock },
+  review: { label: "In Review", color: "bg-blue-100 text-blue-700", icon: Eye },
+  approved: { label: "Approved", color: "bg-green-100 text-green-700", icon: CheckCircle },
+  promoted: { label: "Promoted", color: "bg-indigo-100 text-indigo-700", icon: ArrowUpRight },
+  rejected: { label: "Rejected", color: "bg-red-100 text-red-700", icon: XCircle },
+};
+
+function ConfidenceBadge({ percent }: { percent: number }) {
+  let color = "bg-red-100 text-red-700";
+  if (percent >= 80) color = "bg-green-100 text-green-700";
+  else if (percent >= 60) color = "bg-yellow-100 text-yellow-700";
+  else if (percent >= 40) color = "bg-orange-100 text-orange-700";
+  
+  return (
+    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${color}`}>
+      {percent}%
+    </span>
+  );
+}
+
+function DuplicateDetectionPanel({
+  duplicates,
+  isLoading,
+  onLinkToExisting,
+  isLinking,
+  selectedDuplicate,
+  onSelectDuplicate
+}: {
+  duplicates: DuplicateCandidate[];
+  isLoading: boolean;
+  onLinkToExisting: (entityId: string) => void;
+  isLinking: boolean;
+  selectedDuplicate: string | null;
+  onSelectDuplicate: (id: string | null) => void;
+}) {
+  if (isLoading) {
+    return (
+      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="flex items-center gap-2 text-gray-600">
+          <Loader2 size={16} className="animate-spin" />
+          <span>Checking for duplicates...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (duplicates.length === 0) {
+    return (
+      <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+        <div className="flex items-center gap-2 text-green-700">
+          <CheckCircle size={16} />
+          <span className="font-medium">No duplicates found</span>
+        </div>
+        <p className="text-sm text-green-600 mt-1">
+          This entity appears to be unique. Safe to promote as a new entry.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+      <div className="flex items-center gap-2 text-yellow-700 mb-3">
+        <AlertTriangle size={16} />
+        <span className="font-medium">Potential duplicates found ({duplicates.length})</span>
+      </div>
+      <p className="text-sm text-yellow-600 mb-4">
+        Review these existing entities before promoting. You can link to an existing one instead of creating a duplicate.
+      </p>
+      
+      <div className="space-y-2">
+        {duplicates.map((dup) => (
+          <div 
+            key={dup.id}
+            className={`p-3 bg-white rounded-lg border transition-colors cursor-pointer ${
+              selectedDuplicate === dup.id ? "border-blue-500 ring-2 ring-blue-200" : "border-gray-200 hover:border-gray-300"
+            }`}
+            onClick={() => onSelectDuplicate(selectedDuplicate === dup.id ? null : dup.id)}
+            data-testid={`duplicate-candidate-${dup.id}`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-gray-900">{dup.name}</span>
+                <ConfidenceBadge percent={dup.confidencePercent} />
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded ${
+                dup.type === "exact" ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"
+              }`}>
+                {dup.type === "exact" ? "High Match" : "Partial Match"}
+              </span>
+            </div>
+            
+            <div className="flex items-start gap-2 text-sm text-gray-600 mb-2">
+              <Info size={14} className="mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="font-medium">Why matched: </span>
+                {dup.whyMatched.join(" + ")}
+              </div>
+            </div>
+            
+            {dup.details && (
+              <p className="text-xs text-gray-500">{dup.details}</p>
+            )}
+            
+            {selectedDuplicate === dup.id && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLinkToExisting(dup.id);
+                }}
+                disabled={isLinking}
+                className="mt-3 w-full px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                data-testid={`button-link-${dup.id}`}
+              >
+                {isLinking ? <Loader2 size={14} className="animate-spin" /> : <LinkIcon size={14} />}
+                Link to this {dup.name}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ReviewModal({ 
   submission, 
   onClose, 
   onApprove, 
   onReject,
   onPromote,
+  onSubmitForReview,
+  onLinkToExisting,
   isApproving,
   isRejecting,
-  isPromoting
+  isPromoting,
+  isSubmitting,
+  isLinking,
+  duplicates,
+  isDuplicatesLoading
 }: { 
   submission: GrassrootsSubmission; 
   onClose: () => void;
   onApprove: (notes: string) => void;
   onReject: (reason: string) => void;
   onPromote: () => void;
+  onSubmitForReview: () => void;
+  onLinkToExisting: (entityId: string) => void;
   isApproving: boolean;
   isRejecting: boolean;
   isPromoting: boolean;
+  isSubmitting: boolean;
+  isLinking: boolean;
+  duplicates: DuplicateCandidate[];
+  isDuplicatesLoading: boolean;
 }) {
   const [notes, setNotes] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
+  const [selectedDuplicate, setSelectedDuplicate] = useState<string | null>(null);
+  const [showPromoteConfirm, setShowPromoteConfirm] = useState(false);
 
   const Icon = typeIcons[submission.type];
+  const StatusIcon = statusConfig[submission.status]?.icon || Clock;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl w-full max-w-2xl mx-4 overflow-hidden max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 ${typeColors[submission.type]} rounded-xl flex items-center justify-center`}>
-              <Icon size={24} />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 ${typeColors[submission.type]} rounded-xl flex items-center justify-center`}>
+                <Icon size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">{submission.entityName}</h2>
+                <p className="text-gray-500">
+                  {typeLabels[submission.type]} • {entityTypeLabels[submission.entityType] || submission.entityType}
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">{submission.entityName}</h2>
-              <p className="text-gray-500">
-                {typeLabels[submission.type]} • {entityTypeLabels[submission.entityType] || submission.entityType}
-              </p>
-            </div>
+            <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${statusConfig[submission.status]?.color}`}>
+              <StatusIcon size={14} />
+              {statusConfig[submission.status]?.label}
+            </span>
           </div>
         </div>
 
@@ -181,32 +344,90 @@ function ReviewModal({
             </div>
           )}
 
-          {submission.status === "approved" && !submission.promotedEntityId && (
-            <div className="p-4 bg-green-50 rounded-lg border border-green-100">
-              <h4 className="font-medium text-green-900 mb-2">Ready for Promotion</h4>
-              <p className="text-sm text-green-700 mb-3">
-                This submission has been approved. You can now promote it to an official {entityTypeLabels[submission.entityType]?.toLowerCase() || submission.entityType}.
+          {submission.status === "draft" && (
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <h4 className="font-medium text-gray-900 mb-2">Draft Status</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                This submission is still in draft. The submitter can edit it before submitting for review.
               </p>
               <button
-                onClick={onPromote}
-                disabled={isPromoting}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
-                data-testid="button-promote"
+                onClick={onSubmitForReview}
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                data-testid="button-submit-for-review"
               >
-                {isPromoting ? <Loader2 size={16} className="animate-spin" /> : <ArrowUpRight size={16} />}
-                Promote to {entityTypeLabels[submission.entityType] || submission.entityType}
+                {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                Submit for Review
               </button>
             </div>
           )}
 
-          {submission.promotedEntityId && (
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-              <h4 className="font-medium text-blue-900 mb-1">Promoted</h4>
-              <p className="text-sm text-blue-700">
-                This submission was promoted to {entityTypeLabels[submission.entityType]?.toLowerCase() || submission.entityType} on{" "}
+          {submission.status === "approved" && !submission.promotedEntityId && (
+            <>
+              <DuplicateDetectionPanel
+                duplicates={duplicates}
+                isLoading={isDuplicatesLoading}
+                onLinkToExisting={onLinkToExisting}
+                isLinking={isLinking}
+                selectedDuplicate={selectedDuplicate}
+                onSelectDuplicate={setSelectedDuplicate}
+              />
+
+              {!showPromoteConfirm ? (
+                <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+                  <h4 className="font-medium text-green-900 mb-2">Ready for Promotion</h4>
+                  <p className="text-sm text-green-700 mb-3">
+                    This submission has been approved. You can promote it to an official {entityTypeLabels[submission.entityType]?.toLowerCase() || submission.entityType}.
+                  </p>
+                  <button
+                    onClick={() => setShowPromoteConfirm(true)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                    data-testid="button-promote-start"
+                  >
+                    <ArrowUpRight size={16} />
+                    Promote to {entityTypeLabels[submission.entityType] || submission.entityType}
+                  </button>
+                </div>
+              ) : (
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <h4 className="font-medium text-green-900 mb-2">Confirm Promotion</h4>
+                  <p className="text-sm text-green-700 mb-3">
+                    This will create a new official {entityTypeLabels[submission.entityType]?.toLowerCase()} in the database 
+                    and mark this submission as promoted. This action cannot be undone.
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setShowPromoteConfirm(false)}
+                      className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+                      data-testid="button-promote-cancel"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={onPromote}
+                      disabled={isPromoting}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+                      data-testid="button-promote-confirm"
+                    >
+                      {isPromoting ? <Loader2 size={16} className="animate-spin" /> : <ArrowUpRight size={16} />}
+                      Confirm Promotion
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {submission.status === "promoted" && submission.promotedEntityId && (
+            <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+              <h4 className="font-medium text-indigo-900 mb-1">Promoted to Official</h4>
+              <p className="text-sm text-indigo-700">
+                This submission was promoted to an official {entityTypeLabels[submission.entityType]?.toLowerCase() || submission.entityType} on{" "}
                 {submission.promotedAt && new Date(submission.promotedAt).toLocaleDateString()}
               </p>
-              <p className="text-xs text-blue-600 font-mono mt-1">ID: {submission.promotedEntityId}</p>
+              <p className="text-xs text-indigo-600 font-mono mt-2 bg-indigo-100 p-2 rounded">
+                Entity ID: {submission.promotedEntityId}
+              </p>
             </div>
           )}
 
@@ -214,10 +435,13 @@ function ReviewModal({
             <div className="p-4 bg-red-50 rounded-lg border border-red-100">
               <h4 className="font-medium text-red-900 mb-1">Rejection Reason</h4>
               <p className="text-sm text-red-700">{submission.rejectionReason}</p>
+              <p className="text-xs text-red-600 mt-2">
+                The submitter can view this feedback and edit/resubmit the entry.
+              </p>
             </div>
           )}
 
-          {submission.status === "pending" && !showRejectForm && (
+          {(submission.status === "pending" || submission.status === "review") && !showRejectForm && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Review Notes (optional)
@@ -232,7 +456,7 @@ function ReviewModal({
             </div>
           )}
 
-          {submission.status === "pending" && showRejectForm && (
+          {(submission.status === "pending" || submission.status === "review") && showRejectForm && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Rejection Reason <span className="text-red-500">*</span>
@@ -243,7 +467,7 @@ function ReviewModal({
                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 min-h-[80px] ${
                   rejectionReason.trim() ? "border-gray-200 focus:ring-[#1a2d5c]" : "border-red-200 focus:ring-red-500"
                 }`}
-                placeholder="Explain why this submission is being rejected..."
+                placeholder="Explain why this submission is being rejected. The submitter will see this feedback..."
                 required
                 data-testid="input-rejection-reason"
               />
@@ -264,7 +488,7 @@ function ReviewModal({
             >
               Close
             </button>
-            {submission.status === "pending" && !showRejectForm && (
+            {(submission.status === "pending" || submission.status === "review") && !showRejectForm && (
               <>
                 <button
                   type="button"
@@ -287,7 +511,7 @@ function ReviewModal({
                 </button>
               </>
             )}
-            {submission.status === "pending" && showRejectForm && (
+            {(submission.status === "pending" || submission.status === "review") && showRejectForm && (
               <>
                 <button
                   type="button"
@@ -332,6 +556,17 @@ export default function GrassrootsQueuePage() {
     },
   });
 
+  const { data: duplicatesData, isLoading: isDuplicatesLoading } = useQuery<{ duplicates: DuplicateCandidate[] }>({
+    queryKey: ["/api/admin/grassroots/duplicates", selectedSubmission?.id],
+    queryFn: async () => {
+      if (!selectedSubmission) return { duplicates: [] };
+      const res = await fetch(`/api/admin/grassroots/submissions/${selectedSubmission.id}/duplicates`);
+      if (!res.ok) throw new Error("Failed to fetch duplicates");
+      return res.json();
+    },
+    enabled: !!selectedSubmission && selectedSubmission.status === "approved",
+  });
+
   const approveMutation = useMutation({
     mutationFn: async ({ id, notes }: { id: string; notes: string }) => {
       const res = await fetch(`/api/admin/grassroots/submissions/${id}/approve`, {
@@ -370,7 +605,44 @@ export default function GrassrootsQueuePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
-      if (!res.ok) throw new Error("Failed to promote");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to promote");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/grassroots/submissions"] });
+      setSelectedSubmission(null);
+    },
+  });
+
+  const submitForReviewMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/admin/grassroots/submissions/${id}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Failed to submit for review");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/grassroots/submissions"] });
+      setSelectedSubmission(null);
+    },
+  });
+
+  const linkToExistingMutation = useMutation({
+    mutationFn: async ({ submissionId, entityId }: { submissionId: string; entityId: string }) => {
+      const res = await fetch(`/api/admin/grassroots/submissions/${submissionId}/link`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ existingEntityId: entityId }),
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to link");
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -389,7 +661,14 @@ export default function GrassrootsQueuePage() {
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  const pendingCount = submissions.filter(s => s.status === "pending").length;
+  const statusCounts = {
+    draft: submissions.filter(s => s.status === "draft").length,
+    pending: submissions.filter(s => s.status === "pending").length,
+    review: submissions.filter(s => s.status === "review").length,
+    approved: submissions.filter(s => s.status === "approved").length,
+    promoted: submissions.filter(s => s.status === "promoted").length,
+    rejected: submissions.filter(s => s.status === "rejected").length,
+  };
 
   const handleApprove = (notes: string) => {
     if (selectedSubmission) {
@@ -409,6 +688,18 @@ export default function GrassrootsQueuePage() {
     }
   };
 
+  const handleSubmitForReview = () => {
+    if (selectedSubmission) {
+      submitForReviewMutation.mutate(selectedSubmission.id);
+    }
+  };
+
+  const handleLinkToExisting = (entityId: string) => {
+    if (selectedSubmission) {
+      linkToExistingMutation.mutate({ submissionId: selectedSubmission.id, entityId });
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -417,11 +708,39 @@ export default function GrassrootsQueuePage() {
             <h1 className="text-2xl font-bold text-gray-900">Grassroots Queue</h1>
             <p className="text-gray-500 mt-1">Review and approve community submissions</p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full font-medium">
-              {pendingCount} pending
-            </span>
-          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(statusCounts).map(([status, count]) => {
+            const config = statusConfig[status as keyof typeof statusConfig];
+            const StatusIcon = config.icon;
+            return (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(status)}
+                className={`px-3 py-1.5 rounded-full font-medium text-sm flex items-center gap-1.5 transition-colors ${
+                  filterStatus === status 
+                    ? config.color + " ring-2 ring-offset-1 ring-gray-300" 
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+                data-testid={`filter-status-${status}`}
+              >
+                <StatusIcon size={14} />
+                {config.label} ({count})
+              </button>
+            );
+          })}
+          <button
+            onClick={() => setFilterStatus("all")}
+            className={`px-3 py-1.5 rounded-full font-medium text-sm transition-colors ${
+              filterStatus === "all" 
+                ? "bg-gray-900 text-white" 
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+            data-testid="filter-status-all"
+          >
+            All ({submissions.length})
+          </button>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -452,17 +771,6 @@ export default function GrassrootsQueuePage() {
                   <option value="adult_amateur">Adult Amateur</option>
                   <option value="pickup">Pickup</option>
                 </select>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a2d5c]"
-                  data-testid="select-status"
-                >
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                </select>
               </div>
             </div>
           </div>
@@ -477,6 +785,9 @@ export default function GrassrootsQueuePage() {
               {filteredSubmissions.map((submission) => {
                 const Icon = typeIcons[submission.type] || Users;
                 const colors = typeColors[submission.type] || "bg-gray-100 text-gray-700";
+                const config = statusConfig[submission.status];
+                const StatusIcon = config?.icon || Clock;
+                
                 return (
                   <div
                     key={submission.id}
@@ -500,22 +811,10 @@ export default function GrassrootsQueuePage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        {submission.status === "pending" ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-sm rounded-full" data-testid={`status-pending-${submission.id}`}>
-                            <Clock size={14} />
-                            Pending
-                          </span>
-                        ) : submission.status === "approved" ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-sm rounded-full" data-testid={`status-approved-${submission.id}`}>
-                            <CheckCircle size={14} />
-                            {submission.promotedEntityId ? "Promoted" : "Approved"}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-sm rounded-full" data-testid={`status-rejected-${submission.id}`}>
-                            <XCircle size={14} />
-                            Rejected
-                          </span>
-                        )}
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 text-sm rounded-full ${config?.color}`} data-testid={`status-${submission.status}-${submission.id}`}>
+                          <StatusIcon size={14} />
+                          {config?.label}
+                        </span>
                         <button
                           onClick={() => setSelectedSubmission(submission)}
                           className="px-4 py-2 bg-[#1a2d5c] text-white text-sm rounded-lg hover:bg-[#0f1d3d] flex items-center gap-2"
@@ -555,9 +854,15 @@ export default function GrassrootsQueuePage() {
           onApprove={handleApprove}
           onReject={handleReject}
           onPromote={handlePromote}
+          onSubmitForReview={handleSubmitForReview}
+          onLinkToExisting={handleLinkToExisting}
           isApproving={approveMutation.isPending}
           isRejecting={rejectMutation.isPending}
           isPromoting={promoteMutation.isPending}
+          isSubmitting={submitForReviewMutation.isPending}
+          isLinking={linkToExistingMutation.isPending}
+          duplicates={duplicatesData?.duplicates || []}
+          isDuplicatesLoading={isDuplicatesLoading}
         />
       )}
     </AdminLayout>

@@ -512,6 +512,84 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/admin/grassroots/submissions/:id/submit", requireAuth, async (req, res) => {
+    if (!canVerifyPartners(req)) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    
+    try {
+      const user = req.ctx!.user!;
+      const submission = await storage.submitGrassrootsForReview(req.params.id);
+      if (!submission) {
+        return res.status(404).json({ error: "Submission not found or already submitted" });
+      }
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "submit_for_review",
+        entityType: "grassroots_submission",
+        entityId: req.params.id,
+        entityName: submission.entityName,
+        newData: { status: "review" },
+      });
+      
+      res.json({ submission, message: "Submitted for review" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to submit for review" });
+    }
+  });
+
+  app.get("/api/admin/grassroots/submissions/:id/duplicates", requireAuth, async (req, res) => {
+    if (!canVerifyPartners(req)) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    
+    try {
+      const submission = await storage.getGrassrootsSubmission(req.params.id);
+      if (!submission) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
+      
+      const duplicates = await storage.findDuplicateEntities(submission);
+      res.json({ duplicates });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to find duplicates" });
+    }
+  });
+
+  app.post("/api/admin/grassroots/submissions/:id/link", requireAuth, async (req, res) => {
+    if (!canVerifyPartners(req)) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    
+    try {
+      const user = req.ctx!.user!;
+      const { existingEntityId } = req.body;
+      
+      if (!existingEntityId) {
+        return res.status(400).json({ error: "existingEntityId is required" });
+      }
+      
+      const submission = await storage.linkSubmissionToExisting(req.params.id, existingEntityId, user.id);
+      if (!submission) {
+        return res.status(400).json({ error: "Submission must be approved before linking" });
+      }
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "link_existing",
+        entityType: "grassroots_submission",
+        entityId: req.params.id,
+        entityName: submission.entityName,
+        newData: { linkedEntityId: existingEntityId },
+      });
+      
+      res.json({ submission, message: "Linked to existing entity" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to link submission" });
+    }
+  });
+
   app.post("/api/grassroots/submissions", requireAuth, requireGrassrootsAccess, async (req, res) => {
     try {
       const user = req.ctx!.user!;

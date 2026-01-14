@@ -89,7 +89,7 @@ export interface IStorage {
   rejectGrassrootsSubmission(id: string, reviewerId: string, reason: string): Promise<GrassrootsSubmission | undefined>;
   promoteGrassrootsSubmission(id: string, reviewerId: string): Promise<{ submission: GrassrootsSubmission; promotedEntity: League | Team | Division | Venue } | undefined>;
   submitGrassrootsForReview(id: string): Promise<GrassrootsSubmission | undefined>;
-  findDuplicateEntities(submission: GrassrootsSubmission): Promise<{ id: string; name: string; type: string; matchScore: number; details?: string }[]>;
+  findDuplicateEntities(submission: GrassrootsSubmission): Promise<{ id: string; name: string; type: string; matchScore: number; confidencePercent: number; whyMatched: string[]; details?: string }[]>;
   linkSubmissionToExisting(submissionId: string, existingEntityId: string, reviewerId: string): Promise<GrassrootsSubmission | undefined>;
   
   getSports(): Promise<Sport[]>;
@@ -417,8 +417,8 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async findDuplicateEntities(submission: GrassrootsSubmission): Promise<{ id: string; name: string; type: string; matchScore: number; details?: string }[]> {
-    const duplicates: { id: string; name: string; type: string; matchScore: number; details?: string }[] = [];
+  async findDuplicateEntities(submission: GrassrootsSubmission): Promise<{ id: string; name: string; type: string; matchScore: number; confidencePercent: number; whyMatched: string[]; details?: string }[]> {
+    const duplicates: { id: string; name: string; type: string; matchScore: number; confidencePercent: number; whyMatched: string[]; details?: string }[] = [];
     const searchName = submission.entityName.toLowerCase().trim();
     
     if (submission.entityType === "league") {
@@ -426,23 +426,37 @@ export class DatabaseStorage implements IStorage {
       for (const league of allLeagues) {
         const leagueName = league.name.toLowerCase().trim();
         let matchScore = 0;
+        const whyMatched: string[] = [];
         
         if (leagueName === searchName) {
           matchScore = 60;
+          whyMatched.push("Exact name match");
         } else if (leagueName.includes(searchName) || searchName.includes(leagueName)) {
           matchScore = 30;
+          whyMatched.push("Partial name match");
         }
         
         if (matchScore > 0) {
-          if (submission.countryId && league.countryId === submission.countryId) matchScore += 20;
-          if (submission.type && league.type === submission.type) matchScore += 15;
-          if (submission.tier && league.tier === submission.tier) matchScore += 5;
+          if (submission.countryId && league.countryId === submission.countryId) {
+            matchScore += 20;
+            whyMatched.push("Same country");
+          }
+          if (submission.type && league.type === submission.type) {
+            matchScore += 15;
+            whyMatched.push(`Same type (${league.type})`);
+          }
+          if (submission.tier && league.tier === submission.tier) {
+            matchScore += 5;
+            whyMatched.push(`Same tier (${league.tier})`);
+          }
           
           duplicates.push({ 
             id: league.id, 
             name: league.name, 
             type: matchScore >= 80 ? "exact" : "partial", 
             matchScore: Math.min(matchScore, 100),
+            confidencePercent: Math.min(matchScore, 100),
+            whyMatched,
             details: `Type: ${league.type || 'unknown'}, Tier: ${league.tier || 'unknown'}`
           });
         }
@@ -452,23 +466,37 @@ export class DatabaseStorage implements IStorage {
       for (const team of allTeams) {
         const teamName = team.name.toLowerCase().trim();
         let matchScore = 0;
+        const whyMatched: string[] = [];
         
         if (teamName === searchName) {
           matchScore = 50;
+          whyMatched.push("Exact name match");
         } else if (teamName.includes(searchName) || searchName.includes(teamName)) {
           matchScore = 25;
+          whyMatched.push("Partial name match");
         }
         
         if (matchScore > 0) {
-          if (submission.stateCode && team.stateCode === submission.stateCode) matchScore += 25;
-          if (submission.city && team.city?.toLowerCase() === submission.city.toLowerCase()) matchScore += 15;
-          if (submission.countryId && team.countryId === submission.countryId) matchScore += 10;
+          if (submission.stateCode && team.stateCode === submission.stateCode) {
+            matchScore += 25;
+            whyMatched.push(`Same state (${team.stateCode})`);
+          }
+          if (submission.city && team.city?.toLowerCase() === submission.city.toLowerCase()) {
+            matchScore += 15;
+            whyMatched.push(`Same city (${team.city})`);
+          }
+          if (submission.countryId && team.countryId === submission.countryId) {
+            matchScore += 10;
+            whyMatched.push("Same country");
+          }
           
           duplicates.push({ 
             id: team.id, 
             name: team.name, 
             type: matchScore >= 80 ? "exact" : "partial", 
             matchScore: Math.min(matchScore, 100),
+            confidencePercent: Math.min(matchScore, 100),
+            whyMatched,
             details: `${team.city || ''}, ${team.stateCode || ''}`
           });
         }
