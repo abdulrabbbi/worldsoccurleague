@@ -6,7 +6,7 @@ export default function Shop() {
   return (
     <AppShell>
       <div className="p-4 space-y-6">
-        <Link href="/" data-testid="link-back-home">
+        <Link href="/home" data-testid="link-back-home">
           <a className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft size={16} />
             Back to Home
