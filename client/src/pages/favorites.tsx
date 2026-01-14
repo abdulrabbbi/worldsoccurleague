@@ -1,39 +1,35 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { ChevronLeft, Heart } from "lucide-react";
+import { ArrowLeft, Heart } from "lucide-react";
+import { AppShell } from "@/components/layout/app-shell";
 
 export default function FavoritesPage() {
   const [favorites] = useState<any[]>([]);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-card border-b border-border">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Link href="/home">
-            <a
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
-              data-testid="button-back"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </a>
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold text-foreground">Favorites</h1>
-            <p className="text-xs text-muted-foreground">{favorites.length} saved</p>
+    <AppShell>
+      <div className="p-4 space-y-6">
+        <Link href="/home" data-testid="link-back-home">
+          <a className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft size={16} />
+            Back to Home
+          </a>
+        </Link>
+        <div className="text-center py-12">
+          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+            <Heart size={32} className="text-gray-400" />
           </div>
+          <h1 className="text-xl font-bold text-[#1a2d5c] mb-2 font-display uppercase" data-testid="text-favorites-title">Favorites</h1>
+          <p className="text-gray-500 text-sm" data-testid="text-favorites-description">
+            {favorites.length === 0 
+              ? "No favorites yet" 
+              : `${favorites.length} saved`}
+          </p>
+          {favorites.length === 0 && (
+            <p className="text-muted-foreground/70 text-sm mt-2">Add teams and leagues to your favorites</p>
+          )}
         </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {favorites.length === 0 ? (
-          <div className="text-center py-12">
-            <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-muted-foreground">No favorites yet</p>
-            <p className="text-sm text-muted-foreground/70 mt-2">Add teams and leagues to your favorites</p>
-          </div>
-        ) : (
+        {favorites.length > 0 && (
           <div className="space-y-3">
             {favorites.map((item, i) => (
               <div key={i} className="p-4 rounded-lg bg-card border border-border">
@@ -43,6 +39,6 @@ export default function FavoritesPage() {
           </div>
         )}
       </div>
-    </div>
+    </AppShell>
   );
 }
