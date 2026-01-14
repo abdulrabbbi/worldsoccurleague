@@ -70,6 +70,31 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/auth/me", requireAuth, async (req, res) => {
+    try {
+      const userId = req.ctx?.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const { password: _, ...userWithoutPassword } = user;
+      const planConfig = PLAN_TIERS[user.planTier as PlanTier];
+      
+      res.json({ 
+        user: userWithoutPassword,
+        plan: planConfig,
+        features: planConfig.features,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get user" });
+    }
+  });
+
   app.get("/api/preferences/:userId", async (req, res) => {
     try {
       const prefs = await storage.getUserPreferences(req.params.userId);

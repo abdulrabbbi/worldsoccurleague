@@ -34,6 +34,7 @@ import Player from "@/pages/player";
 import Match from "@/pages/match";
 import Search from "@/pages/search";
 import Profile from "@/pages/profile";
+import Settings from "@/pages/settings";
 import Favorites from "@/pages/favorites";
 import Shop from "@/pages/shop";
 import Marketplace from "@/pages/marketplace";
@@ -78,6 +79,7 @@ function Router() {
       <Route path="/community" component={Community} />
       <Route path="/search" component={Search} />
       <Route path="/profile" component={Profile} />
+      <Route path="/settings" component={Settings} />
 
       {/* Hierarchy Routes - World → Continent → Country → Category → League → Team → Player → Match */}
       <Route path="/world" component={World} />

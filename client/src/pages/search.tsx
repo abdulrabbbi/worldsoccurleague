@@ -1,8 +1,26 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { sportsDataProvider } from "@/lib/sports-data-provider";
-import type { Team, League, Player } from "@/lib/types";
-import { Search, ChevronRight, Loader2 } from "lucide-react";
+import { Search, ChevronRight, Loader2, ArrowLeft } from "lucide-react";
+
+interface Team {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface League {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface Player {
+  id: string;
+  name: string;
+  slug: string;
+  position?: string;
+}
 
 export default function SearchPage() {
   const [, setLocation] = useLocation();
@@ -40,20 +58,29 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
+      {/* Header with back button */}
       <div className="sticky top-0 z-40 bg-card border-b border-border">
         <div className="max-w-2xl mx-auto px-4 py-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search teams, leagues, players..."
-              value={query}
-              onChange={(e) => handleSearch(e.target.value)}
-              autoFocus
-              className="w-full pl-10 pr-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-              data-testid="input-search"
-            />
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setLocation("/home")}
+              className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+              data-testid="button-back"
+            >
+              <ArrowLeft size={20} className="text-gray-600" />
+            </button>
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search teams, leagues, players..."
+                value={query}
+                onChange={(e) => handleSearch(e.target.value)}
+                autoFocus
+                className="w-full pl-10 pr-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                data-testid="input-search"
+              />
+            </div>
           </div>
         </div>
       </div>
