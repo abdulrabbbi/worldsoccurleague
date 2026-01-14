@@ -6,11 +6,9 @@ export default function Community() {
   return (
     <AppShell title="Community">
       <div className="p-4">
-        <Link href="/home" data-testid="link-back-home">
-          <a className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft size={16} />
-            Back to Home
-          </a>
+        <Link href="/home" data-testid="link-back-home" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeft size={16} />
+          Back to Home
         </Link>
       </div>
       <div className="p-8 pt-4 flex flex-col items-center justify-center text-center space-y-4">
