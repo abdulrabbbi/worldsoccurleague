@@ -11,15 +11,30 @@ import {
   type InsertOrganizationMember,
   type PartnerVerification,
   type InsertPartnerVerification,
+  type GrassrootsSubmission,
+  type InsertGrassrootsSubmission,
+  type League,
+  type InsertLeague,
+  type Team,
+  type InsertTeam,
+  type Division,
+  type InsertDivision,
+  type Venue,
+  type InsertVenue,
   users,
   userPreferences,
   userSubscriptions,
   organizations,
   organizationMembers,
-  partnerVerifications
+  partnerVerifications,
+  grassrootsSubmissions,
+  leagues,
+  teams,
+  divisions,
+  venues
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import type { PlanTier } from "@shared/plans";
 
 export interface IStorage {
@@ -53,6 +68,14 @@ export interface IStorage {
   submitForVerification(orgId: string): Promise<PartnerVerification | undefined>;
   approveVerification(id: string, reviewerId: string, notes?: string): Promise<PartnerVerification | undefined>;
   rejectVerification(id: string, reviewerId: string, reason: string): Promise<PartnerVerification | undefined>;
+  
+  getGrassrootsSubmissions(filters?: { status?: string; type?: string; entityType?: string }): Promise<GrassrootsSubmission[]>;
+  getGrassrootsSubmission(id: string): Promise<GrassrootsSubmission | undefined>;
+  createGrassrootsSubmission(submission: InsertGrassrootsSubmission): Promise<GrassrootsSubmission>;
+  updateGrassrootsSubmission(id: string, updates: Partial<GrassrootsSubmission>): Promise<GrassrootsSubmission | undefined>;
+  approveGrassrootsSubmission(id: string, reviewerId: string, notes?: string): Promise<GrassrootsSubmission | undefined>;
+  rejectGrassrootsSubmission(id: string, reviewerId: string, reason: string): Promise<GrassrootsSubmission | undefined>;
+  promoteGrassrootsSubmission(id: string): Promise<{ submission: GrassrootsSubmission; promotedEntity: League | Team | Division | Venue } | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -290,6 +313,132 @@ export class DatabaseStorage implements IStorage {
     }
     
     return verification;
+  }
+
+  async getGrassrootsSubmissions(filters?: { status?: string; type?: string; entityType?: string }): Promise<GrassrootsSubmission[]> {
+    let query = db.select().from(grassrootsSubmissions).orderBy(desc(grassrootsSubmissions.createdAt));
+    
+    const results = await query;
+    
+    return results.filter(s => {
+      if (filters?.status && s.status !== filters.status) return false;
+      if (filters?.type && s.type !== filters.type) return false;
+      if (filters?.entityType && s.entityType !== filters.entityType) return false;
+      return true;
+    });
+  }
+
+  async getGrassrootsSubmission(id: string): Promise<GrassrootsSubmission | undefined> {
+    const result = await db.select().from(grassrootsSubmissions).where(eq(grassrootsSubmissions.id, id));
+    return result[0];
+  }
+
+  async createGrassrootsSubmission(submission: InsertGrassrootsSubmission): Promise<GrassrootsSubmission> {
+    const result = await db.insert(grassrootsSubmissions).values(submission as any).returning();
+    return result[0];
+  }
+
+  async updateGrassrootsSubmission(id: string, updates: Partial<GrassrootsSubmission>): Promise<GrassrootsSubmission | undefined> {
+    const result = await db.update(grassrootsSubmissions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(grassrootsSubmissions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async approveGrassrootsSubmission(id: string, reviewerId: string, notes?: string): Promise<GrassrootsSubmission | undefined> {
+    return await this.updateGrassrootsSubmission(id, {
+      status: "approved",
+      reviewedAt: new Date(),
+      reviewedById: reviewerId,
+      reviewNotes: notes,
+    });
+  }
+
+  async rejectGrassrootsSubmission(id: string, reviewerId: string, reason: string): Promise<GrassrootsSubmission | undefined> {
+    return await this.updateGrassrootsSubmission(id, {
+      status: "rejected",
+      reviewedAt: new Date(),
+      reviewedById: reviewerId,
+      rejectionReason: reason,
+    });
+  }
+
+  async promoteGrassrootsSubmission(id: string): Promise<{ submission: GrassrootsSubmission; promotedEntity: League | Team | Division | Venue } | undefined> {
+    const submission = await this.getGrassrootsSubmission(id);
+    if (!submission || submission.status !== "approved") {
+      return undefined;
+    }
+
+    let promotedEntity: League | Team | Division | Venue;
+
+    switch (submission.entityType) {
+      case "league": {
+        const [newLeague] = await db.insert(leagues).values({
+          countryId: submission.countryId!,
+          name: submission.entityName,
+          slug: submission.slug,
+          shortName: submission.shortName,
+          logo: submission.logo,
+          tier: submission.tier,
+          type: submission.type,
+          isActive: true,
+        }).returning();
+        promotedEntity = newLeague;
+        break;
+      }
+      case "team": {
+        const [newTeam] = await db.insert(teams).values({
+          leagueId: submission.parentLeagueId,
+          divisionId: submission.parentDivisionId,
+          name: submission.entityName,
+          slug: submission.slug,
+          shortName: submission.shortName,
+          logo: submission.logo,
+          city: submission.city,
+          stateCode: submission.stateCode,
+          venue: submission.venue,
+          isActive: true,
+        }).returning();
+        promotedEntity = newTeam;
+        break;
+      }
+      case "division": {
+        const [newDivision] = await db.insert(divisions).values({
+          leagueId: submission.parentLeagueId!,
+          name: submission.entityName,
+          slug: submission.slug,
+          tier: submission.tier,
+          isActive: true,
+        }).returning();
+        promotedEntity = newDivision;
+        break;
+      }
+      case "venue": {
+        const [newVenue] = await db.insert(venues).values({
+          name: submission.entityName,
+          slug: submission.slug,
+          city: submission.city,
+          stateCode: submission.stateCode,
+          countryId: submission.countryId,
+          isActive: true,
+        }).returning();
+        promotedEntity = newVenue;
+        break;
+      }
+      default:
+        return undefined;
+    }
+
+    const updatedSubmission = await this.updateGrassrootsSubmission(id, {
+      promotedEntityId: promotedEntity.id,
+      promotedAt: new Date(),
+    });
+
+    return {
+      submission: updatedSubmission!,
+      promotedEntity,
+    };
   }
 }
 
