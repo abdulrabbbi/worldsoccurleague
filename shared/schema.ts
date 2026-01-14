@@ -1,9 +1,48 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, boolean, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, boolean, pgEnum, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const planTierEnum = pgEnum("plan_tier", ["free", "pro", "partner"]);
+
+export const adminRoleEnum = pgEnum("admin_role", [
+  "super_admin", 
+  "platform_admin", 
+  "regional_admin", 
+  "state_admin", 
+  "league_operator", 
+  "club_admin", 
+  "data_contributor", 
+  "advertiser", 
+  "affiliate_partner", 
+  "api_license_holder", 
+  "internal_staff", 
+  "viewer"
+]);
+
+export const grassrootsTypeEnum = pgEnum("grassroots_type", [
+  "college", 
+  "high_school", 
+  "youth", 
+  "adult_amateur", 
+  "pickup"
+]);
+
+export const grassrootsStatusEnum = pgEnum("grassroots_status", [
+  "pending", 
+  "approved", 
+  "rejected"
+]);
+
+export const auditActionEnum = pgEnum("audit_action", [
+  "create", 
+  "update", 
+  "delete", 
+  "approve", 
+  "reject",
+  "activate",
+  "deactivate"
+]);
 export const billingCycleEnum = pgEnum("billing_cycle", ["monthly", "yearly"]);
 export const subscriptionStatusEnum = pgEnum("subscription_status", ["active", "canceled", "past_due", "trialing"]);
 export const organizationTypeEnum = pgEnum("organization_type", ["club", "league", "tournament", "fan_club", "pickup_group"]);
@@ -91,6 +130,161 @@ export const partnerVerifications = pgTable("partner_verifications", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const continents = pgTable("continents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: varchar("code", { length: 10 }).notNull().unique(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  flag: text("flag"),
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0),
+  extApiIds: text("ext_api_ids").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const countries = pgTable("countries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  continentId: varchar("continent_id").notNull().references(() => continents.id),
+  code: varchar("code", { length: 10 }).notNull().unique(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  flag: text("flag"),
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0),
+  extApiIds: text("ext_api_ids").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const leagues = pgTable("leagues", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  countryId: varchar("country_id").notNull().references(() => countries.id),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  shortName: text("short_name"),
+  logo: text("logo"),
+  type: text("type"),
+  tier: integer("tier").default(1),
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0),
+  currentSeasonId: varchar("current_season_id"),
+  extApiIds: text("ext_api_ids").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const divisions = pgTable("divisions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leagueId: varchar("league_id").notNull().references(() => leagues.id),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  tier: integer("tier").default(1),
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0),
+  extApiIds: text("ext_api_ids").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const teams = pgTable("teams", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  divisionId: varchar("division_id").references(() => divisions.id),
+  leagueId: varchar("league_id").references(() => leagues.id),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  shortName: text("short_name"),
+  logo: text("logo"),
+  venue: text("venue"),
+  city: text("city"),
+  stateCode: text("state_code"),
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0),
+  extApiIds: text("ext_api_ids").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const seasons = pgTable("seasons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leagueId: varchar("league_id").notNull().references(() => leagues.id),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  isCurrent: boolean("is_current").default(false),
+  isActive: boolean("is_active").default(true).notNull(),
+  extApiIds: text("ext_api_ids").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const fixtures = pgTable("fixtures", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  seasonId: varchar("season_id").notNull().references(() => seasons.id),
+  homeTeamId: varchar("home_team_id").notNull().references(() => teams.id),
+  awayTeamId: varchar("away_team_id").notNull().references(() => teams.id),
+  matchday: integer("matchday"),
+  kickoff: timestamp("kickoff"),
+  status: text("status").default("scheduled"),
+  homeScore: integer("home_score"),
+  awayScore: integer("away_score"),
+  venue: text("venue"),
+  extApiIds: text("ext_api_ids").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const standings = pgTable("standings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  seasonId: varchar("season_id").notNull().references(() => seasons.id),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  position: integer("position").default(0),
+  played: integer("played").default(0),
+  won: integer("won").default(0),
+  drawn: integer("drawn").default(0),
+  lost: integer("lost").default(0),
+  goalsFor: integer("goals_for").default(0),
+  goalsAgainst: integer("goals_against").default(0),
+  goalDifference: integer("goal_difference").default(0),
+  points: integer("points").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const grassrootsSubmissions = pgTable("grassroots_submissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  submittedById: varchar("submitted_by_id").notNull().references(() => users.id),
+  type: grassrootsTypeEnum("type").notNull(),
+  status: grassrootsStatusEnum("status").default("pending").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityName: text("entity_name").notNull(),
+  entityData: jsonb("entity_data"),
+  parentEntityId: varchar("parent_entity_id"),
+  stateCode: text("state_code"),
+  city: text("city"),
+  reviewedById: varchar("reviewed_by_id").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewNotes: text("review_notes"),
+  rejectionReason: text("rejection_reason"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  action: auditActionEnum("action").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: varchar("entity_id").notNull(),
+  entityName: text("entity_name"),
+  previousData: jsonb("previous_data"),
+  newData: jsonb("new_data"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   password: true,
@@ -126,6 +320,70 @@ export const insertPartnerVerificationSchema = createInsertSchema(partnerVerific
   updatedAt: true,
 });
 
+export const insertContinentSchema = createInsertSchema(continents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCountrySchema = createInsertSchema(countries).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertLeagueSchema = createInsertSchema(leagues).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDivisionSchema = createInsertSchema(divisions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTeamSchema = createInsertSchema(teams).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSeasonSchema = createInsertSchema(seasons).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFixtureSchema = createInsertSchema(fixtures).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStandingSchema = createInsertSchema(standings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertGrassrootsSubmissionSchema = createInsertSchema(grassrootsSubmissions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  status: true,
+  reviewedById: true,
+  reviewedAt: true,
+  reviewNotes: true,
+  rejectionReason: true,
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
@@ -138,3 +396,23 @@ export type InsertOrganizationMember = z.infer<typeof insertOrganizationMemberSc
 export type OrganizationMember = typeof organizationMembers.$inferSelect;
 export type InsertPartnerVerification = z.infer<typeof insertPartnerVerificationSchema>;
 export type PartnerVerification = typeof partnerVerifications.$inferSelect;
+export type InsertContinent = z.infer<typeof insertContinentSchema>;
+export type Continent = typeof continents.$inferSelect;
+export type InsertCountry = z.infer<typeof insertCountrySchema>;
+export type Country = typeof countries.$inferSelect;
+export type InsertLeague = z.infer<typeof insertLeagueSchema>;
+export type League = typeof leagues.$inferSelect;
+export type InsertDivision = z.infer<typeof insertDivisionSchema>;
+export type Division = typeof divisions.$inferSelect;
+export type InsertTeam = z.infer<typeof insertTeamSchema>;
+export type Team = typeof teams.$inferSelect;
+export type InsertSeason = z.infer<typeof insertSeasonSchema>;
+export type Season = typeof seasons.$inferSelect;
+export type InsertFixture = z.infer<typeof insertFixtureSchema>;
+export type Fixture = typeof fixtures.$inferSelect;
+export type InsertStanding = z.infer<typeof insertStandingSchema>;
+export type Standing = typeof standings.$inferSelect;
+export type InsertGrassrootsSubmission = z.infer<typeof insertGrassrootsSubmissionSchema>;
+export type GrassrootsSubmission = typeof grassrootsSubmissions.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;

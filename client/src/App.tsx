@@ -38,6 +38,12 @@ import Favorites from "@/pages/favorites";
 import Shop from "@/pages/shop";
 import Marketplace from "@/pages/marketplace";
 
+// Admin pages
+import AdminDashboard from "@/pages/admin/index";
+import AdminContinents from "@/pages/admin/continents";
+import AdminGrassroots from "@/pages/admin/grassroots";
+import AdminAuditLogs from "@/pages/admin/audit-logs";
+
 function Router() {
   return (
     <Switch>
@@ -78,6 +84,12 @@ function Router() {
       <Route path="/team/:id-:slug" component={Team} />
       <Route path="/player/:id-:slug" component={Player} />
       <Route path="/match/:id" component={Match} />
+      
+      {/* Admin Routes */}
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/continents" component={AdminContinents} />
+      <Route path="/admin/grassroots" component={AdminGrassroots} />
+      <Route path="/admin/audit-logs" component={AdminAuditLogs} />
       
       <Route component={NotFound} />
     </Switch>
