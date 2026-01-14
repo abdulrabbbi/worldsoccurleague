@@ -39,6 +39,8 @@ import Favorites from "@/pages/favorites";
 import Shop from "@/pages/shop";
 import Marketplace from "@/pages/marketplace";
 import SportHub from "@/pages/sport-hub";
+import SportLeague from "@/pages/sport-league";
+import SportTeam from "@/pages/sport-team";
 
 // Partner pages
 import PartnerDashboard from "@/pages/partner/index";
@@ -100,6 +102,8 @@ function Router() {
       
       {/* Sport Hub Routes - Non-soccer sports */}
       <Route path="/sport/:slug" component={SportHub} />
+      <Route path="/sport/:sportSlug/league/:id-:slug" component={SportLeague} />
+      <Route path="/sport/:sportSlug/team/:id-:slug" component={SportTeam} />
       
       {/* Partner Routes */}
       <Route path="/partner" component={PartnerDashboard} />

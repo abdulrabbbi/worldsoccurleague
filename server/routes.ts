@@ -618,6 +618,39 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/leagues/:id", async (req, res) => {
+    try {
+      const league = await storage.getLeague(req.params.id);
+      if (!league) {
+        return res.status(404).json({ error: "League not found" });
+      }
+      res.json(league);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch league" });
+    }
+  });
+
+  app.get("/api/leagues/:id/teams", async (req, res) => {
+    try {
+      const teamList = await storage.getTeamsByLeague(req.params.id);
+      res.json(teamList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch teams" });
+    }
+  });
+
+  app.get("/api/teams/:id", async (req, res) => {
+    try {
+      const team = await storage.getTeam(req.params.id);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      res.json(team);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch team" });
+    }
+  });
+
   app.post("/api/sports/seed", async (_req, res) => {
     try {
       const existingSports = await storage.getSports();

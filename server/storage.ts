@@ -88,6 +88,10 @@ export interface IStorage {
   createSport(sport: InsertSport): Promise<Sport>;
   getLeaguesBySport(sportId: string): Promise<League[]>;
   getLeaguesBySportSlug(sportSlug: string): Promise<League[]>;
+  
+  getTeam(id: string): Promise<Team | undefined>;
+  getTeamsByLeague(leagueId: string): Promise<Team[]>;
+  getLeague(id: string): Promise<League | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -522,6 +526,20 @@ export class DatabaseStorage implements IStorage {
     const sport = await this.getSportBySlug(sportSlug);
     if (!sport) return [];
     return await this.getLeaguesBySport(sport.id);
+  }
+
+  async getTeam(id: string): Promise<Team | undefined> {
+    const result = await db.select().from(teams).where(eq(teams.id, id));
+    return result[0];
+  }
+
+  async getTeamsByLeague(leagueId: string): Promise<Team[]> {
+    return await db.select().from(teams).where(eq(teams.leagueId, leagueId));
+  }
+
+  async getLeague(id: string): Promise<League | undefined> {
+    const result = await db.select().from(leagues).where(eq(leagues.id, id));
+    return result[0];
   }
 }
 
