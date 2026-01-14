@@ -5,7 +5,8 @@ import {
   insertUserSchema, 
   insertUserPreferencesSchema,
   insertOrganizationSchema,
-  insertOrganizationMemberSchema 
+  insertOrganizationMemberSchema,
+  insertGrassrootsSubmissionSchema
 } from "@shared/schema";
 import { PLAN_TIERS, type PlanTier } from "@shared/plans";
 import { 
@@ -353,6 +354,152 @@ export async function registerRoutes(
       res.json({ verification, message: "Verification rejected" });
     } catch (error) {
       res.status(500).json({ error: "Failed to reject verification" });
+    }
+  });
+
+  app.get("/api/admin/grassroots/submissions", requireAuth, async (req, res) => {
+    if (!canVerifyPartners(req)) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    
+    try {
+      const { status, type, entityType } = req.query;
+      const submissions = await storage.getGrassrootsSubmissions({
+        status: status as string | undefined,
+        type: type as string | undefined,
+        entityType: entityType as string | undefined,
+      });
+      
+      const submissionsWithUser = await Promise.all(
+        submissions.map(async (s) => {
+          const submittedBy = await storage.getUser(s.submittedById);
+          return {
+            ...s,
+            submittedByName: submittedBy?.name || submittedBy?.email || "Unknown",
+          };
+        })
+      );
+      
+      res.json({ submissions: submissionsWithUser });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch grassroots submissions" });
+    }
+  });
+
+  app.get("/api/admin/grassroots/submissions/:id", requireAuth, async (req, res) => {
+    if (!canVerifyPartners(req)) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    
+    try {
+      const submission = await storage.getGrassrootsSubmission(req.params.id);
+      if (!submission) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
+      
+      const submittedBy = await storage.getUser(submission.submittedById);
+      res.json({ 
+        submission: {
+          ...submission,
+          submittedByName: submittedBy?.name || submittedBy?.email || "Unknown",
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch submission" });
+    }
+  });
+
+  app.post("/api/admin/grassroots/submissions/:id/approve", requireAuth, async (req, res) => {
+    if (!canVerifyPartners(req)) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    
+    try {
+      const user = req.ctx!.user!;
+      const { notes } = req.body;
+      
+      const submission = await storage.approveGrassrootsSubmission(req.params.id, user.id, notes);
+      if (!submission) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
+      
+      res.json({ submission, message: "Submission approved" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to approve submission" });
+    }
+  });
+
+  app.post("/api/admin/grassroots/submissions/:id/reject", requireAuth, async (req, res) => {
+    if (!canVerifyPartners(req)) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    
+    try {
+      const user = req.ctx!.user!;
+      const { reason } = req.body;
+      
+      if (!reason) {
+        return res.status(400).json({ error: "Rejection reason is required" });
+      }
+      
+      const submission = await storage.rejectGrassrootsSubmission(req.params.id, user.id, reason);
+      if (!submission) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
+      
+      res.json({ submission, message: "Submission rejected" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to reject submission" });
+    }
+  });
+
+  app.post("/api/admin/grassroots/submissions/:id/promote", requireAuth, async (req, res) => {
+    if (!canVerifyPartners(req)) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    
+    try {
+      const result = await storage.promoteGrassrootsSubmission(req.params.id);
+      if (!result) {
+        return res.status(400).json({ error: "Submission must be approved before promotion" });
+      }
+      
+      res.json({ 
+        submission: result.submission, 
+        promotedEntity: result.promotedEntity,
+        message: `Successfully promoted to ${result.submission.entityType}` 
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to promote submission" });
+    }
+  });
+
+  app.post("/api/grassroots/submissions", requireAuth, requireGrassrootsAccess, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const data = insertGrassrootsSubmissionSchema.parse({
+        ...req.body,
+        submittedById: user.id,
+      });
+      
+      const submission = await storage.createGrassrootsSubmission(data);
+      res.json({ submission });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create submission" });
+    }
+  });
+
+  app.get("/api/grassroots/submissions", requireAuth, requireGrassrootsAccess, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const allSubmissions = await storage.getGrassrootsSubmissions();
+      const userSubmissions = allSubmissions.filter(s => s.submittedById === user.id);
+      res.json({ submissions: userSubmissions });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch submissions" });
     }
   });
 
