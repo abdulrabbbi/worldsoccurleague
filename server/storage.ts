@@ -87,7 +87,10 @@ export interface IStorage {
   updateGrassrootsSubmission(id: string, updates: Partial<GrassrootsSubmission>): Promise<GrassrootsSubmission | undefined>;
   approveGrassrootsSubmission(id: string, reviewerId: string, notes?: string): Promise<GrassrootsSubmission | undefined>;
   rejectGrassrootsSubmission(id: string, reviewerId: string, reason: string): Promise<GrassrootsSubmission | undefined>;
-  promoteGrassrootsSubmission(id: string): Promise<{ submission: GrassrootsSubmission; promotedEntity: League | Team | Division | Venue } | undefined>;
+  promoteGrassrootsSubmission(id: string, reviewerId: string): Promise<{ submission: GrassrootsSubmission; promotedEntity: League | Team | Division | Venue } | undefined>;
+  submitGrassrootsForReview(id: string): Promise<GrassrootsSubmission | undefined>;
+  findDuplicateEntities(submission: GrassrootsSubmission): Promise<{ id: string; name: string; type: string; matchScore: number; details?: string }[]>;
+  linkSubmissionToExisting(submissionId: string, existingEntityId: string, reviewerId: string): Promise<GrassrootsSubmission | undefined>;
   
   getSports(): Promise<Sport[]>;
   getSport(id: string): Promise<Sport | undefined>;
@@ -404,7 +407,101 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async promoteGrassrootsSubmission(id: string): Promise<{ submission: GrassrootsSubmission; promotedEntity: League | Team | Division | Venue } | undefined> {
+  async submitGrassrootsForReview(id: string): Promise<GrassrootsSubmission | undefined> {
+    const submission = await this.getGrassrootsSubmission(id);
+    if (!submission || (submission.status !== "draft" && submission.status !== "pending")) {
+      return undefined;
+    }
+    return await this.updateGrassrootsSubmission(id, {
+      status: "review",
+    });
+  }
+
+  async findDuplicateEntities(submission: GrassrootsSubmission): Promise<{ id: string; name: string; type: string; matchScore: number; details?: string }[]> {
+    const duplicates: { id: string; name: string; type: string; matchScore: number; details?: string }[] = [];
+    const searchName = submission.entityName.toLowerCase().trim();
+    
+    if (submission.entityType === "league") {
+      const allLeagues = await db.select().from(leagues);
+      for (const league of allLeagues) {
+        const leagueName = league.name.toLowerCase().trim();
+        let matchScore = 0;
+        
+        if (leagueName === searchName) {
+          matchScore = 60;
+        } else if (leagueName.includes(searchName) || searchName.includes(leagueName)) {
+          matchScore = 30;
+        }
+        
+        if (matchScore > 0) {
+          if (submission.countryId && league.countryId === submission.countryId) matchScore += 20;
+          if (submission.type && league.type === submission.type) matchScore += 15;
+          if (submission.tier && league.tier === submission.tier) matchScore += 5;
+          
+          duplicates.push({ 
+            id: league.id, 
+            name: league.name, 
+            type: matchScore >= 80 ? "exact" : "partial", 
+            matchScore: Math.min(matchScore, 100),
+            details: `Type: ${league.type || 'unknown'}, Tier: ${league.tier || 'unknown'}`
+          });
+        }
+      }
+    } else if (submission.entityType === "team") {
+      const allTeams = await db.select().from(teams);
+      for (const team of allTeams) {
+        const teamName = team.name.toLowerCase().trim();
+        let matchScore = 0;
+        
+        if (teamName === searchName) {
+          matchScore = 50;
+        } else if (teamName.includes(searchName) || searchName.includes(teamName)) {
+          matchScore = 25;
+        }
+        
+        if (matchScore > 0) {
+          if (submission.stateCode && team.stateCode === submission.stateCode) matchScore += 25;
+          if (submission.city && team.city?.toLowerCase() === submission.city.toLowerCase()) matchScore += 15;
+          if (submission.countryId && team.countryId === submission.countryId) matchScore += 10;
+          
+          duplicates.push({ 
+            id: team.id, 
+            name: team.name, 
+            type: matchScore >= 80 ? "exact" : "partial", 
+            matchScore: Math.min(matchScore, 100),
+            details: `${team.city || ''}, ${team.stateCode || ''}`
+          });
+        }
+      }
+    }
+    
+    return duplicates.sort((a, b) => b.matchScore - a.matchScore).slice(0, 10);
+  }
+
+  async linkSubmissionToExisting(submissionId: string, existingEntityId: string, reviewerId: string): Promise<GrassrootsSubmission | undefined> {
+    const submission = await this.getGrassrootsSubmission(submissionId);
+    if (!submission || submission.status !== "approved") {
+      return undefined;
+    }
+    
+    await this.createProviderMapping({
+      providerName: "grassroots",
+      providerEntityType: submission.entityType as any,
+      providerEntityId: submissionId,
+      internalEntityId: existingEntityId,
+      providerEntityName: submission.entityName,
+    });
+    
+    return await this.updateGrassrootsSubmission(submissionId, {
+      status: "promoted",
+      promotedEntityId: existingEntityId,
+      promotedAt: new Date(),
+      reviewedById: reviewerId,
+      reviewedAt: new Date(),
+    });
+  }
+
+  async promoteGrassrootsSubmission(id: string, reviewerId: string): Promise<{ submission: GrassrootsSubmission; promotedEntity: League | Team | Division | Venue } | undefined> {
     const submission = await this.getGrassrootsSubmission(id);
     if (!submission || submission.status !== "approved") {
       return undefined;
@@ -490,9 +587,20 @@ export class DatabaseStorage implements IStorage {
         return undefined;
     }
 
+    await this.createProviderMapping({
+      providerName: "grassroots",
+      providerEntityType: submission.entityType as any,
+      providerEntityId: id,
+      internalEntityId: promotedEntity.id,
+      providerEntityName: submission.entityName,
+    });
+
     const updatedSubmission = await this.updateGrassrootsSubmission(id, {
+      status: "promoted",
       promotedEntityId: promotedEntity.id,
       promotedAt: new Date(),
+      reviewedById: reviewerId,
+      reviewedAt: new Date(),
     });
 
     return {

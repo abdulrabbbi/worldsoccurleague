@@ -484,10 +484,23 @@ export async function registerRoutes(
     }
     
     try {
-      const result = await storage.promoteGrassrootsSubmission(req.params.id);
+      const user = req.ctx!.user!;
+      const result = await storage.promoteGrassrootsSubmission(req.params.id, user.id);
       if (!result) {
         return res.status(400).json({ error: "Submission must be approved before promotion" });
       }
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "promote",
+        entityType: "grassroots_submission",
+        entityId: req.params.id,
+        entityName: result.submission.entityName,
+        newData: { 
+          promotedEntityId: result.promotedEntity.id,
+          promotedEntityType: result.submission.entityType,
+        },
+      });
       
       res.json({ 
         submission: result.submission, 
@@ -988,6 +1001,174 @@ export async function registerRoutes(
       res.json({ fixtures: results, count: results.length });
     } catch (error) {
       res.status(500).json({ error: "Failed to create bulk fixtures" });
+    }
+  });
+
+  app.get("/api/admin/grassroots", requireAuth, async (req, res) => {
+    try {
+      const { status, type, entityType } = req.query;
+      const submissions = await storage.getGrassrootsSubmissions({
+        status: status as string,
+        type: type as string,
+        entityType: entityType as string,
+      });
+      res.json(submissions);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch grassroots submissions" });
+    }
+  });
+
+  app.get("/api/admin/grassroots/:id", requireAuth, async (req, res) => {
+    try {
+      const submission = await storage.getGrassrootsSubmission(req.params.id);
+      if (!submission) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
+      res.json(submission);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch submission" });
+    }
+  });
+
+  app.post("/api/admin/grassroots/:id/submit-review", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const submission = await storage.submitGrassrootsForReview(req.params.id);
+      if (!submission) {
+        return res.status(400).json({ error: "Cannot submit for review" });
+      }
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "submit_for_review",
+        entityType: "grassroots_submission",
+        entityId: req.params.id,
+        entityName: submission.entityName,
+      });
+      
+      res.json(submission);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to submit for review" });
+    }
+  });
+
+  app.post("/api/admin/grassroots/:id/approve", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const { notes } = req.body;
+      const submission = await storage.approveGrassrootsSubmission(req.params.id, user.id, notes);
+      if (!submission) {
+        return res.status(400).json({ error: "Cannot approve submission" });
+      }
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "approve",
+        entityType: "grassroots_submission",
+        entityId: req.params.id,
+        entityName: submission.entityName,
+        newData: { notes },
+      });
+      
+      res.json(submission);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to approve submission" });
+    }
+  });
+
+  app.post("/api/admin/grassroots/:id/reject", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const { reason } = req.body;
+      if (!reason) {
+        return res.status(400).json({ error: "Rejection reason required" });
+      }
+      
+      const submission = await storage.rejectGrassrootsSubmission(req.params.id, user.id, reason);
+      if (!submission) {
+        return res.status(400).json({ error: "Cannot reject submission" });
+      }
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "reject",
+        entityType: "grassroots_submission",
+        entityId: req.params.id,
+        entityName: submission.entityName,
+        newData: { reason },
+      });
+      
+      res.json(submission);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to reject submission" });
+    }
+  });
+
+  app.get("/api/admin/grassroots/:id/duplicates", requireAuth, async (req, res) => {
+    try {
+      const submission = await storage.getGrassrootsSubmission(req.params.id);
+      if (!submission) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
+      
+      const duplicates = await storage.findDuplicateEntities(submission);
+      res.json(duplicates);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to find duplicates" });
+    }
+  });
+
+  app.post("/api/admin/grassroots/:id/promote", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const result = await storage.promoteGrassrootsSubmission(req.params.id, user.id);
+      if (!result) {
+        return res.status(400).json({ error: "Cannot promote submission" });
+      }
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "promote",
+        entityType: "grassroots_submission",
+        entityId: req.params.id,
+        entityName: result.submission.entityName,
+        newData: { 
+          promotedEntityId: result.promotedEntity.id,
+          promotedEntityType: result.submission.entityType,
+        },
+      });
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to promote submission" });
+    }
+  });
+
+  app.post("/api/admin/grassroots/:id/link", requireAuth, async (req, res) => {
+    try {
+      const user = req.ctx!.user!;
+      const { existingEntityId } = req.body;
+      if (!existingEntityId) {
+        return res.status(400).json({ error: "Existing entity ID required" });
+      }
+      
+      const submission = await storage.linkSubmissionToExisting(req.params.id, existingEntityId, user.id);
+      if (!submission) {
+        return res.status(400).json({ error: "Cannot link submission" });
+      }
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: "link_existing",
+        entityType: "grassroots_submission",
+        entityId: req.params.id,
+        entityName: submission.entityName,
+        newData: { linkedEntityId: existingEntityId },
+      });
+      
+      res.json(submission);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to link submission" });
     }
   });
 
