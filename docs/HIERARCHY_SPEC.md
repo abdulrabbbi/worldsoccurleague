@@ -4,6 +4,229 @@
 
 ---
 
+## Core Architecture Principle
+
+**The Home page drop-downs are UX grouping layers (filters/views), NOT separate database tables.**
+
+All data sources (Admin Panel, Grassroots API, SportMonks) write to the **same canonical entities** using the **same field names and IDs**.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         SINGLE CANONICAL DATA MODEL                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  continents  │  countries  │  leagues  │  teams  │  venues  │  players     │
+│              │             │           │         │          │              │
+│  (with classification fields for filtering)                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ▲
+           ┌────────────────────────┼────────────────────────┐
+           │                        │                        │
+    ┌──────┴──────┐          ┌──────┴──────┐          ┌──────┴──────┐
+    │ Admin Panel │          │ Grassroots  │          │ SportMonks  │
+    │   (CRUD)    │          │     API     │          │    Sync     │
+    └─────────────┘          └─────────────┘          └─────────────┘
+```
+
+---
+
+## Home Page Sections → Canonical Field Mappings
+
+Each Home page section is a **filtered view** of the same `leagues` table:
+
+| Home Page Section | Filter Query | Example |
+|-------------------|--------------|---------|
+| **Professional** | `type = 'professional'` | MLS, EPL, La Liga |
+| **College** | `type = 'college'` | NCAA D1, NAIA |
+| **Youth** | `type = 'youth'` | US Youth Soccer, ECNL |
+| **Adult/Amateur** | `type = 'amateur'` | Holy City Soccer League |
+| **Pickup** | `type = 'pickup'` | Saturday Pickup at Riverfront |
+| **Cups/Tournaments** | `format = 'tournament'` | US Open Cup, FA Cup |
+| **Fan Clubs** | (from `organizations` table with `type = 'fan_club'`) | Arsenal Supporters Group |
+
+### "Find in Your Area" Filter
+
+Uses location fields on the same entities:
+
+```sql
+SELECT * FROM leagues l
+JOIN teams t ON t.league_id = l.id
+WHERE t.country_id = :countryId
+  AND t.state_code = :stateCode   -- optional
+  AND t.city = :city              -- optional
+```
+
+---
+
+## Canonical Entity Classification Fields
+
+### League Classification
+
+| Field | Type | Values | Description |
+|-------|------|--------|-------------|
+| `type` | string | `professional`, `college`, `youth`, `amateur`, `pickup` | Primary classification |
+| `tier` | integer | 1, 2, 3, 4... | Level within type (1 = top) |
+| `format` | string | `11v11`, `futsal`, `indoor`, `7v7`, `5v5` | Game format |
+| `gender` | string | `M`, `F`, `coed` | Gender category |
+| `ageGroup` | string | `U-10`, `U-12`, `U-15`, `U-19`, `adult`, `senior` | Age bracket |
+| `governingBody` | string | `USSF`, `NCAA`, `NAIA`, `US_Youth_Soccer`, `ECNL` | Sanctioning body |
+
+### Team Classification
+
+| Field | Type | Values | Description |
+|-------|------|--------|-------------|
+| `countryId` | string | FK to countries | Country location |
+| `stateCode` | string | `SC`, `TX`, `CA` | State/province code |
+| `city` | string | `Charleston`, `Austin` | City location |
+
+### Organization Classification (Fan Clubs, etc.)
+
+| Field | Type | Values | Description |
+|-------|------|--------|-------------|
+| `type` | enum | `club`, `league`, `tournament`, `fan_club`, `pickup_group` | Organization type |
+| `stateCode` | string | `SC`, `TX` | Location |
+| `city` | string | City name | Location |
+
+---
+
+## Example JSON: Home Page Section Queries
+
+### Professional Leagues
+
+```json
+// GET /api/leagues?type=professional&countryId=c-usa-uuid
+{
+  "filters": {
+    "type": "professional",
+    "countryId": "c-usa-uuid"
+  },
+  "results": [
+    {
+      "id": "l-mls-uuid",
+      "name": "Major League Soccer",
+      "slug": "mls",
+      "type": "professional",
+      "tier": 1,
+      "format": "11v11",
+      "gender": "M",
+      "governingBody": "USSF"
+    },
+    {
+      "id": "l-uslc-uuid", 
+      "name": "USL Championship",
+      "slug": "usl-championship",
+      "type": "professional",
+      "tier": 2,
+      "format": "11v11",
+      "gender": "M",
+      "governingBody": "USSF"
+    }
+  ]
+}
+```
+
+### College Leagues
+
+```json
+// GET /api/leagues?type=college&governingBody=NCAA
+{
+  "filters": {
+    "type": "college",
+    "governingBody": "NCAA"
+  },
+  "results": [
+    {
+      "id": "l-ncaa-d1-uuid",
+      "name": "NCAA Division I Men's Soccer",
+      "slug": "ncaa-d1-mens",
+      "type": "college",
+      "tier": 1,
+      "format": "11v11",
+      "gender": "M",
+      "governingBody": "NCAA"
+    }
+  ]
+}
+```
+
+### Youth Leagues
+
+```json
+// GET /api/leagues?type=youth&ageGroup=U-15
+{
+  "filters": {
+    "type": "youth",
+    "ageGroup": "U-15"
+  },
+  "results": [
+    {
+      "id": "l-ecnl-u15-uuid",
+      "name": "ECNL U-15 Boys",
+      "slug": "ecnl-u15-boys",
+      "type": "youth",
+      "tier": 1,
+      "ageGroup": "U-15",
+      "gender": "M",
+      "governingBody": "ECNL"
+    }
+  ]
+}
+```
+
+### Find in Your Area (Charleston, SC)
+
+```json
+// GET /api/leagues?stateCode=SC&city=Charleston
+{
+  "filters": {
+    "stateCode": "SC",
+    "city": "Charleston"
+  },
+  "results": [
+    {
+      "id": "l-hcsl-uuid",
+      "name": "Holy City Soccer League",
+      "slug": "holy-city-soccer-league",
+      "type": "amateur",
+      "tier": 4,
+      "city": "Charleston",
+      "stateCode": "SC"
+    },
+    {
+      "id": "l-battery-youth-uuid",
+      "name": "Charleston Battery Youth Academy",
+      "slug": "charleston-battery-youth",
+      "type": "youth",
+      "ageGroup": "U-10",
+      "city": "Charleston",
+      "stateCode": "SC"
+    }
+  ]
+}
+```
+
+### Fan Clubs (from Organizations table)
+
+```json
+// GET /api/organizations?type=fan_club
+{
+  "filters": {
+    "type": "fan_club"
+  },
+  "results": [
+    {
+      "id": "org-asg-uuid",
+      "name": "Arsenal Supporters Charleston",
+      "slug": "arsenal-supporters-charleston",
+      "type": "fan_club",
+      "city": "Charleston",
+      "stateCode": "SC"
+    }
+  ]
+}
+```
+
+---
+
 ## Step 1: Drop-down Hierarchy Spec (Front-End Contract)
 
 ### Complete Hierarchy
