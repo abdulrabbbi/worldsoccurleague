@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Puzzle
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
@@ -89,6 +90,12 @@ const menuItems = [
     label: "API Mapping", 
     icon: Layers, 
     path: "/admin/api-mapping" 
+  },
+  { 
+    id: "integrations", 
+    label: "Integrations", 
+    icon: Puzzle, 
+    path: "/admin/integrations" 
   },
   { 
     id: "users", 

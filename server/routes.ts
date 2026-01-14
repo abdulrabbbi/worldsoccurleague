@@ -988,6 +988,12 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================================================
+  // PUBLIC READ-ONLY ROUTES
+  // These routes are intentionally unauthenticated for public sports data access.
+  // In production, the app team will handle caching/CDN/rate-limiting for these endpoints.
+  // ============================================================================
+
   app.get("/api/countries", async (_req, res) => {
     try {
       const countries = await storage.getCountries();
@@ -1072,6 +1078,9 @@ export async function registerRoutes(
       res.status(500).json({ error: "Failed to fetch team" });
     }
   });
+
+  // END PUBLIC READ-ONLY ROUTES
+  // ============================================================================
 
   app.post("/api/sports/seed", async (_req, res) => {
     try {

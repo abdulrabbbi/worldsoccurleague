@@ -59,6 +59,7 @@ import AdminTeams from "@/pages/admin/teams";
 import AdminGrassroots from "@/pages/admin/grassroots";
 import AdminAuditLogs from "@/pages/admin/audit-logs";
 import AdminApiMapping from "@/pages/admin/api-mapping";
+import AdminIntegrations from "@/pages/admin/integrations";
 
 function Router() {
   return (
@@ -123,6 +124,7 @@ function Router() {
       <Route path="/admin/teams" component={AdminTeams} />
       <Route path="/admin/grassroots" component={AdminGrassroots} />
       <Route path="/admin/api-mapping" component={AdminApiMapping} />
+      <Route path="/admin/integrations" component={AdminIntegrations} />
       <Route path="/admin/audit-logs" component={AdminAuditLogs} />
       
       <Route component={NotFound} />

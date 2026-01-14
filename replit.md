@@ -103,6 +103,22 @@ Routes follow a hierarchy pattern with ID + slug combinations for SEO and API-re
   - `POST /api/subscriptions/upgrade` - Upgrade plan tier (payment-agnostic placeholder)
   - `GET /api/subscriptions/current` - Get current subscription
 
+### Phase 4: Integration Stubs (Scaffolding Only)
+- **Route:** `/admin/integrations` - Central hub for external service connections
+- **Integrations:**
+  - **BetterMode (Community):** Discussion forums, fan groups, polls, user badges, activity feed
+  - **Sharetribe (Marketplace):** Product listings, seller profiles, secure payments, reviews, order management
+  - **Kevel/AdButler (Advertising):** Banner ads, native ads, sponsorship slots, geo-targeting, revenue reports
+  - **Affiliate Networks:** Impact, CJ Affiliate, Rakuten, ShareASale - product feeds, deep links, commission tracking
+- **Status:** Placeholder stubs only - no live API connections. Production app team will wire with actual credentials.
+- **Configuration Fields:** Each integration shows required fields (API key, webhook URL, network/community IDs)
+
+### Public Read-Only Routes
+The following routes are intentionally unauthenticated for public sports data access:
+- `/api/countries`, `/api/leagues`, `/api/sports`, `/api/sports/:slug`, `/api/sports/:slug/leagues`
+- `/api/leagues/:id`, `/api/leagues/:id/teams`, `/api/teams/:id`
+- In production, the app team will handle caching/CDN/rate-limiting for these endpoints.
+
 ## External Dependencies
 
 ### Database
