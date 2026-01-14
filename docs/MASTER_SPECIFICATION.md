@@ -16,6 +16,7 @@
 4. [Provider Mapping Specification](#4-provider-mapping-specification)
 5. [End-to-End Validation Scenarios](#5-end-to-end-validation-scenarios)
 6. [Schema Freeze Confirmation](#6-schema-freeze-confirmation)
+7. [Multi-Sport Architecture](#7-multi-sport-architecture)
 
 ---
 
@@ -29,8 +30,9 @@
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         CANONICAL DATABASE TABLES                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  continents │ countries │ leagues │ teams │ venues │ players │ fixtures    │
-│  divisions  │ seasons   │ standings │ organizations │ grassrootsSubmissions │
+│  sports     │ continents │ countries │ leagues │ teams │ venues │ players  │
+│  fixtures   │ divisions  │ seasons   │ standings │ organizations           │
+│  grassrootsSubmissions   │ providerMappings                                │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ▲
            ┌────────────────────────┼────────────────────────┐
@@ -39,6 +41,48 @@
     │ Admin Panel │          │ Grassroots  │          │ SportMonks  │
     │   (CRUD)    │          │     API     │          │    Sync     │
     └─────────────┘          └─────────────┘          └─────────────┘
+```
+
+---
+
+### Entity: Sport
+
+The sports table is the root-level lookup for multi-sport support. Soccer is the default/primary sport.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | varchar (UUID) | auto | Primary key |
+| `code` | varchar(20) | ✓ | Sport code: "soccer", "nfl", "nba", "mlb", "nhl" |
+| `name` | text | ✓ | Full name: "Soccer", "NFL Football" |
+| `slug` | text | ✓ | URL-safe, unique: "soccer", "nfl" |
+| `icon` | text | Optional | Emoji or icon URL |
+| `isActive` | boolean | ✓ | Default: true (NOT NULL) |
+| `sortOrder` | integer | Optional | Display order (default: 0, soccer = 0) |
+| `createdAt` | timestamp | ✓ | Auto-set on creation (NOT NULL) |
+| `updatedAt` | timestamp | ✓ | Auto-set on update (NOT NULL) |
+
+**Parent/Child:** None → Leagues (via sportId)
+
+**Default Sports:**
+- `soccer` (code: "soccer", sortOrder: 0) - Primary sport, default
+- `nfl` (code: "nfl") - NFL Football
+- `nba` (code: "nba") - NBA Basketball
+- `mlb` (code: "mlb") - MLB Baseball
+- `nhl` (code: "nhl") - NHL Hockey
+
+**Example JSON:**
+```json
+{
+  "id": "sport-soccer-uuid",
+  "code": "soccer",
+  "name": "Soccer",
+  "slug": "soccer",
+  "icon": "⚽",
+  "isActive": true,
+  "sortOrder": 0,
+  "createdAt": "2025-01-01T00:00:00Z",
+  "updatedAt": "2025-01-01T00:00:00Z"
+}
 ```
 
 ---
@@ -180,6 +224,7 @@ Cities are **not a separate table**. They are derived from `city` fields on Team
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `id` | varchar (UUID) | auto | Primary key |
+| `sportId` | varchar | Optional | FK to sports.id (nullable for backward compat, defaults to soccer) |
 | `countryId` | varchar | ✓ | FK to countries.id |
 | `name` | text | ✓ | Full name: "Major League Soccer" |
 | `slug` | text | ✓ | URL-safe, unique: "mls" |
@@ -847,9 +892,10 @@ USA (c-usa-uuid)
 The following are considered **frozen** as of this specification:
 
 #### Entity Structure
+- ✓ `sports` - Multi-sport lookup table (soccer, nfl, nba, mlb, nhl)
 - ✓ `continents` - 6 fixed continents
 - ✓ `countries` - ISO 3166-1 country list
-- ✓ `leagues` - Core league entity with classification fields
+- ✓ `leagues` - Core league entity with classification fields and sportId
 - ✓ `teams` - Core team entity
 - ✓ `venues` - Core venue entity
 - ✓ `seasons` / Competitions
@@ -858,13 +904,15 @@ The following are considered **frozen** as of this specification:
 #### Field Names (Canonical)
 | Entity | Frozen Fields |
 |--------|---------------|
-| All | `id`, `name`, `slug`, `isActive`, `extApiIds`, `createdAt`, `updatedAt` |
-| Continent/Country | `code`, `flag`, `sortOrder` |
-| League | `countryId`, `type`, `tier`, `format`, `gender`, `ageGroup`, `governingBody` |
-| Team | `leagueId`, `divisionId`, `city`, `stateCode`, `logo`, `venue` |
-| Venue | `address`, `capacity`, `surface`, `latitude`, `longitude` |
+| All | `id`, `name`, `slug`, `isActive`, `createdAt`, `updatedAt` |
+| Sport | `code`, `icon`, `sortOrder` |
+| Continent/Country | `code`, `flag`, `sortOrder`, `extApiIds` |
+| League | `sportId`, `countryId`, `type`, `tier`, `format`, `gender`, `ageGroup`, `governingBody`, `extApiIds` |
+| Team | `leagueId`, `divisionId`, `city`, `stateCode`, `logo`, `venue`, `extApiIds` |
+| Venue | `address`, `capacity`, `surface`, `latitude`, `longitude`, `extApiIds` |
 
 #### Relationships
+- ✓ Sport → League (via `sportId`) - nullable, defaults to soccer
 - ✓ Continent → Country (via `continentId`)
 - ✓ Country → League (via `countryId`)
 - ✓ League → Division (via `leagueId`)
@@ -889,6 +937,111 @@ This specification serves as the **canonical reference** for all development. Al
 
 ---
 
+## 7. Multi-Sport Architecture
+
+### Overview
+
+The platform supports multiple professional sports (NFL, NBA, MLB, NHL, etc.) via a **generic Sport Hub model**. This enables API-driven rendering without creating sport-specific tables for each league.
+
+### Core Principle
+
+**Sport context flows from the `sports` table through `leagues.sportId`.**
+
+```
+┌────────────┐
+│   sports   │  ← Root lookup table (soccer, nfl, nba, mlb, nhl)
+└─────┬──────┘
+      │ sportId
+      ▼
+┌────────────┐
+│  leagues   │  ← All sports share the same leagues table
+└─────┬──────┘
+      │ leagueId
+      ▼
+┌────────────────────────────────────────┐
+│  teams │ seasons │ fixtures │ standings │
+└────────────────────────────────────────┘
+```
+
+Teams, fixtures, standings, and all other child entities **inherit sport context** through their league relationship. No separate tables per sport.
+
+### Sport Hub Routing
+
+The Sport Hub uses a reusable template pattern:
+
+| Route | Purpose | Component Reuse |
+|-------|---------|-----------------|
+| `/sport/:slug` | Sport Hub landing (e.g., `/sport/nfl`) | Reuses LeagueGrid |
+| `/sport/:slug/league/:id-:leagueSlug` | League detail within sport | Reuses LeaguePage |
+| `/sport/:slug/team/:id-:teamSlug` | Team detail within sport | Reuses TeamPage |
+| `/sport/:slug/match/:id` | Match/game details | Reuses MatchPage |
+
+**Soccer-specific routes remain unchanged:**
+- `/world`, `/continent/:slug`, `/country/:slug` - Soccer hierarchy
+- `/league/:id-:slug`, `/team/:id-:slug`, `/match/:id` - Soccer entities
+
+### API Response Requirements
+
+For Sport Hub to render correctly, API responses must include:
+
+```json
+{
+  "league": {
+    "id": "league-nfl-uuid",
+    "sportId": "sport-nfl-uuid",
+    "sportCode": "nfl",
+    "name": "National Football League",
+    "teams": [...],
+    "currentSeason": {...},
+    "standings": [...],
+    "fixtures": [...]
+  }
+}
+```
+
+The `sportCode` field enables frontend filtering and route generation.
+
+### "More Sports" Section (Home Page)
+
+The Home page "More Sports" section displays:
+
+```
+┌────────────────────────────────────────────┐
+│  More Sports                                │
+├────────────────────────────────────────────┤
+│  🏈 NFL  │  🏀 NBA  │  ⚾ MLB  │  🏒 NHL   │
+└────────────────────────────────────────────┘
+```
+
+**Data Source:** `SELECT * FROM sports WHERE isActive = true AND code != 'soccer' ORDER BY sortOrder`
+
+**Click Action:** Navigate to `/sport/:slug` (e.g., `/sport/nfl`)
+
+### Implementation Notes
+
+1. **Backward Compatibility:** `sportId` on leagues is nullable. Existing soccer leagues with `sportId = null` continue working; null implies soccer by default.
+
+2. **No Sport-Specific Tables:** NFL, NBA, MLB, NHL all use:
+   - Same `leagues` table (filtered by `sportId`)
+   - Same `teams` table (linked via `leagueId`)
+   - Same `seasons`, `fixtures`, `standings` tables
+
+3. **API Sync:** SportMonks and other multi-sport APIs populate the generic tables. The `providerMappings` table tracks external IDs across all sports.
+
+4. **UI Components:** LeagueCard, TeamCard, FixtureCard, StandingsTable components work for all sports. Sport-specific styling (if needed) uses `sportCode` CSS classes.
+
+### Default Sports Seed Data
+
+| code | name | slug | icon | sortOrder |
+|------|------|------|------|-----------|
+| soccer | Soccer | soccer | ⚽ | 0 |
+| nfl | NFL Football | nfl | 🏈 | 1 |
+| nba | NBA Basketball | nba | 🏀 | 2 |
+| mlb | MLB Baseball | mlb | ⚾ | 3 |
+| nhl | NHL Hockey | nhl | 🏒 | 4 |
+
+---
+
 ## Deliverables Checklist
 
 | # | Deliverable | Status |
@@ -899,6 +1052,7 @@ This specification serves as the **canonical reference** for all development. Al
 | 4 | Provider Mapping specification | ✓ Complete |
 | 5 | End-to-end validation scenarios | ✓ Complete |
 | 6 | Schema freeze acknowledgment | ✓ Complete |
+| 7 | Multi-Sport Architecture | ✓ Complete |
 
 ---
 
