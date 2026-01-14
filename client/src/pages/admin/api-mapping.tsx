@@ -14,7 +14,12 @@ import {
   Database,
   ExternalLink,
   BarChart3,
-  Layers
+  Layers,
+  Trophy,
+  Users,
+  Flag,
+  Calendar,
+  Filter
 } from "lucide-react";
 import AdminLayout, { useAdminSport } from "./layout";
 import { Button } from "@/components/ui/button";
@@ -92,25 +97,67 @@ const providers = [
 ];
 
 const entityTypes = [
-  { id: "league", label: "League" },
-  { id: "team", label: "Team" },
+  { id: "league", label: "League", icon: Layers },
+  { id: "team", label: "Team", icon: Users },
+  { id: "season", label: "Season", icon: Calendar },
 ];
 
-function CoverageDashboard({ sportSlug }: { sportSlug: string }) {
+const leagueCategories = [
+  { id: "all", label: "All Leagues" },
+  { id: "professional", label: "Professional" },
+  { id: "semi_pro", label: "Semi-Pro" },
+  { id: "college", label: "College" },
+  { id: "youth", label: "Youth" },
+  { id: "cup", label: "Cups & Tournaments" },
+  { id: "national_team_competition", label: "National Team Competitions" },
+];
+
+const dataSources = [
+  { id: "all", label: "All Sources", color: "" },
+  { id: "provider", label: "Provider-fed", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+  { id: "grassroots", label: "Grassroots", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+  { id: "admin", label: "Admin-created", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" },
+];
+
+function CoverageDashboard({ sportSlug, sourceFilter }: { sportSlug: string; sourceFilter: string }) {
   const { data: stats, isLoading } = useQuery<CoverageStat[]>({
-    queryKey: ["/api/admin/coverage", sportSlug],
+    queryKey: ["/api/admin/coverage", sportSlug, sourceFilter],
     queryFn: async () => {
-      const params = sportSlug && sportSlug !== "all" ? `?sport=${sportSlug}` : "";
-      const res = await fetch(`/api/admin/coverage${params}`);
+      const params = new URLSearchParams();
+      if (sportSlug && sportSlug !== "all") params.set("sport", sportSlug);
+      if (sourceFilter && sourceFilter !== "all") params.set("source", sourceFilter);
+      const res = await fetch(`/api/admin/coverage?${params}`);
       if (!res.ok) throw new Error("Failed to fetch coverage");
       return res.json();
     },
   });
 
+  const getIcon = (entityType: string) => {
+    switch (entityType) {
+      case "league": return <Layers className="h-4 w-4" />;
+      case "team": return <Users className="h-4 w-4" />;
+      case "national_team": return <Flag className="h-4 w-4" />;
+      case "season": return <Calendar className="h-4 w-4" />;
+      case "cup": return <Trophy className="h-4 w-4" />;
+      default: return <Database className="h-4 w-4" />;
+    }
+  };
+
+  const getLabel = (entityType: string) => {
+    switch (entityType) {
+      case "league": return "Leagues";
+      case "team": return "Teams";
+      case "national_team": return "National Teams";
+      case "season": return "Seasons";
+      case "cup": return "Cups";
+      default: return entityType;
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[1, 2].map((i) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[1, 2, 3].map((i) => (
           <Card key={i} className="animate-pulse">
             <CardHeader className="pb-2">
               <div className="h-4 bg-muted rounded w-20" />
@@ -126,13 +173,13 @@ function CoverageDashboard({ sportSlug }: { sportSlug: string }) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {stats?.map((stat) => (
         <Card key={stat.entityType} data-testid={`coverage-card-${stat.entityType}`}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium capitalize flex items-center gap-2">
-              {stat.entityType === "league" ? <Layers className="h-4 w-4" /> : <Database className="h-4 w-4" />}
-              {stat.entityType}s
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              {getIcon(stat.entityType)}
+              {getLabel(stat.entityType)}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -148,7 +195,7 @@ function CoverageDashboard({ sportSlug }: { sportSlug: string }) {
             </div>
             <Progress value={stat.percentage} className="h-2" />
             <p className="text-xs text-muted-foreground mt-2">
-              {stat.total - stat.mapped} unmapped {stat.entityType}s remaining
+              {stat.total - stat.mapped} gaps remaining
             </p>
           </CardContent>
         </Card>
@@ -159,18 +206,21 @@ function CoverageDashboard({ sportSlug }: { sportSlug: string }) {
 
 function UnmappedEntitiesList({ 
   sportSlug, 
+  sourceFilter,
   onMapEntity 
 }: { 
   sportSlug: string;
+  sourceFilter: string;
   onMapEntity: (entity: UnmappedEntity) => void;
 }) {
-  const [entityType, setEntityType] = useState<'league' | 'team'>('league');
+  const [entityType, setEntityType] = useState<'league' | 'team' | 'season'>('league');
   
   const { data: unmapped, isLoading } = useQuery<UnmappedEntity[]>({
-    queryKey: ["/api/admin/unmapped", entityType, sportSlug],
+    queryKey: ["/api/admin/unmapped", entityType, sportSlug, sourceFilter],
     queryFn: async () => {
       const params = new URLSearchParams({ entityType });
       if (sportSlug && sportSlug !== "all") params.set("sport", sportSlug);
+      if (sourceFilter && sourceFilter !== "all") params.set("source", sourceFilter);
       params.set("limit", "20");
       const res = await fetch(`/api/admin/unmapped?${params}`);
       if (!res.ok) throw new Error("Failed to fetch unmapped");
@@ -181,18 +231,19 @@ function UnmappedEntitiesList({
   return (
     <Card data-testid="unmapped-entities-card">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-yellow-500" />
             Coverage Gaps
           </CardTitle>
-          <Select value={entityType} onValueChange={(v) => setEntityType(v as 'league' | 'team')}>
+          <Select value={entityType} onValueChange={(v) => setEntityType(v as 'league' | 'team' | 'season')}>
             <SelectTrigger className="w-32" data-testid="entity-type-select">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="league">Leagues</SelectItem>
               <SelectItem value="team">Teams</SelectItem>
+              <SelectItem value="season">Seasons</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -773,6 +824,7 @@ export default function ApiMappingPage() {
   const { selectedSportSlug } = useAdminSport();
   const [mappingModalOpen, setMappingModalOpen] = useState(false);
   const [prefillEntity, setPrefillEntity] = useState<UnmappedEntity | null>(null);
+  const [sourceFilter, setSourceFilter] = useState("all");
   const queryClient = useQueryClient();
 
   const handleMapEntity = (entity: UnmappedEntity) => {
@@ -787,20 +839,41 @@ export default function ApiMappingPage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold font-display">Provider Mappings</h1>
             <p className="text-muted-foreground">
               Map external API entities to internal database records
             </p>
           </div>
-          <Button 
-            onClick={() => setMappingModalOpen(true)}
-            data-testid="create-mapping-button"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            New Mapping
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                <SelectTrigger className="w-40" data-testid="source-filter-select">
+                  <SelectValue placeholder="Source..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {dataSources.map((source) => (
+                    <SelectItem key={source.id} value={source.id}>
+                      {source.color ? (
+                        <span className={`px-2 py-0.5 rounded text-xs ${source.color}`}>{source.label}</span>
+                      ) : (
+                        source.label
+                      )}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button 
+              onClick={() => setMappingModalOpen(true)}
+              data-testid="create-mapping-button"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Mapping
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
@@ -816,9 +889,10 @@ export default function ApiMappingPage() {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
-            <CoverageDashboard sportSlug={selectedSportSlug} />
+            <CoverageDashboard sportSlug={selectedSportSlug} sourceFilter={sourceFilter} />
             <UnmappedEntitiesList 
               sportSlug={selectedSportSlug} 
+              sourceFilter={sourceFilter}
               onMapEntity={handleMapEntity}
             />
           </TabsContent>

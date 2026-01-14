@@ -41,6 +41,7 @@ import {
   venues,
   countries,
   sports,
+  seasons,
   auditLogs,
   providerMappings
 } from "@shared/schema";
@@ -112,8 +113,9 @@ export interface IStorage {
   deleteProviderMapping(id: string): Promise<boolean>;
   checkMappingConflict(providerName: string, providerEntityType: string, providerEntityId: string, internalEntityId: string, excludeId?: string): Promise<{ type: 'provider_conflict' | 'internal_conflict'; existingMapping: ProviderMapping } | null>;
   getCoverageStats(sportSlug?: string): Promise<{ entityType: string; total: number; mapped: number; percentage: number }[]>;
-  getUnmappedEntities(entityType: 'league' | 'team', sportSlug?: string, limit?: number): Promise<{ id: string; name: string; entityType: string; sportCode?: string }[]>;
+  getUnmappedEntities(entityType: 'league' | 'team' | 'season', sportSlug?: string, limit?: number): Promise<{ id: string; name: string; entityType: string; sportCode?: string }[]>;
   getAllTeams(): Promise<Team[]>;
+  getAllSeasons(sportSlug?: string): Promise<{ id: string; name: string; leagueId: string }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -710,25 +712,47 @@ export class DatabaseStorage implements IStorage {
     return null;
   }
 
-  async getCoverageStats(sportSlug?: string): Promise<{ entityType: string; total: number; mapped: number; percentage: number }[]> {
+  async getCoverageStats(sportSlug?: string, source?: string): Promise<{ entityType: string; total: number; mapped: number; percentage: number }[]> {
     const leagueList = await this.getAdminLeagues(sportSlug);
+    const leagueIds = new Set(leagueList.map(l => l.id));
     const allTeams = await db.select().from(teams);
-    const allMappings = await db.select().from(providerMappings);
+    const allSeasons = await db.select().from(seasons);
+    let allMappings = await db.select().from(providerMappings);
+    
+    if (source && source !== "all") {
+      const providerSources = ["sportmonks", "opta", "wyscout", "api-football", "flashscore"];
+      const grassrootsSources = ["grassroots", "community", "submission"];
+      const adminSources = ["manual", "admin", "seed"];
+      
+      if (source === "provider") {
+        allMappings = allMappings.filter(m => providerSources.includes(m.providerName));
+      } else if (source === "grassroots") {
+        allMappings = allMappings.filter(m => grassrootsSources.includes(m.providerName));
+      } else if (source === "admin") {
+        allMappings = allMappings.filter(m => adminSources.includes(m.providerName));
+      } else {
+        allMappings = allMappings.filter(m => m.providerName === source);
+      }
+    }
     
     let relevantTeams = allTeams;
+    let relevantSeasons = allSeasons;
     if (sportSlug && sportSlug !== "all") {
-      const leagueIds = new Set(leagueList.map(l => l.id));
       relevantTeams = allTeams.filter(t => t.leagueId && leagueIds.has(t.leagueId));
+      relevantSeasons = allSeasons.filter(s => leagueIds.has(s.leagueId));
     }
     
     const leagueMappings = allMappings.filter(m => m.providerEntityType === "league");
     const teamMappings = allMappings.filter(m => m.providerEntityType === "team");
+    const seasonMappings = allMappings.filter(m => m.providerEntityType === "season");
     
     const mappedLeagueIds = new Set(leagueMappings.map(m => m.internalEntityId));
     const mappedTeamIds = new Set(teamMappings.map(m => m.internalEntityId));
+    const mappedSeasonIds = new Set(seasonMappings.map(m => m.internalEntityId));
     
     const mappedLeaguesCount = leagueList.filter(l => mappedLeagueIds.has(l.id)).length;
     const mappedTeamsCount = relevantTeams.filter(t => mappedTeamIds.has(t.id)).length;
+    const mappedSeasonsCount = relevantSeasons.filter(s => mappedSeasonIds.has(s.id)).length;
     
     return [
       {
@@ -743,10 +767,16 @@ export class DatabaseStorage implements IStorage {
         mapped: mappedTeamsCount,
         percentage: relevantTeams.length > 0 ? Math.round((mappedTeamsCount / relevantTeams.length) * 100) : 0,
       },
+      {
+        entityType: "season",
+        total: relevantSeasons.length,
+        mapped: mappedSeasonsCount,
+        percentage: relevantSeasons.length > 0 ? Math.round((mappedSeasonsCount / relevantSeasons.length) * 100) : 0,
+      },
     ];
   }
 
-  async getUnmappedEntities(entityType: 'league' | 'team', sportSlug?: string, limit?: number): Promise<{ id: string; name: string; entityType: string; sportCode?: string }[]> {
+  async getUnmappedEntities(entityType: 'league' | 'team' | 'season', sportSlug?: string, limit?: number): Promise<{ id: string; name: string; entityType: string; sportCode?: string }[]> {
     const allMappings = await db.select().from(providerMappings);
     const mappedIds = new Set(allMappings.filter(m => m.providerEntityType === entityType).map(m => m.internalEntityId));
     
@@ -757,7 +787,7 @@ export class DatabaseStorage implements IStorage {
         .map(l => ({ id: l.id, name: l.name, entityType: "league", sportCode: l.sportCode }));
       if (limit) unmapped = unmapped.slice(0, limit);
       return unmapped;
-    } else {
+    } else if (entityType === "team") {
       const leagueList = await this.getAdminLeagues(sportSlug);
       const leagueIds = new Set(leagueList.map(l => l.id));
       const allTeams = await db.select().from(teams);
@@ -774,11 +804,40 @@ export class DatabaseStorage implements IStorage {
         });
       if (limit) unmapped = unmapped.slice(0, limit);
       return unmapped;
+    } else {
+      const leagueList = await this.getAdminLeagues(sportSlug);
+      const leagueIds = new Set(leagueList.map(l => l.id));
+      const allSeasons = await db.select().from(seasons);
+      
+      let relevantSeasons = sportSlug && sportSlug !== "all"
+        ? allSeasons.filter(s => leagueIds.has(s.leagueId))
+        : allSeasons;
+      
+      let unmapped = relevantSeasons
+        .filter(s => !mappedIds.has(s.id))
+        .map(s => {
+          const league = leagueList.find(l => l.id === s.leagueId);
+          return { id: s.id, name: s.name, entityType: "season", sportCode: league?.sportCode };
+        });
+      if (limit) unmapped = unmapped.slice(0, limit);
+      return unmapped;
     }
   }
 
   async getAllTeams(): Promise<Team[]> {
     return await db.select().from(teams);
+  }
+
+  async getAllSeasons(sportSlug?: string): Promise<{ id: string; name: string; leagueId: string }[]> {
+    const allSeasons = await db.select().from(seasons);
+    
+    if (sportSlug && sportSlug !== "all") {
+      const leagueList = await this.getAdminLeagues(sportSlug);
+      const leagueIds = new Set(leagueList.map(l => l.id));
+      return allSeasons.filter(s => leagueIds.has(s.leagueId));
+    }
+    
+    return allSeasons;
   }
 }
 

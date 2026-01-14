@@ -868,7 +868,8 @@ export async function registerRoutes(
   app.get("/api/admin/coverage", requireAuth, async (req, res) => {
     try {
       const sportSlug = req.query.sport as string | undefined;
-      const stats = await storage.getCoverageStats(sportSlug);
+      const source = req.query.source as string | undefined;
+      const stats = await storage.getCoverageStats(sportSlug, source);
       res.json(stats);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch coverage stats" });
@@ -879,12 +880,12 @@ export async function registerRoutes(
     try {
       const { entityType, sport, limit } = req.query;
       
-      if (!entityType || (entityType !== 'league' && entityType !== 'team')) {
-        return res.status(400).json({ error: "entityType must be 'league' or 'team'" });
+      if (!entityType || (entityType !== 'league' && entityType !== 'team' && entityType !== 'season')) {
+        return res.status(400).json({ error: "entityType must be 'league', 'team', or 'season'" });
       }
 
       const unmapped = await storage.getUnmappedEntities(
-        entityType as 'league' | 'team',
+        entityType as 'league' | 'team' | 'season',
         sport as string,
         limit ? parseInt(limit as string) : undefined
       );
@@ -920,8 +921,17 @@ export async function registerRoutes(
           teamResults = teamResults.filter(t => t.name.toLowerCase().includes(searchLower));
         }
         res.json(teamResults.slice(0, 50));
+      } else if (entityType === 'season') {
+        const sportSlug = sport as string;
+        let seasonResults = await storage.getAllSeasons(sportSlug);
+        
+        if (search) {
+          const searchLower = (search as string).toLowerCase();
+          seasonResults = seasonResults.filter(s => s.name.toLowerCase().includes(searchLower));
+        }
+        res.json(seasonResults.slice(0, 50));
       } else {
-        res.status(400).json({ error: "entityType must be 'league' or 'team'" });
+        res.status(400).json({ error: "entityType must be 'league', 'team', or 'season'" });
       }
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch internal entities" });
