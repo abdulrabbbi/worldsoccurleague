@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Search, 
-  Filter,
   CheckCircle,
   XCircle,
   Eye,
@@ -9,7 +9,9 @@ import {
   GraduationCap,
   School,
   Users,
-  MapPin
+  MapPin,
+  ArrowUpRight,
+  Loader2
 } from "lucide-react";
 import AdminLayout from "./layout";
 
@@ -18,76 +20,31 @@ interface GrassrootsSubmission {
   type: "college" | "high_school" | "youth" | "adult_amateur" | "pickup";
   entityType: string;
   entityName: string;
-  submittedBy: string;
-  submittedAt: string;
+  submittedById: string;
+  submittedByName: string;
+  createdAt: string;
   status: "pending" | "approved" | "rejected";
-  stateCode: string;
-  city: string;
+  stateCode: string | null;
+  city: string | null;
+  slug: string;
+  shortName: string | null;
+  logo: string | null;
+  countryId: string | null;
+  parentLeagueId: string | null;
+  parentDivisionId: string | null;
+  parentTeamId: string | null;
+  venue: string | null;
+  tier: number | null;
+  ageGroup: string | null;
+  gender: string | null;
   entityData: any;
+  promotedEntityId: string | null;
+  promotedAt: string | null;
+  reviewedById: string | null;
+  reviewedAt: string | null;
+  reviewNotes: string | null;
+  rejectionReason: string | null;
 }
-
-const mockSubmissions: GrassrootsSubmission[] = [
-  {
-    id: "1",
-    type: "college",
-    entityType: "Team",
-    entityName: "UCLA Bruins Men's Soccer",
-    submittedBy: "Sarah Johnson",
-    submittedAt: "2026-01-14T10:30:00Z",
-    status: "pending",
-    stateCode: "CA",
-    city: "Los Angeles",
-    entityData: { conference: "Pac-12", division: "D1" }
-  },
-  {
-    id: "2",
-    type: "youth",
-    entityType: "Team",
-    entityName: "FC Dallas U-15 Academy",
-    submittedBy: "John Smith",
-    submittedAt: "2026-01-14T08:15:00Z",
-    status: "pending",
-    stateCode: "TX",
-    city: "Dallas",
-    entityData: { club: "FC Dallas", ageGroup: "U-15" }
-  },
-  {
-    id: "3",
-    type: "high_school",
-    entityType: "Team",
-    entityName: "Lincoln High School Varsity",
-    submittedBy: "Mike Davis",
-    submittedAt: "2026-01-13T16:45:00Z",
-    status: "pending",
-    stateCode: "NE",
-    city: "Lincoln",
-    entityData: { district: "Lincoln Public Schools", level: "Varsity" }
-  },
-  {
-    id: "4",
-    type: "pickup",
-    entityType: "Session",
-    entityName: "Austin Sunday Pickup",
-    submittedBy: "Chris Lee",
-    submittedAt: "2026-01-13T14:20:00Z",
-    status: "pending",
-    stateCode: "TX",
-    city: "Austin",
-    entityData: { location: "Zilker Park", dayOfWeek: "Sunday" }
-  },
-  {
-    id: "5",
-    type: "adult_amateur",
-    entityType: "Team",
-    entityName: "Portland City FC",
-    submittedBy: "Emily Brown",
-    submittedAt: "2026-01-12T11:00:00Z",
-    status: "approved",
-    stateCode: "OR",
-    city: "Portland",
-    entityData: { league: "UPSL", division: "Northwest" }
-  },
-];
 
 const typeIcons = {
   college: GraduationCap,
@@ -113,16 +70,32 @@ const typeColors = {
   pickup: "bg-pink-100 text-pink-700",
 };
 
+const entityTypeLabels: Record<string, string> = {
+  league: "League",
+  team: "Team",
+  division: "Division",
+  venue: "Venue",
+  season: "Season",
+};
+
 function ReviewModal({ 
   submission, 
   onClose, 
   onApprove, 
-  onReject 
+  onReject,
+  onPromote,
+  isApproving,
+  isRejecting,
+  isPromoting
 }: { 
   submission: GrassrootsSubmission; 
   onClose: () => void;
   onApprove: (notes: string) => void;
   onReject: (reason: string) => void;
+  onPromote: () => void;
+  isApproving: boolean;
+  isRejecting: boolean;
+  isPromoting: boolean;
 }) {
   const [notes, setNotes] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
@@ -141,7 +114,7 @@ function ReviewModal({
             <div>
               <h2 className="text-xl font-bold text-gray-900">{submission.entityName}</h2>
               <p className="text-gray-500">
-                {typeLabels[submission.type]} • {submission.entityType}
+                {typeLabels[submission.type]} • {entityTypeLabels[submission.entityType] || submission.entityType}
               </p>
             </div>
           </div>
@@ -151,36 +124,100 @@ function ReviewModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Submitted By</label>
-              <p className="text-gray-900">{submission.submittedBy}</p>
+              <p className="text-gray-900">{submission.submittedByName}</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Submitted At</label>
               <p className="text-gray-900">
-                {new Date(submission.submittedAt).toLocaleString()}
+                {new Date(submission.createdAt).toLocaleString()}
               </p>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Location</label>
-              <p className="text-gray-900">{submission.city}, {submission.stateCode}</p>
+              <p className="text-gray-900">
+                {submission.city && submission.stateCode 
+                  ? `${submission.city}, ${submission.stateCode}` 
+                  : submission.city || submission.stateCode || "Not specified"}
+              </p>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Type</label>
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm ${typeColors[submission.type]}`}>
-                {typeLabels[submission.type]}
+              <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Entity Type</label>
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
+                {entityTypeLabels[submission.entityType] || submission.entityType}
               </span>
             </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase mb-2">Entity Data</label>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <pre className="text-sm text-gray-700 whitespace-pre-wrap">
-                {JSON.stringify(submission.entityData, null, 2)}
-              </pre>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Slug</label>
+              <p className="text-gray-900 font-mono text-sm">{submission.slug}</p>
             </div>
+            {submission.venue && (
+              <div>
+                <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Venue</label>
+                <p className="text-gray-900">{submission.venue}</p>
+              </div>
+            )}
+            {submission.ageGroup && (
+              <div>
+                <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Age Group</label>
+                <p className="text-gray-900">{submission.ageGroup}</p>
+              </div>
+            )}
+            {submission.gender && (
+              <div>
+                <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Gender</label>
+                <p className="text-gray-900 capitalize">{submission.gender}</p>
+              </div>
+            )}
           </div>
 
-          {!showRejectForm ? (
+          {submission.entityData && Object.keys(submission.entityData).length > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 uppercase mb-2">Additional Data</label>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <pre className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {JSON.stringify(submission.entityData, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
+
+          {submission.status === "approved" && !submission.promotedEntityId && (
+            <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+              <h4 className="font-medium text-green-900 mb-2">Ready for Promotion</h4>
+              <p className="text-sm text-green-700 mb-3">
+                This submission has been approved. You can now promote it to an official {entityTypeLabels[submission.entityType]?.toLowerCase() || submission.entityType}.
+              </p>
+              <button
+                onClick={onPromote}
+                disabled={isPromoting}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+                data-testid="button-promote"
+              >
+                {isPromoting ? <Loader2 size={16} className="animate-spin" /> : <ArrowUpRight size={16} />}
+                Promote to {entityTypeLabels[submission.entityType] || submission.entityType}
+              </button>
+            </div>
+          )}
+
+          {submission.promotedEntityId && (
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+              <h4 className="font-medium text-blue-900 mb-1">Promoted</h4>
+              <p className="text-sm text-blue-700">
+                This submission was promoted to {entityTypeLabels[submission.entityType]?.toLowerCase() || submission.entityType} on{" "}
+                {submission.promotedAt && new Date(submission.promotedAt).toLocaleDateString()}
+              </p>
+              <p className="text-xs text-blue-600 font-mono mt-1">ID: {submission.promotedEntityId}</p>
+            </div>
+          )}
+
+          {submission.status === "rejected" && submission.rejectionReason && (
+            <div className="p-4 bg-red-50 rounded-lg border border-red-100">
+              <h4 className="font-medium text-red-900 mb-1">Rejection Reason</h4>
+              <p className="text-sm text-red-700">{submission.rejectionReason}</p>
+            </div>
+          )}
+
+          {submission.status === "pending" && !showRejectForm && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Review Notes (optional)
@@ -193,7 +230,9 @@ function ReviewModal({
                 data-testid="input-notes"
               />
             </div>
-          ) : (
+          )}
+
+          {submission.status === "pending" && showRejectForm && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Rejection Reason <span className="text-red-500">*</span>
@@ -223,9 +262,9 @@ function ReviewModal({
               className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
               data-testid="button-cancel"
             >
-              Cancel
+              Close
             </button>
-            {!showRejectForm ? (
+            {submission.status === "pending" && !showRejectForm && (
               <>
                 <button
                   type="button"
@@ -239,14 +278,16 @@ function ReviewModal({
                 <button
                   type="button"
                   onClick={() => onApprove(notes)}
-                  className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
+                  disabled={isApproving}
+                  className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
                   data-testid="button-approve"
                 >
-                  <CheckCircle size={18} />
+                  {isApproving ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
                   Approve
                 </button>
               </>
-            ) : (
+            )}
+            {submission.status === "pending" && showRejectForm && (
               <>
                 <button
                   type="button"
@@ -259,11 +300,11 @@ function ReviewModal({
                 <button
                   type="button"
                   onClick={() => onReject(rejectionReason)}
-                  disabled={!rejectionReason.trim()}
+                  disabled={!rejectionReason.trim() || isRejecting}
                   className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   data-testid="button-confirm-reject"
                 >
-                  <XCircle size={18} />
+                  {isRejecting ? <Loader2 size={18} className="animate-spin" /> : <XCircle size={18} />}
                   Confirm Rejection
                 </button>
               </>
@@ -276,29 +317,96 @@ function ReviewModal({
 }
 
 export default function GrassrootsQueuePage() {
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("pending");
   const [selectedSubmission, setSelectedSubmission] = useState<GrassrootsSubmission | null>(null);
 
-  const filteredSubmissions = mockSubmissions.filter(s => {
+  const { data, isLoading } = useQuery<{ submissions: GrassrootsSubmission[] }>({
+    queryKey: ["/api/admin/grassroots/submissions"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/grassroots/submissions");
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async ({ id, notes }: { id: string; notes: string }) => {
+      const res = await fetch(`/api/admin/grassroots/submissions/${id}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes }),
+      });
+      if (!res.ok) throw new Error("Failed to approve");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/grassroots/submissions"] });
+      setSelectedSubmission(null);
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      const res = await fetch(`/api/admin/grassroots/submissions/${id}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
+      if (!res.ok) throw new Error("Failed to reject");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/grassroots/submissions"] });
+      setSelectedSubmission(null);
+    },
+  });
+
+  const promoteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/admin/grassroots/submissions/${id}/promote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Failed to promote");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/grassroots/submissions"] });
+      setSelectedSubmission(null);
+    },
+  });
+
+  const submissions = data?.submissions || [];
+
+  const filteredSubmissions = submissions.filter(s => {
     const matchesSearch = s.entityName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          s.submittedBy.toLowerCase().includes(searchQuery.toLowerCase());
+                          s.submittedByName?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === "all" || s.type === filterType;
     const matchesStatus = filterStatus === "all" || s.status === filterStatus;
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  const pendingCount = mockSubmissions.filter(s => s.status === "pending").length;
+  const pendingCount = submissions.filter(s => s.status === "pending").length;
 
   const handleApprove = (notes: string) => {
-    console.log("Approving:", selectedSubmission?.id, "with notes:", notes);
-    setSelectedSubmission(null);
+    if (selectedSubmission) {
+      approveMutation.mutate({ id: selectedSubmission.id, notes });
+    }
   };
 
   const handleReject = (reason: string) => {
-    console.log("Rejecting:", selectedSubmission?.id, "with reason:", reason);
-    setSelectedSubmission(null);
+    if (selectedSubmission) {
+      rejectMutation.mutate({ id: selectedSubmission.id, reason });
+    }
+  };
+
+  const handlePromote = () => {
+    if (selectedSubmission) {
+      promoteMutation.mutate(selectedSubmission.id);
+    }
   };
 
   return (
@@ -359,75 +467,84 @@ export default function GrassrootsQueuePage() {
             </div>
           </div>
 
-          <div className="divide-y divide-gray-100">
-            {filteredSubmissions.map((submission) => {
-              const Icon = typeIcons[submission.type];
-              return (
-                <div
-                  key={submission.id}
-                  className="p-4 hover:bg-gray-50 transition-colors"
-                  data-testid={`row-submission-${submission.id}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 ${typeColors[submission.type]} rounded-xl flex items-center justify-center`}>
-                        <Icon size={24} />
+          {isLoading ? (
+            <div className="p-8 text-center">
+              <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto" />
+              <p className="text-sm text-gray-500 mt-2">Loading submissions...</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {filteredSubmissions.map((submission) => {
+                const Icon = typeIcons[submission.type] || Users;
+                const colors = typeColors[submission.type] || "bg-gray-100 text-gray-700";
+                return (
+                  <div
+                    key={submission.id}
+                    className="p-4 hover:bg-gray-50 transition-colors"
+                    data-testid={`row-submission-${submission.id}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 ${colors} rounded-xl flex items-center justify-center`}>
+                          <Icon size={24} />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">{submission.entityName}</h3>
+                          <p className="text-sm text-gray-500">
+                            {typeLabels[submission.type] || submission.type} • {entityTypeLabels[submission.entityType] || submission.entityType}
+                            {submission.city && submission.stateCode && ` • ${submission.city}, ${submission.stateCode}`}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Submitted by {submission.submittedByName} • {new Date(submission.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-medium text-gray-900">{submission.entityName}</h3>
-                        <p className="text-sm text-gray-500">
-                          {typeLabels[submission.type]} • {submission.entityType} • {submission.city}, {submission.stateCode}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          Submitted by {submission.submittedBy} • {new Date(submission.submittedAt).toLocaleDateString()}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        {submission.status === "pending" ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-sm rounded-full" data-testid={`status-pending-${submission.id}`}>
+                            <Clock size={14} />
+                            Pending
+                          </span>
+                        ) : submission.status === "approved" ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-sm rounded-full" data-testid={`status-approved-${submission.id}`}>
+                            <CheckCircle size={14} />
+                            {submission.promotedEntityId ? "Promoted" : "Approved"}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-sm rounded-full" data-testid={`status-rejected-${submission.id}`}>
+                            <XCircle size={14} />
+                            Rejected
+                          </span>
+                        )}
+                        <button
+                          onClick={() => setSelectedSubmission(submission)}
+                          className="px-4 py-2 bg-[#1a2d5c] text-white text-sm rounded-lg hover:bg-[#0f1d3d] flex items-center gap-2"
+                          data-testid={`review-${submission.id}`}
+                        >
+                          <Eye size={16} />
+                          Review
+                        </button>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {submission.status === "pending" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-sm rounded-full" data-testid={`status-pending-${submission.id}`}>
-                          <Clock size={14} />
-                          Pending
-                        </span>
-                      ) : submission.status === "approved" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-sm rounded-full" data-testid={`status-approved-${submission.id}`}>
-                          <CheckCircle size={14} />
-                          Approved
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-sm rounded-full" data-testid={`status-rejected-${submission.id}`}>
-                          <XCircle size={14} />
-                          Rejected
-                        </span>
-                      )}
-                      <button
-                        onClick={() => setSelectedSubmission(submission)}
-                        className="px-4 py-2 bg-[#1a2d5c] text-white text-sm rounded-lg hover:bg-[#0f1d3d] flex items-center gap-2"
-                        data-testid={`review-${submission.id}`}
-                      >
-                        <Eye size={16} />
-                        Review
-                      </button>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
 
-            {filteredSubmissions.length === 0 && (
-              <div className="p-8 text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="text-gray-400" size={32} />
+              {filteredSubmissions.length === 0 && !isLoading && (
+                <div className="p-8 text-center">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="text-gray-400" size={32} />
+                  </div>
+                  <h3 className="font-medium text-gray-900">No submissions found</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {filterStatus === "pending" 
+                      ? "All submissions have been reviewed!" 
+                      : "Try adjusting your filters"}
+                  </p>
                 </div>
-                <h3 className="font-medium text-gray-900">No submissions found</h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  {filterStatus === "pending" 
-                    ? "All submissions have been reviewed!" 
-                    : "Try adjusting your filters"}
-                </p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -437,6 +554,10 @@ export default function GrassrootsQueuePage() {
           onClose={() => setSelectedSubmission(null)}
           onApprove={handleApprove}
           onReject={handleReject}
+          onPromote={handlePromote}
+          isApproving={approveMutation.isPending}
+          isRejecting={rejectMutation.isPending}
+          isPromoting={promoteMutation.isPending}
         />
       )}
     </AdminLayout>
