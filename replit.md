@@ -95,6 +95,7 @@ Routes follow a hierarchy pattern with ID + slug combinations for SEO and API-re
 ### API Integrations (Planned)
 - **SportMonks API:** Professional soccer data (leagues, teams, players, matches, standings)
 - **Custom Grassroots API:** Lower-tier and youth soccer data with admin/contributor tools
+- **Stripe:** Payment processing for subscription tiers (not yet configured - user dismissed Replit integration; when ready, either use Replit Stripe connector or request STRIPE_SECRET_KEY as secret)
 
 ### Documentation
 - **docs/HIERARCHY_SPEC.md:** Complete hierarchy specification (Continent → Country → State → City → League → Team) with field names, IDs, required/optional fields, and mapping layer details
