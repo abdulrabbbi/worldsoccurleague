@@ -61,8 +61,8 @@ export default function NotificationsSetup() {
   };
 
   return (
-    <div className="min-h-screen bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm fixed inset-0 z-50">
-      <div className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 space-y-6 animate-in slide-in-from-bottom duration-300">
+    <div className="min-h-screen bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm fixed inset-0 z-50 overflow-y-auto">
+      <div className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 space-y-6 animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-[#1a2d5c] mb-2 font-display">Notifications</h1>
