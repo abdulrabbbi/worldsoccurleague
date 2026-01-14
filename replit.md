@@ -78,6 +78,10 @@ Routes follow a hierarchy pattern with ID + slug combinations for SEO and API-re
 - **SportMonks API:** Professional soccer data (leagues, teams, players, matches, standings)
 - **Custom Grassroots API:** Lower-tier and youth soccer data with admin/contributor tools
 
+### Documentation
+- **docs/HIERARCHY_SPEC.md:** Complete hierarchy specification (Continent → Country → State → City → League → Team) with field names, IDs, required/optional fields, and mapping layer details
+- **docs/API_CONTRACT.md:** Canonical API contract with field mappings, JSON payloads, and type mappings for all systems
+
 ### Build & Development
 - **Vite:** Frontend build tool with React plugin and Tailwind CSS integration
 - **esbuild:** Server bundling for production
