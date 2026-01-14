@@ -49,6 +49,9 @@ export const organizationTypeEnum = pgEnum("organization_type", ["club", "league
 export const verificationStatusEnum = pgEnum("verification_status", ["draft", "review", "verified", "rejected"]);
 export const orgMemberRoleEnum = pgEnum("org_member_role", ["owner", "admin", "editor", "viewer"]);
 export const platformRoleEnum = pgEnum("platform_role", ["user", "partner_admin", "platform_moderator", "platform_admin"]);
+export const teamTypeEnum = pgEnum("team_type", ["club", "national"]);
+export const leagueTypeEnum = pgEnum("league_type", ["professional", "semi_pro", "college", "high_school", "youth", "adult_amateur", "pickup", "cup", "tournament", "national_team_competition"]);
+export const leagueFormatEnum = pgEnum("league_format", ["league", "cup", "tournament", "playoff", "friendly"]);
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -208,6 +211,8 @@ export const teams = pgTable("teams", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   divisionId: varchar("division_id").references(() => divisions.id),
   leagueId: varchar("league_id").references(() => leagues.id),
+  countryId: varchar("country_id").references(() => countries.id),
+  teamType: teamTypeEnum("team_type").default("club"),
   name: text("name").notNull(),
   slug: text("slug").notNull(),
   shortName: text("short_name"),
